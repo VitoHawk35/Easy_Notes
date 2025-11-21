@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MyDemo" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- 自定义主题 -->
+    <style name="MyCustomTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- 自定义属性（如标题栏颜色、文字颜色等） -->
+    </style>
+</resources>

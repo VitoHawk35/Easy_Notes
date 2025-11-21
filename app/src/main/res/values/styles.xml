@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 自定义Dialog动画样式 -->
+    <style name="CustomDialogAnimation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>  <!-- 进入动画 -->
+        <item name="android:windowExitAnimation">@anim/dialog_exit</item>    <!-- 退出动画 -->
+    </style>
+
+    <!-- 自定义Dialog主题 -->
+    <style name="CustomDialogStyle" parent="Theme.AppCompat.Dialog">
+        <!-- 去除标题栏（必须） -->
+        <item name="windowNoTitle">true</item>
+        <!-- 背景透明（避免默认黑色边框） -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 点击外部是否可取消（true=可取消） -->
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <!-- 应用步骤3定义的动画 -->
+        <item name="android:windowAnimationStyle">@style/CustomDialogAnimation</item>
+    </style>
+
+    <!-- 统一样式，在 res/values/styles.xml 中定义 -->
+    <style name="GridItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">80dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>

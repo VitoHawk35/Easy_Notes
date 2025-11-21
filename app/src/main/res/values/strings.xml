@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MyDemo</string>
+    <string name="warehouse">references</string>
+    <string name="hospital">hospital</string>
+    <string name="lorem_ipsum">These references are listed as children of the Barrier in the component tree once they have been defined. If you watch the Blueprint view (with the blue background) in that video, you will see the Barrier jumps in to position (the dotted vertical line which moves from the left edge) as the references are created.To see how this affects things overall, we can now toggle the language selection and see that the Barrier is now positioned to the end of whichever one of the referenced Views (textView1 or textView2) is the wider</string>
+    <string name="btn_toggle_h">切换水平指引线 40%/60%</string>
+    <string name="initial_v_percent">垂直指引线: 30%</string>
+</resources>
