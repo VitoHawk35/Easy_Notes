@@ -12,7 +12,7 @@
         android:theme="@style/Theme.AppCompat.Light"
         tools:targetApi="31">
         <activity
-            android:name=".activity.SplashActivity"
+            android:name=".TestDatabase"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light">
             <intent-filter>
@@ -21,29 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AppMainActivity" />
-
-
-
-        <activity android:name=".activity.SecondActivity" />
-        <activity android:name=".activity.MainActivityLifecycle" />
-        <activity android:name=".ui.ToastActivity" />
-        <activity android:name=".ui.recyclerview.RecyclerViewActivity" />
-        <activity android:name=".ui.dialog.DialogDemoActivity" />
-        <activity android:name=".ui.layout.LayoutActivity" />
-        <activity android:name=".ui.layout.ConstraintLayoutActivity" />
-        <activity android:name=".ui.layout.GridLayoutActivity" />
-        <activity android:name=".ui.layout.LinearLayoutActivity" />
-        <activity android:name=".ui.layout.RelativeLayoutActivity" />
-        <activity android:name=".ui.layout.FrameLayoutActivity" />
-        <activity android:name=".ui.layout.action.GuideLineActivity" />
-        <activity android:name=".data.sp.SharePreferenceActivity" />
-        <activity android:name=".data.database.SQLiteActivity" />
-        <activity android:name=".activity.ImplicitIntentActivity" />
-        <activity android:name=".ui.drawable.DrawableActivity" />
-
-        <activity android:name=".activity.DemoActivity" />
-        <activity android:name=".activity.Demo2Activity"/>
 
     </application>
 

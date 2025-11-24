@@ -1,49 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="10dp"
     android:gravity="center"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/text1"
+    <EditText
+        android:id="@+id/et_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="当前Activity是MainActivityLifecycle"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="224dp"
+        android:ems="10"
+        android:hint="content"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/et_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="142dp"
+        android:ems="10"
+        android:hint="title"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/intent_demo"
+        android:id="@+id/btn_addNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@drawable/btn_bg"
-        android:padding="10dp"
-        android:text="隐式Intent演示" />
+        android:layout_marginTop="104dp"
+        android:text="添加笔记"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.299"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_content" />
 
     <Button
-        android:id="@+id/myButton"
+        android:id="@+id/btn_readTag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Open Second Activity"
-        android:padding="10dp"
-        android:background="@drawable/btn_bg"
-        android:textAllCaps="false" />
+        android:layout_marginTop="32dp"
+        android:text="读出标签"
+        app:layout_constraintStart_toStartOf="@+id/btn_addTag"
+        app:layout_constraintTop_toBottomOf="@+id/btn_addTag" />
 
-    <TextView
-        android:id="@+id/result_id"
+    <Button
+        android:id="@+id/btn_readNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/purple_500"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="32dp"
+        android:text="读出笔记"
+        app:layout_constraintStart_toStartOf="@+id/btn_addNote"
+        app:layout_constraintTop_toBottomOf="@+id/btn_addNote" />
 
+    <Button
+        android:id="@+id/btn_addTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="73dp"
+        android:text="添加标签"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_addNote"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_addNote" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
