@@ -26,6 +26,12 @@ interface TagEntityDao {
     fun delete(vararg tagEntities: TagEntity)
 
     /**
+     * Delete all tag entities from the database.
+     */
+    @Query("DELETE FROM tag")
+    fun deleteAll()
+
+    /**
      * Delete a tag entity by its ID.
      * @param id
      */

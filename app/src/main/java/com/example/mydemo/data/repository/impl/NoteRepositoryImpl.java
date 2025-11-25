@@ -8,6 +8,8 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.example.mydemo.common.exception.DataException;
+import com.example.mydemo.constants.DataExceptionConstants;
 import com.example.mydemo.data.dao.NoteEntityDao;
 import com.example.mydemo.data.dao.TagEntityDao;
 import com.example.mydemo.data.database.NoteDatabase;
@@ -23,7 +25,7 @@ public class NoteRepositoryImpl implements NoteRepository {
 
     private final NoteEntityDao noteEntityDao;
     private final TagEntityDao tagEntityDao;
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public NoteRepositoryImpl(Application application) {
         NoteDatabase noteDatabase = NoteDatabase.getInstance(application);
@@ -31,20 +33,24 @@ public class NoteRepositoryImpl implements NoteRepository {
         this.tagEntityDao = noteDatabase.getTagEntityDao();
     }
 
+    public void closeExecutorService() {
+        executorService.shutdown();
+    }
     @Override
     public void insertNote(NoteEntity... noteEntity) {
         executorService.execute(() -> {
             try {
                 if (noteEntity == null || noteEntity.length == 0) {
-                    return;
+                    throw new DataException(DataExceptionConstants.INVALID_NOTE);
                 }
                 for (NoteEntity note : noteEntity) {
-                    note.setCreateTime(System.currentTimeMillis());
-                    note.setUpdateTime(System.currentTimeMillis());
+                    long now = System.currentTimeMillis();
+                    note.setCreateTime(now);
+                    note.setUpdateTime(now);
                 }
                 noteEntityDao.insert(noteEntity);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED);
             }
         });
     }
@@ -55,9 +61,10 @@ public class NoteRepositoryImpl implements NoteRepository {
             try {
                 noteEntityDao.delete(noteEntity);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED);
             }
         });
+
     }
 
     @Override
@@ -66,7 +73,7 @@ public class NoteRepositoryImpl implements NoteRepository {
             try {
                 noteEntityDao.deleteById(id);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED);
             }
         });
     }
@@ -80,7 +87,7 @@ public class NoteRepositoryImpl implements NoteRepository {
                 }
                 noteEntityDao.update(noteEntity);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED);
             }
         });
     }
@@ -92,7 +99,7 @@ public class NoteRepositoryImpl implements NoteRepository {
             try {
                 tagEntityDao.insert(tagEntity);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED);
             }
         });
 
@@ -104,7 +111,7 @@ public class NoteRepositoryImpl implements NoteRepository {
             try {
                 tagEntityDao.delete(tagEntity);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(DataExceptionConstants.DB_DELETE_DATA_FAILED);
             }
         });
 
@@ -116,9 +123,10 @@ public class NoteRepositoryImpl implements NoteRepository {
             try {
                 tagEntityDao.deleteById(id);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED);
             }
         });
+
 
     }
 
@@ -128,7 +136,7 @@ public class NoteRepositoryImpl implements NoteRepository {
             try {
                 tagEntityDao.update(tagEntity);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED);
             }
         });
     }

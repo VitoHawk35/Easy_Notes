@@ -35,12 +35,32 @@ public class MainActivityViewModel extends AndroidViewModel {
         noteRepository.insertTag(new TagEntity(tagName, color));
     }
 
-    public LiveData<List<NoteEntity>> getNote(){
+    public LiveData<List<NoteEntity>> getNotes(){
         notes = noteRepository.getAllNotesLive();
         return notes;
     }
 
-    public LiveData<List<TagEntity>> getTag() {
+    public LiveData<List<TagEntity>> getTags() {
         return noteRepository.getAllTagsLive();
+    }
+
+    public LiveData<NoteEntity> getNoteById(int id){
+        return noteRepository.getNoteByIdLive(id);
+    }
+
+    public void updateNote(NoteEntity noteEntity){
+        noteRepository.updateNote(noteEntity);
+    }
+
+    public void deleteNote(NoteEntity note) {
+        noteRepository.deleteNote(note);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if(noteRepository instanceof NoteRepositoryImpl){
+            ((NoteRepositoryImpl) noteRepository).closeExecutorService();
+        }
     }
 }

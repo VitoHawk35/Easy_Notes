@@ -71,4 +71,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btn_addNote" />
 
+    <Button
+        android:id="@+id/btn_updateNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="更新笔记"
+        app:layout_constraintBaseline_toBaselineOf="@+id/btn_deleteNote"
+        app:layout_constraintStart_toStartOf="@+id/btn_readTag" />
+
+    <Button
+        android:id="@+id/btn_deleteNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:text="删除笔记"
+        app:layout_constraintStart_toStartOf="@+id/btn_readNote"
+        app:layout_constraintTop_toBottomOf="@+id/btn_readNote" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,48 +12,56 @@ public interface NoteRepository {
 
     /**
      * Insert a new note.
+     *
      * @param noteEntity
      */
     void insertNote(NoteEntity... noteEntity);
 
     /**
      * Delete a note.
+     *
      * @param noteEntity
      */
     void deleteNote(NoteEntity... noteEntity);
 
     /**
      * Delete a note by its ID.
+     *
      * @param id
      */
     void deleteNoteById(int id);
 
     /**
      * Update a note.
+     *
      * @param noteEntity
      */
     void updateNote(NoteEntity... noteEntity);
 
     /**
      * Insert a new tag.
+     *
      * @param tagEntity
      */
     void insertTag(TagEntity... tagEntity);
 
     /**
      * Delete a tag.
+     *
      * @param tagEntity
      */
     void deleteTag(TagEntity... tagEntity);
 
     /**
      * Delete a tag by its ID.
+     *
      * @param id
      */
     void deleteTagById(int id);
 
     /**
      * Update tag.
+     *
      * @param tagEntity
      */
     void updateTag(TagEntity... tagEntity);

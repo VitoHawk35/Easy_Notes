@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "note")
 public class NoteEntity {
-
     @PrimaryKey(autoGenerate = true)
     private Integer id;
     @ColumnInfo
