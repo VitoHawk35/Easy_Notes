@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_round_corner"
+    android:padding="16dp">
+
+    <!-- 1. 标题 (TextView) -->
+
+    <!-- 2. 摘要 (TextView) -->
+
+    <TextView
+        android:id="@+id/textView_note_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="这是笔记的标题" />
+
+    <TextView
+        android:id="@+id/textView_note_summary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="3"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textView_note_title"
+        tools:text="无附加文案" />
+
+    <!-- 3. 时间 (TextView) -->
+    <TextView
+        android:id="@+id/textView_note_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textView_note_summary"
+        tools:text="2025年11月27日" />
+
+    <!-- 4. 置顶图标 (ImageView) -->
+    <ImageView
+        android:id="@+id/imageView_pinned"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_pinned"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/textView_note_time"
+        app:layout_constraintStart_toEndOf="@id/textView_note_time"
+        app:layout_constraintTop_toTopOf="@id/textView_note_time"
+        tools:visibility="visible"
+        android:contentDescription="置顶" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
