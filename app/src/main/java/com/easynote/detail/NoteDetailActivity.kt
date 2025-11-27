@@ -6,11 +6,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import com.easynote.R // 如果包名不同，这里可能会变，按 Alt+Enter 导入
+import com.easynote.R
 import com.easynote.detail.adapter.NotePagerAdapter
 import com.easynote.detail.data.model.NotePage
+import com.easynote.detail.viewmodel.NoteDetailViewModel
 
 class NoteDetailActivity : AppCompatActivity() {
 
@@ -22,20 +24,48 @@ class NoteDetailActivity : AppCompatActivity() {
 
     private val pageList = mutableListOf<NotePage>()
     private lateinit var pagerAdapter: NotePagerAdapter
-    private var isReadOnly = true // 默认只读
+    private var isReadOnly = true
+
+    private val viewModel: NoteDetailViewModel by viewModels()
+    private var currentNoteId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
 
-        initData()
+        currentNoteId = intent.getIntExtra("NOTE_ID", -1)
+//        currentNoteId = 106
+
         initView()
+        initData()
         initListeners()
     }
 
     private fun initData() {
-        pageList.add(NotePage(1, 1, "第一页：左右滑动试试。"))
-        pageList.add(NotePage(2, 2, "第二页：点击右上角更多按钮可以加页。"))
+        if (currentNoteId != -1) {
+            // === 情况 A：编辑旧笔记 ===
+            // 观察 ViewModel 里的数据库查询结果
+            viewModel.getNoteById(currentNoteId).observe(this) { entity ->
+                // 注意：数据库查询是异步的，一开始 entity 可能是 null
+                if (entity != null) {
+                    // 1. 回填标题
+                    etTitle.setText(entity.title)
+
+                    // 2. 让 ViewModel 帮忙解析 JSON 变回 List<NotePage>
+                    val savedPages = viewModel.parsePagesFromJson(entity.content)
+
+                    // 3. 刷新列表
+                    pageList.clear()
+                    pageList.addAll(savedPages)
+                    pagerAdapter.notifyDataSetChanged()
+                }
+            }
+        } else {
+            // === 情况 B：新建笔记 ===
+            // 默认添加一张空白页
+            pageList.add(NotePage(System.currentTimeMillis(), 1, ""))
+            pagerAdapter.notifyDataSetChanged()
+        }
     }
 
     private fun initView() {
@@ -53,14 +83,16 @@ class NoteDetailActivity : AppCompatActivity() {
 
         pagerAdapter.setReadOnlyMode(isReadOnly)
 
-        etTitle.setText("计算机组成原理笔记")
+        etTitle.setText("未命名的笔记")
 
         updateModeState()
     }
 
     private fun initListeners() {
         btnHome.setOnClickListener {
-            finish()
+//            finish()
+            saveData()
+            Toast.makeText(this, "尝试写入数据库...", Toast.LENGTH_SHORT).show()
         }
 
         btnMore.setOnClickListener {
@@ -106,4 +138,28 @@ class NoteDetailActivity : AppCompatActivity() {
 
         // 通知 Adapter 刷新数据的逻辑...
     }
+
+    private fun saveData() {
+        // 如果当前焦点在输入框，先清除焦点以确保内容写入 Model
+        currentFocus?.clearFocus()
+
+        val title = etTitle.text.toString()
+
+        // 简单防呆：如果没有标题且所有页面都是空的，就不保存空文件了
+        // (你可以根据需求去掉这个判断)
+        val isContentEmpty = pageList.all { it.content.isBlank() }
+        if (title.isBlank() && isContentEmpty) {
+            return
+        }
+
+        // 调用 ViewModel 进行保存
+        viewModel.saveNote(currentNoteId, title, pageList)
+    }
+
+    // 6. 【新增】生命周期回调：当页面暂停/退出时自动保存
+    override fun onPause() {
+        super.onPause()
+        saveData()
+    }
+
 }

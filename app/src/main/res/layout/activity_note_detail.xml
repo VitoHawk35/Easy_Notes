@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/folder_bg_blue"
-        android:paddingTop="8dp">
+        android:paddingTop="45dp">
         <ImageView
             android:id="@+id/btnHome"
             android:layout_width="48dp"
