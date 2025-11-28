@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context="com.easynote.home.ui.fragmentimport.SettingsFragment">
+
+    <!-- 1. 笔记排序方式设置 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="笔记排序方式"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Spinner 用于创建下拉菜单 -->
+    <Spinner
+        android:id="@+id/spinner_sort_order"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:entries="@array/sort_order_options" />
+
+    <!-- 2. 列表布局方式设置 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="列表布局方式"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinner_layout_mode"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:entries="@array/layout_mode_options" />
+
+</LinearLayout>

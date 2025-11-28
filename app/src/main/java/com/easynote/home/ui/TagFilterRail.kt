@@ -1,10 +1,9 @@
-package com.easynote.home.ui.home
+package com.easynote.home.ui
 
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.easynote.home.domain.model.TagModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

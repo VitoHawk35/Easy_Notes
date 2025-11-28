@@ -1,4 +1,4 @@
-package com.easynote.home.ui.home
+package com.easynote.home.ui
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.easynote.R // 确保你的 R 文件被正确导入
+import com.example.mydemo.R
 import com.easynote.home.domain.model.TagModel
 
 /**

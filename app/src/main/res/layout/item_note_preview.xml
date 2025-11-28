@@ -68,4 +68,16 @@
         tools:visibility="visible"
         android:contentDescription="置顶" />
 
+    <!-- 5. 用于选择的 CheckBox -->
+    <CheckBox
+        android:id="@+id/checkbox_selection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

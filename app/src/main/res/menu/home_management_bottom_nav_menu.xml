@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_pin"
+        android:icon="@drawable/ic_pinned"
+    android:title="置顶" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@drawable/ic_delete"
+    android:title="删除" />
+
+    <!-- 你还可以添加其他批量操作，比如“移动”、“导出”等 -->
+
+</menu>
