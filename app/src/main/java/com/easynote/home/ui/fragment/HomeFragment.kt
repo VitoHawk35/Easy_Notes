@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.easynote.data.repository.NoteRepository
 import com.easynote.data.repository.TagRepository
-import com.example.mydemo.databinding.FragmentHomeBinding
+import com.easynote.databinding.FragmentHomeBinding
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.core.widget.addTextChangedListener

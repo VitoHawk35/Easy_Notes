@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.mydemo.R
+import com.easynote.R
 
 class AllTagHeaderAdapter(
     private val onAllTagClick: () -> Unit // 用于处理点击事件的回调

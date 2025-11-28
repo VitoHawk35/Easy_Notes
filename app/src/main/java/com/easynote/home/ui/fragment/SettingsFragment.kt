@@ -11,10 +11,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.mydemo.R
+import com.easynote.R
 import com.easynote.data.repository.NoteRepository
 import com.easynote.data.repository.TagRepository
-import com.example.mydemo.databinding.FragmentSettingsBinding // 【重要】导入 ViewBinding 类
+import com.easynote.databinding.FragmentSettingsBinding // 【重要】导入 ViewBinding 类
 import com.easynote.home.ui.HomeViewModel
 import com.easynote.home.ui.LayoutMode
 import com.easynote.home.ui.SortOrder

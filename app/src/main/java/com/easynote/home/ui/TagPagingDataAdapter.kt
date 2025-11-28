@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.mydemo.R
+import com.easynote.R
 import com.easynote.home.domain.model.TagModel
 
 /**
@@ -98,7 +98,7 @@ class TagPagingDataAdapter(
         holder.bind(tag)
     }
 
-    /**
+    /**e
      * Companion object 用于存放静态成员，这里我们定义 DiffUtil.ItemCallback。
      * DiffUtil 是一个工具，能帮助 RecyclerView 高效地计算新旧数据列表之间的差异，
      * 只更新需要变化的部分，而不是刷新整个列表，从而实现流畅的动画和高性能的更新。

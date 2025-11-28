@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.mydemo.R // 确保 R 文件被正确导入
+import com.easynote.R // 确保 R 文件被正确导入
 import com.easynote.home.domain.model.NotePreviewModel
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -10,11 +10,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.mydemo.R
+import com..easynote.R
 import com.easynote.data.repository.NoteRepository
 import com.easynote.data.repository.TagRepository
 import com.easynote.home.ui.fragmentimport.SettingsFragment
-import com.example.mydemo.databinding.ActivityHomeBinding
+import com.easynote.databinding.ActivityHomeBinding
 import kotlinx.coroutines.launch
 
 /**
