@@ -2,6 +2,7 @@ package com.easynote.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
+import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.entity.NoteEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
@@ -51,14 +52,6 @@ interface NoteRepository {
     suspend fun updateNote(vararg noteEntity: NoteEntity)
 
     /**
-     * Update the content of a note.
-     *
-     * @param noteId
-     * @param newContent
-     */
-    suspend fun updateNoteContent(noteId: Long, newContent: String)
-
-    /**
      * Update the favor status of a note by its ID.
      *
      * @param id
@@ -100,6 +93,9 @@ interface NoteRepository {
      * Get all notes with their associated tags as a paging flow.
      * @return Flow<PagingData<NoteWithTags>>
      */
-    fun getAllNoteWithTagsPagingFlow(pageSize: Int): Flow<PagingData<NoteWithTags>>
+    fun getAllNoteWithTagsPagingFlow(
+        pageSize: Int,
+        @NoteOrderWay orderWay: String?
+    ): Flow<PagingData<NoteWithTags>>
 
 }

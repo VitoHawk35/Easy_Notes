@@ -8,8 +8,10 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.entity.NoteEntity
 import com.easynote.data.relation.NoteWithTags
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteEntityDao {
@@ -50,12 +52,6 @@ interface NoteEntityDao {
     suspend fun update(vararg noteEntity: NoteEntity)
 
     /**
-     * Update the content of a note entity by its ID.
-     */
-    @Query("UPDATE note SET content = :newContent, update_time = CURRENT_TIMESTAMP WHERE id = :noteId")
-    suspend fun updateNoteContent(noteId: Long, newContent: String)
-
-    /**
      * Update the favorite status of a note entity by its ID.
      */
     @Query("UPDATE note SET is_favorite = :isFavor WHERE id = :id")
@@ -91,14 +87,12 @@ interface NoteEntityDao {
     fun getNoteWithTagsLive(noteId: Long): LiveData<NoteWithTags?>
 
     /**
-     * Search note entities by keyword in content as LiveData.
+     * Search note entities by keyword in abstract as Flow.
+     *
      */
-    @Query(
-        "SELECT * FROM note " +
-                "WHERE (note.content LIKE '%' || :keyword || '%' OR note.title LIKE '%' || :keyword || '%')" +
-                " ORDER BY note.update_time DESC"
-    )
-    fun searchNotesLive(keyword: String): LiveData<List<NoteEntity>>
+    @Transaction
+    @Query("SELECT * FROM note WHERE abstract LIKE '%' || :query || '%' ORDER BY update_time DESC")
+    fun searchNotesByAbstractFlow(query: String): Flow<List<NoteWithTags>>
 
     /**
      * Get all note entities with paging support.
@@ -110,6 +104,12 @@ interface NoteEntityDao {
      * Get all note entities with their associated tags as a paging source.
      */
     @Transaction
-    @Query("SELECT * FROM note")
-    fun getAllWithTagsPaging(): PagingSource<Int, NoteWithTags>
+    @Query(
+        "SELECT * FROM note ORDER BY" +
+                " CASE WHEN :orderWay = 'UPDATE_TIME_DESC' THEN update_time END DESC," +
+                " CASE WHEN :orderWay = 'UPDATE_TIME_ASC' THEN update_time END ASC," +
+                " CASE WHEN :orderWay = 'TITLE_ASC' THEN title END ASC," +
+                " CASE WHEN :orderWay = 'TITLE_DESC' THEN title END DESC"
+    )
+    fun getAllWithTagsPaging(@NoteOrderWay orderWay: String): PagingSource<Int, NoteWithTags>
 }

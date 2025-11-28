@@ -9,6 +9,8 @@ import androidx.paging.liveData
 import androidx.room.Transaction
 import com.easynote.common.exception.DataException
 import com.easynote.common.constants.DataExceptionConstants
+import com.easynote.data.annotation.NoteOrderWay
+import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
 import com.easynote.data.dao.NoteEntityDao
 import com.easynote.data.dao.NoteTagCrossRefDao
 import com.easynote.data.dao.TagEntityDao
@@ -101,11 +103,6 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         }
     }
 
-    override suspend fun updateNoteContent(noteId: Long, newContent: String) =
-        withContext(Dispatchers.IO) {
-            noteEntityDao.updateNoteContent(noteId, newContent)
-        }
-
     override suspend fun updateNoteFavor(id: Int, isFavor: Boolean) {
         try {
             noteEntityDao.updateFavor(id, isFavor)
@@ -146,7 +143,10 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         return pager.liveData
     }
 
-    override fun getAllNoteWithTagsPagingFlow(pageSize: Int): Flow<PagingData<NoteWithTags>> {
+    override fun getAllNoteWithTagsPagingFlow(
+        pageSize: Int,
+        @NoteOrderWay orderWay: String?
+    ): Flow<PagingData<NoteWithTags>> {
         val pager: Pager<Int, NoteWithTags> = Pager(
             PagingConfig(
                 pageSize = pageSize,
@@ -155,7 +155,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 initialLoadSize = pageSize * 2
             )
         ) {
-            noteEntityDao.getAllWithTagsPaging()
+            noteEntityDao.getAllWithTagsPaging(orderWay ?: ORDER_UPDATE_TIME_DESC)
         }
         return pager.flow
     }

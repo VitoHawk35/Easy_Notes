@@ -13,9 +13,6 @@ data class NoteEntity(
     var title: String? = null,
 
     @ColumnInfo
-    var content: String? = null,
-
-    @ColumnInfo
     var abstract: String? = null,
 
     @ColumnInfo(name = "create_time")

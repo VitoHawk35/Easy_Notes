@@ -2,6 +2,8 @@ package com.easynote.data.repository
 
 import android.content.Context
 import androidx.paging.PagingData
+import com.easynote.data.annotation.NoteOrderWay
+import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
 import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
@@ -55,13 +57,28 @@ interface Repository {
     suspend fun updateNoteContent(noteId: Long, pageIndex: Int, newContent: String)
 
     /**
+     * Update the content of a note.
+     *
+     * @param noteId The ID of the note.
+     * @param newContent The new content for the note.
+     * @param newHTMLContent The new HTML content for the note.
+     * @param imgPath Optional image paths associated with the note.
+     */
+    suspend fun updateNoteContent(
+        noteId: Long,
+        pageIndex: Int,
+        newContent: String,
+        newHTMLContent: String = "",
+        vararg imgPath: String
+    )
+
+    /**
      * Update the tags associated with a specific note.
      *
      * @param noteId The ID of the note.
      * @param tagEntities The list of tag IDs to associate with the note.
      */
     suspend fun updateNoteTags(noteId: Long, tagEntities: List<TagEntity>)
-
 
     /**
      * Mark or unmark a note as favourite.
@@ -76,7 +93,10 @@ interface Repository {
      *
      * @return A Flow emitting PagingData of NoteWithTags.
      */
-    fun getAllNoteWithTagsPagingFlow(pageSize: Int): Flow<PagingData<NoteWithTags>>
+    fun getAllNoteWithTagsPagingFlow(
+        pageSize: Int,
+        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC
+    ): Flow<PagingData<NoteWithTags>>
 
     /**
      * Get the content of a specific page in a note by note ID and page index.
@@ -86,6 +106,14 @@ interface Repository {
      * @return The content of the specified page, or null if not found.
      */
     suspend fun getNoteContentByIdAndPageIndex(noteId: Long, pageIndex: Int): String?
+
+    /**
+     * Search notes by a query string.
+     *
+     * @param query The search query.
+     * @return A Flow emitting a list of NoteWithTags that match the query.
+     */
+    suspend fun searchNotesByQuery(query: String): Flow<List<NoteWithTags>>
 
     /**
      * Modify the order way of notes.

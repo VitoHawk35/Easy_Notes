@@ -10,47 +10,75 @@ import java.io.File
 class FileRepositoryImpl(application: Application) : FileRepository {
     private val context: Context = application.applicationContext
 
-    private fun getFileName(noteId: Long, pageIndex: Int): String {
-        return "${noteId}/${pageIndex}/"
+    private fun getH5FileName(noteId: Long, pageIndex: Int): String {
+        return "${noteId}/${pageIndex}/H5.html"
     }
 
-    override suspend fun insertFile(noteId: Long, pageIndex: Int, content: String) = withContext(
+    private fun getTxtFileName(noteId: Long, pageIndex: Int): String {
+        return "${noteId}/${pageIndex}/content.txt"
+    }
+
+    override suspend fun insertFile(
+        noteId: Long,
+        pageIndex: Int,
+        content: String,
+        htmlContent: String,
+        vararg imgPaths: String
+    ) = withContext(
         Dispatchers.IO
     ) {
-        File(context.filesDir, getFileName(noteId, pageIndex)).apply {
+        File(context.filesDir, getTxtFileName(noteId, pageIndex)).apply {
             parentFile?.mkdirs()
             writeText(content)
+        }
+        File(context.filesDir, getH5FileName(noteId, pageIndex)).apply {
+            parentFile?.mkdirs()
+            writeText(htmlContent)
+        }
+
+        val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
+        if (!imgDir.exists()) {
+            imgDir.mkdirs()
+        }
+
+        for (imgPath in imgPaths) {
+            if (imgPath.isBlank()) continue
+            val src = File(imgPath)
+            if (!src.exists() || !src.isFile) continue
+
+            val dst = File(imgDir, src.name)
+            src.copyTo(dst, overwrite = true)
         }
         return@withContext
     }
 
-    override suspend fun deleteFile(noteId: Long, pageIndex: Int) =
+    override suspend fun deletePage(noteId: Long, pageIndex: Int) =
         withContext(Dispatchers.IO) {
-            val dir = File(context.filesDir, noteId.toString())
+            var dir = File(context.filesDir, "${noteId}/${pageIndex}")
             if (!dir.exists() || !dir.isDirectory) {
                 return@withContext
             }
-            val file = File(dir, "${pageIndex}.txt")
-            if (file.exists()) {
-                file.delete()
+            if (dir.exists()) {
+                dir.delete()
             }
-
-            val filesToShift = dir.listFiles { file ->
-                file.isFile && file.name.endsWith(".txt")
-            }?.mapNotNull { file ->
-                val nameWithoutExt = file.name.substringBefore(".txt")
-                nameWithoutExt.toIntOrNull()?.let { index ->
-                    index to file
-                }
+            dir = File(context.filesDir, noteId.toString())
+            val dirsToShift = dir.listFiles { file ->
+                file.isDirectory
+            }?.mapNotNull { subDir ->
+                val index = subDir.name.toIntOrNull()
+                index?.let { it to subDir }
             }?.filter { (index, _) ->
                 index > pageIndex
             }?.sortedBy { (index, _) ->
                 index
             } ?: emptyList()
 
-            for ((index, file) in filesToShift) {
-                val newFile = File(dir, "{$index - 1}.txt")
-                file.renameTo(newFile)
+            for ((index, subDir) in dirsToShift) {
+                val newIndex = index - 1
+                val newDir = File(dir, newIndex.toString())
+                if (!newDir.exists()) {
+                    subDir.renameTo(newDir)
+                }
             }
         }
 
@@ -66,20 +94,57 @@ class FileRepositoryImpl(application: Application) : FileRepository {
         noteId: Long,
         pageIndex: Int,
         newContent: String
-    ) = withContext(Dispatchers.IO) {
-        val fileName = getFileName(noteId = noteId, pageIndex)
-        val f = File(context.filesDir, fileName)
-        if (f.exists()) {
-            f.delete()
-        }
-        f.writeText(newContent)
+    ) {
+        TODO("Not yet implemented")
     }
 
-    override suspend fun readFile(noteId: Long, pageIndex: Int): String? =
+    override suspend fun updateFile(
+        noteId: Long,
+        pageIndex: Int,
+        content: String,
+        htmlContent: String,
+        vararg imgPaths: String
+    ) = withContext(Dispatchers.IO) {
+        File(context.filesDir, getTxtFileName(noteId, pageIndex)).apply {
+            parentFile?.mkdirs()
+            writeText(content)
+        }
+        File(context.filesDir, getH5FileName(noteId, pageIndex)).apply {
+            parentFile?.mkdirs()
+            writeText(htmlContent)
+        }
+
+        val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
+        if (!imgDir.exists()) {
+            imgDir.mkdirs()
+        }
+
+        for (imgPath in imgPaths) {
+            if (imgPath.isBlank()) continue
+            val src = File(imgPath)
+            if (!src.exists() || !src.isFile) continue
+
+            val dst = File(imgDir, src.name)
+            src.copyTo(dst, overwrite = true)
+        }
+        return@withContext
+    }
+
+    override suspend fun readH5File(noteId: Long, pageIndex: Int): String? =
         withContext(Dispatchers.IO) {
-            val f = File(context.filesDir, getFileName(noteId, pageIndex))
-            return@withContext if (f.exists()) {
-                f.readText()
+            val file = File(context.filesDir, getH5FileName(noteId, pageIndex))
+            return@withContext if (file.exists()) {
+                file.readText()
+            } else {
+                null
+            }
+        }
+
+    override suspend fun readTxtFile(noteId: Long, pageIndex: Int): String? =
+        withContext(Dispatchers.IO) {
+            val file = File(context.filesDir, getTxtFileName(noteId, pageIndex))
+            return@withContext if (file.exists()) {
+                file.readText()
             } else {
                 null
             }
