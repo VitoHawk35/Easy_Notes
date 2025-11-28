@@ -6,10 +6,10 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.mydemo.data.entity.NoteEntity
-import com.example.mydemo.data.entity.TagEntity
-import com.example.mydemo.data.model.NoteModel
+import com.example.mydemo.data.relation.NoteWithTags
 
 @Dao
 interface NoteEntityDao {
@@ -17,37 +17,52 @@ interface NoteEntityDao {
      * Insert a note entity into the database.
      */
     @Insert
-    fun insert(vararg noteEntity: NoteEntity)
+    suspend fun insert(vararg noteEntity: NoteEntity): LongArray
+
+    /**
+     * Insert a single note entity into the database.
+     */
+    @Insert
+    suspend fun insert(noteEntity: NoteEntity): Long
 
     /**
      * Delete a note entity from the database.
      */
     @Delete
-    fun delete(vararg noteEntity: NoteEntity)
+    suspend fun delete(vararg noteEntity: NoteEntity): Int
 
     /**
      * Delete all note entities from the database.
      */
     @Query("DELETE FROM note")
-    fun deleteAll()
+    suspend fun deleteAll()
 
     /**
      * Delete a note entity by its ID.
      */
     @Query("DELETE FROM note WHERE id = :id")
-    fun deleteById(id: Int)
+    suspend fun deleteById(id: Long)
 
     /**
      * Update a note entity in the database.
      */
     @Update
-    fun update(vararg noteEntity: NoteEntity)
+    suspend fun update(vararg noteEntity: NoteEntity)
+
+    /**
+     * Update the favorite status of a note entity by its ID.
+     */
+    @Query("UPDATE note SET is_favorite = :isFavor WHERE id = :id")
+    suspend fun updateFavor(id: Int, isFavor: Boolean)
+
+    @Query("SELECT * FROM note")
+    suspend fun getAll(): List<NoteEntity>
 
     /**
      * Get all note entities as a live list, ordered by update time descending.
      */
     @Query("SELECT * FROM note ORDER BY update_time DESC")
-    fun getAllLive(): LiveData<List<NoteEntity>>
+    fun getAllLive(): LiveData<MutableList<NoteEntity>>
 
     /**
      * Get a note entity by its ID as LiveData.
@@ -56,28 +71,27 @@ interface NoteEntityDao {
     fun getLiveById(id: Int): LiveData<NoteEntity>
 
     /**
-     * Get all note entities with their associated tag information as LiveData.
+     * Get all note entities with their associated tags as LiveData.
      */
-    @Query(
-        "SELECT note.id,note.title,note.content," +
-                "note.create_time,note.update_time,note.is_favorite,tag.name,tag.color " +
-                "FROM note " +
-                "INNER JOIN tag ON note.tag_id = tag.id;"
-    )
-    fun getAllWithTagLive(): LiveData<List<NoteModel>>
+    @Transaction
+    @Query("SELECT * FROM note")
+    fun getAllWithTagsLive(): LiveData<List<NoteWithTags?>>
 
     /**
-     * Get all note entities mapped to their tag entities as LiveData.
+     * Get a note entity with its associated tags by note ID as LiveData.
      */
-    @Query("SELECT * FROM note JOIN tag ON note.tag_id = tag.id WHERE tag.id = :id")
-    fun getTagMapNotes(id: Int): LiveData<Map<TagEntity, NoteEntity>>
+    @Transaction
+    @Query("SELECT * FROM note WHERE id = :noteId")
+    fun getNoteWithTagsLive(noteId: Long): LiveData<NoteWithTags?>
 
     /**
      * Search note entities by keyword in content as LiveData.
      */
-    @Query("SELECT * FROM note " +
-            "WHERE (note.content LIKE '%' || :keyword || '%' OR note.title LIKE '%' || :keyword || '%')" +
-            " ORDER BY note.update_time DESC")
+    @Query(
+        "SELECT * FROM note " +
+                "WHERE (note.content LIKE '%' || :keyword || '%' OR note.title LIKE '%' || :keyword || '%')" +
+                " ORDER BY note.update_time DESC"
+    )
     fun searchNotesLive(keyword: String): LiveData<List<NoteEntity>>
 
     /**
@@ -86,5 +100,10 @@ interface NoteEntityDao {
     @Query("SELECT * FROM note ORDER BY update_time DESC")
     fun getAllPaging(): PagingSource<Int, NoteEntity>
 
-
+    /**
+     * Get all note entities with their associated tags as a paging source.
+     */
+    @Transaction
+    @Query("SELECT * FROM note")
+    fun getAllWithTagsPaging(): PagingSource<Int, NoteWithTags>
 }

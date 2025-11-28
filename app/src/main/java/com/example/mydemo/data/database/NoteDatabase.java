@@ -7,16 +7,19 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.example.mydemo.data.dao.NoteEntityDao;
+import com.example.mydemo.data.dao.NoteTagCrossRefDao;
 import com.example.mydemo.data.dao.TagEntityDao;
 import com.example.mydemo.data.entity.NoteEntity;
+import com.example.mydemo.data.entity.NoteTagCrossRef;
 import com.example.mydemo.data.entity.TagEntity;
 
-@Database(entities = {NoteEntity.class, TagEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {NoteEntity.class, TagEntity.class, NoteTagCrossRef.class}, version = 1, exportSchema = false)
 public abstract class NoteDatabase extends RoomDatabase {
     private static NoteDatabase instance;
+
     public synchronized static NoteDatabase getInstance(Context context) {
-        if(instance == null){
-            instance = Room.databaseBuilder(context.getApplicationContext(),NoteDatabase.class,"note_database")
+        if (instance == null) {
+            instance = Room.databaseBuilder(context.getApplicationContext(), NoteDatabase.class, "note_database")
                     .createFromAsset("note_database.db")
                     .build();
         }
@@ -27,6 +30,7 @@ public abstract class NoteDatabase extends RoomDatabase {
 
     public abstract TagEntityDao getTagEntityDao();
 
+    public abstract NoteTagCrossRefDao getNoteTagCrossRefDao();
 
 
 }

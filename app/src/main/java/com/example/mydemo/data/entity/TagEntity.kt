@@ -1,49 +1,18 @@
-package com.example.mydemo.data.entity;
+package com.example.mydemo.data.entity
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.PrimaryKey;
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "tag")
-public class TagEntity {
+data class TagEntity(
     @PrimaryKey(autoGenerate = true)
-    private Integer id;
+    var id: Long? = null,
+
     @ColumnInfo
-    private String name;
+    var name: String? = "新建标签",
+
     @ColumnInfo
-    private String color;
-
-    public TagEntity() {
-    }
-
-    @Ignore
-    public TagEntity(String name, String color) {
-        this.name = name;
-        this.color = color;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-}
+    var color: String? = "#FFFFFF"
+)

@@ -1,106 +1,105 @@
-package com.example.mydemo.data.repository;
+package com.example.mydemo.data.repository
 
-import androidx.lifecycle.LiveData;
-import androidx.paging.PagingData;
+import androidx.lifecycle.LiveData
+import androidx.paging.PagingData
+import com.example.mydemo.data.entity.NoteEntity
+import com.example.mydemo.data.relation.NoteWithTags
+import kotlinx.coroutines.flow.Flow
 
-import com.example.mydemo.data.entity.NoteEntity;
-import com.example.mydemo.data.entity.TagEntity;
-
-import java.util.List;
-
-public interface NoteRepository {
-
+interface NoteRepository {
     /**
      * Insert a new note.
      *
      * @param noteEntity
      */
-    void insertNote(NoteEntity... noteEntity);
+    suspend fun insertNote(noteEntity: NoteEntity): Long
+
+    /**
+     * Insert a new note with associated tags.
+     *
+     * @param noteWithTags
+     */
+    suspend fun insertNoteWithTags(noteWithTags: NoteWithTags): Long
 
     /**
      * Delete a note.
      *
      * @param noteEntity
      */
-    void deleteNote(NoteEntity... noteEntity);
+    suspend fun deleteNote(vararg noteEntity: NoteEntity): Int
 
     /**
      * Delete a note by its ID.
      *
      * @param id
      */
-    void deleteNoteById(int id);
+    suspend fun deleteNoteById(id: Long)
+
+    /**
+     * Delete a specific page from a note.
+     *
+     * @param noteId
+     * @param pageIndex
+     */
+    suspend fun deleteNotePage(noteId: Long, pageIndex: Int)
 
     /**
      * Update a note.
      *
      * @param noteEntity
      */
-    void updateNote(NoteEntity... noteEntity);
+    suspend fun updateNote(vararg noteEntity: NoteEntity)
 
     /**
-     * Insert a new tag.
+     * Update the content of a note.
      *
-     * @param tagEntity
+     * @param noteId
+     * @param newContent
      */
-    void insertTag(TagEntity... tagEntity);
+    suspend fun updateNoteContent(noteId: Long, newContent: String)
 
     /**
-     * Delete a tag.
-     *
-     * @param tagEntity
-     */
-    void deleteTag(TagEntity... tagEntity);
-
-    /**
-     * Delete a tag by its ID.
+     * Update the favor status of a note by its ID.
      *
      * @param id
+     * @param isFavor
      */
-    void deleteTagById(int id);
+    suspend fun updateNoteFavor(id: Int, isFavor: Boolean)
 
     /**
-     * Update tag.
-     *
-     * @param tagEntity
+     * get all notes as a list.
+     * @return List<NoteEntity>
      */
-    void updateTag(TagEntity... tagEntity);
+    suspend fun getAllNotes(): List<NoteEntity>
+
+    /**
+     * Get a note by its ID.
+     * @return NoteEntity
+     */
+    suspend fun getNoteById(id: Int): NoteEntity
 
     /**
      * Get all notes as LiveData.
      * @return LiveData<List<NoteEntity>>
      */
-    LiveData<NoteEntity> getNoteByIdLive(int id);
+    fun getNoteByIdLive(id: Int): LiveData<NoteEntity>
 
     /**
      * Get all notes as LiveData.
-     * @return LiveData<List<NoteEntity>>
+     * @return LiveData<MutableList<NoteEntity>>
      */
-    LiveData<List<NoteEntity>> getAllNotesLive();
-
-    /**
-     * Get a tag by its ID as LiveData.
-     * @param id
-     * @return LiveData<TagEntity>
-     */
-    LiveData<TagEntity> getTagByIdLive(int id);
-
-    /**
-     * Get all tags as LiveData.
-     * @return LiveData<List<TagEntity>>
-     */
-    LiveData<List<TagEntity>> getAllTagsLive();
+    fun getAllNotesLive(): LiveData<MutableList<NoteEntity>>
 
     /**
      * Get all notes with pagination support.
      * @return LiveData<PagingData<NoteEntity>>
      */
-    LiveData<PagingData<NoteEntity>> getAllNotesPaging(int pageSize);
+    fun getAllNotesPaging(pageSize: Int): LiveData<PagingData<NoteEntity>>
 
     /**
-     * Get all tags with pagination support.
-     * @return LiveData<PagingData<TagEntity>>
+     * Get all notes with their associated tags as a paging flow.
+     * @return Flow<PagingData<NoteWithTags>>
      */
-    LiveData<PagingData<TagEntity>> getAllTagsPaging(int pageSize);
+    fun getAllNoteWithTagsPagingFlow(pageSize: Int): Flow<PagingData<NoteWithTags>>
 
 }

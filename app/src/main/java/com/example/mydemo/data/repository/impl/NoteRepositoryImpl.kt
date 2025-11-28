@@ -1,193 +1,156 @@
-package com.example.mydemo.data.repository.impl;
+package com.example.mydemo.data.repository.impl
 
-import android.app.Application;
+import android.app.Application
+import androidx.lifecycle.LiveData
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.liveData
+import androidx.room.Transaction
+import com.example.mydemo.common.exception.DataException
+import com.example.mydemo.constants.DataExceptionConstants
+import com.example.mydemo.data.dao.NoteEntityDao
+import com.example.mydemo.data.dao.TagEntityDao
+import com.example.mydemo.data.database.NoteDatabase
+import com.example.mydemo.data.entity.NoteEntity
+import com.example.mydemo.data.relation.NoteWithTags
+import com.example.mydemo.data.repository.FileRepository
+import com.example.mydemo.data.repository.NoteRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
-import androidx.lifecycle.LiveData;
-import androidx.paging.Pager;
-import androidx.paging.PagingConfig;
-import androidx.paging.PagingData;
-import androidx.paging.PagingLiveData;
+class NoteRepositoryImpl(application: Application) : NoteRepository {
+    private val noteEntityDao: NoteEntityDao
+    private val tagEntityDao: TagEntityDao
+    private val fileRepository: FileRepository
 
-import com.example.mydemo.common.exception.DataException;
-import com.example.mydemo.constants.DataExceptionConstants;
-import com.example.mydemo.data.dao.NoteEntityDao;
-import com.example.mydemo.data.dao.TagEntityDao;
-import com.example.mydemo.data.database.NoteDatabase;
-import com.example.mydemo.data.entity.NoteEntity;
-import com.example.mydemo.data.entity.TagEntity;
-import com.example.mydemo.data.repository.NoteRepository;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-public class NoteRepositoryImpl implements NoteRepository {
-
-    private final NoteEntityDao noteEntityDao;
-    private final TagEntityDao tagEntityDao;
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    public NoteRepositoryImpl(Application application) {
-        NoteDatabase noteDatabase = NoteDatabase.getInstance(application);
-        this.noteEntityDao = noteDatabase.getNoteEntityDao();
-        this.tagEntityDao = noteDatabase.getTagEntityDao();
+    init {
+        val noteDatabase = NoteDatabase.getInstance(application)
+        this.noteEntityDao = noteDatabase.getNoteEntityDao()
+        this.tagEntityDao = noteDatabase.getTagEntityDao()
+        this.fileRepository = FileRepositoryImpl(application)
     }
 
-    public void closeExecutorService() {
-        executorService.shutdown();
-    }
-    @Override
-    public void insertNote(NoteEntity... noteEntity) {
-        executorService.execute(() -> {
+    override suspend fun insertNote(noteEntity: NoteEntity): Long =
+        withContext(Dispatchers.IO) {
             try {
-                if (noteEntity == null || noteEntity.length == 0) {
-                    throw new DataException(DataExceptionConstants.INVALID_NOTE);
+                val now = System.currentTimeMillis()
+
+                noteEntity.createTime = now
+                noteEntity.updateTime = now
+                if (noteEntity.isFavorite == null) {
+                    noteEntity.isFavorite = false
                 }
-                for (NoteEntity note : noteEntity) {
-                    long now = System.currentTimeMillis();
-                    note.setCreateTime(now);
-                    note.setUpdateTime(now);
-                }
-                noteEntityDao.insert(noteEntity);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED);
+
+                noteEntityDao.insert(noteEntity)
+            } catch (e: Exception) {
+                throw DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED)
             }
-        });
+        }
+
+    @Transaction
+    override suspend fun insertNoteWithTags(noteWithTags: NoteWithTags): Long = withContext(
+        Dispatchers.IO
+    ) {
+        val now = System.currentTimeMillis()
+        noteWithTags.noteEntity?.createTime = now
+        noteWithTags.noteEntity?.updateTime = now
+        if (noteWithTags.noteEntity?.isFavorite == null) {
+            noteWithTags.noteEntity?.isFavorite = false
+        }
+        // TODO: 添加标签关联逻辑
+        noteEntityDao.insert(noteWithTags.noteEntity ?: NoteEntity())
     }
 
-    @Override
-    public void deleteNote(NoteEntity... noteEntity) {
-        executorService.execute(() -> {
+    override suspend fun deleteNote(vararg noteEntity: NoteEntity): Int =
+        withContext(Dispatchers.IO) {
             try {
-                noteEntityDao.delete(noteEntity);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED);
+                noteEntityDao.delete(*noteEntity)
+            } catch (e: Exception) {
+                throw DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED)
             }
-        });
+        }
 
-    }
-
-    @Override
-    public void deleteNoteById(int id) {
-        executorService.execute(() -> {
+    override suspend fun deleteNoteById(id: Long) =
+        withContext(Dispatchers.IO) {
             try {
-                noteEntityDao.deleteById(id);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED);
+                noteEntityDao.deleteById(id)
+            } catch (e: Exception) {
+                throw DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED)
             }
-        });
+        }
+
+    override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
+
     }
 
-    @Override
-    public void updateNote(NoteEntity... noteEntity) {
-        executorService.execute(() -> {
-            try {
-                for (NoteEntity n : noteEntity) {
-                    n.setUpdateTime(System.currentTimeMillis());
-                }
-                noteEntityDao.update(noteEntity);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED);
+    override suspend fun updateNote(vararg noteEntity: NoteEntity) {
+        try {
+            for (n in noteEntity) {
+                n.updateTime = System.currentTimeMillis()
             }
-        });
+            noteEntityDao.update(*noteEntity)
+        } catch (e: Exception) {
+            throw DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED)
+        }
     }
 
-
-    @Override
-    public void insertTag(TagEntity... tagEntity) {
-        executorService.execute(() -> {
-            try {
-                tagEntityDao.insert(tagEntity);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED);
-            }
-        });
-
+    override suspend fun updateNoteContent(noteId: Long, newContent: String) {
+        TODO("Not yet implemented")
     }
 
-    @Override
-    public void deleteTag(TagEntity... tagEntity) {
-        executorService.execute(() -> {
-            try {
-                tagEntityDao.delete(tagEntity);
-            } catch (Exception e) {
-                throw new DataException(DataExceptionConstants.DB_DELETE_DATA_FAILED);
-            }
-        });
-
+    override suspend fun updateNoteFavor(id: Int, isFavor: Boolean) {
+        try {
+            noteEntityDao.updateFavor(id, isFavor)
+        } catch (e: Exception) {
+            throw DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED)
+        }
     }
 
-    @Override
-    public void deleteTagById(int id) {
-        executorService.execute(() -> {
-            try {
-                tagEntityDao.deleteById(id);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED);
-            }
-        });
-
-
+    override suspend fun getAllNotes(): List<NoteEntity> {
+        try {
+            return noteEntityDao.getAll()
+        } catch (e: Exception) {
+            throw DataException(e, DataExceptionConstants.DB_QUERY_DATA_FAILED)
+        }
     }
 
-    @Override
-    public void updateTag(TagEntity... tagEntity) {
-        executorService.execute(() -> {
-            try {
-                tagEntityDao.update(tagEntity);
-            } catch (Exception e) {
-                throw new DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED);
-            }
-        });
+    override suspend fun getNoteById(id: Int): NoteEntity {
+        TODO("Not yet implemented")
     }
 
-    @Override
-    public LiveData<NoteEntity> getNoteByIdLive(int id) {
-        return noteEntityDao.getLiveById(id);
+    override fun getNoteByIdLive(id: Int): LiveData<NoteEntity> {
+        return noteEntityDao.getLiveById(id)
     }
 
-    @Override
-    public LiveData<List<NoteEntity>> getAllNotesLive() {
-        return noteEntityDao.getAllLive();
+    override fun getAllNotesLive(): LiveData<MutableList<NoteEntity>> {
+        return noteEntityDao.getAllLive()
     }
 
-    @Override
-    public LiveData<TagEntity> getTagByIdLive(int id) {
-        return tagEntityDao.getByIdLive(id);
+    override fun getAllNotesPaging(pageSize: Int): LiveData<PagingData<NoteEntity>> {
+        val pager = Pager(
+            PagingConfig(
+                pageSize,
+                pageSize,
+                false,
+                pageSize * 2
+            )
+        ) { noteEntityDao.getAllPaging() }
+        return pager.liveData
     }
 
-    @Override
-    public LiveData<List<TagEntity>> getAllTagsLive() {
-        return tagEntityDao.getAllLive();
+    override fun getAllNoteWithTagsPagingFlow(pageSize: Int): Flow<PagingData<NoteWithTags>> {
+        val pager: Pager<Int, NoteWithTags> = Pager(
+            PagingConfig(
+                pageSize = pageSize,
+                prefetchDistance = pageSize,
+                enablePlaceholders = false,
+                initialLoadSize = pageSize * 2
+            )
+        ) {
+            noteEntityDao.getAllWithTagsPaging()
+        }
+        return pager.flow
     }
-
-    @Override
-    public LiveData<PagingData<NoteEntity>> getAllNotesPaging(int pageSize) {
-        Pager<Integer, NoteEntity> pager = new Pager<>(
-                new PagingConfig(
-                        pageSize,
-                        pageSize,
-                        false,
-                        pageSize * 2
-                ),
-                noteEntityDao::getAllPaging
-        );
-        return PagingLiveData.getLiveData(pager);
-    }
-
-    @Override
-    public LiveData<PagingData<TagEntity>> getAllTagsPaging(int pageSize) {
-        Pager<Integer, TagEntity> paper = new Pager<>(
-                new PagingConfig(
-                        pageSize,
-                        pageSize,
-                        false,
-                        pageSize * 2
-                ),
-                tagEntityDao::getAllPaging
-        );
-        return null;
-    }
-
-
 }
