@@ -1,6 +1,7 @@
 package com.easynote.home.ui
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -28,9 +29,12 @@ sealed interface HomeUiMode {
     data class Managing(val selectedNoteIds: Set<Long>) : HomeUiMode // 管理模式，并持有已选中笔记的ID
 }
 // 设置项的枚举类
-enum class SortOrder {
-    BY_UPDATE_TIME,
-    BY_CREATION_TIME
+enum class SortOrder(val dataLayerValue: String) {
+
+
+    //TODO要修改对应的设置“”对应的string
+    BY_UPDATE_TIME("UPDATE_TIME_DESC"),
+    BY_CREATION_TIME("UPDATE_TIME_ASC")
 }
 // 查询参数类
 data class NoteQuery(
@@ -82,10 +86,12 @@ class HomeViewModel(
         .flatMapLatest { query ->
             // 在调用 repository 时，同时传入筛选条件和排序条件
             // 注意：你需要修改 Repository 和 DAO 来接收 SortOrder 参数
+            Log.d("HomeViewModel", "触发一次flow收集数据")
+            val sortOrderString = query.sortOrder.dataLayerValue
             when (query.filterState) {
                 /////////////////////////////!!!!!!!!!!这个后续还要根据不同筛选状态和数据库同学对接，根据query.searchQuery和query.sortOrder
-                is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(10, "ORDER_UPDATE_TIME_DESC")
-                is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(10, "ORDER_UPDATE_TIME_DESC")
+                is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(10, sortOrderString)
+                is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(10, sortOrderString)
 
             }
         } //监听上流筛选状态和排序方式的repo方法获取对应的笔记数据流

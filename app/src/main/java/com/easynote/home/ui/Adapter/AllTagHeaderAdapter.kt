@@ -1,4 +1,4 @@
-package com.easynote.home.ui
+package com.easynote.home.ui.Adapter
 
 import android.view.LayoutInflater
 import android.view.View

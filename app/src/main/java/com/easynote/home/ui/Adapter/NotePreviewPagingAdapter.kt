@@ -1,4 +1,4 @@
-package com.easynote.home.ui
+package com.easynote.home.ui.Adapter
 
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R // 确保 R 文件被正确导入
 import com.easynote.home.domain.model.NotePreviewModel
+import com.easynote.home.ui.HomeUiMode
 import java.text.SimpleDateFormat
 import java.util.Date
 

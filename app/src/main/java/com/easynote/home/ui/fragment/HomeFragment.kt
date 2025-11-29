@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
 import androidx.core.widget.addTextChangedListener
 import com.easynote.data.repository.impl.NoteRepositoryImpl
 import com.easynote.data.repository.impl.TagRepositoryImpl
+import com.easynote.home.ui.Adapter.NotePreviewPagingAdapter
+import com.easynote.home.ui.Adapter.TagFilterRail
 
 /**
  * 显示笔记列表和筛选栏的主页 Fragment。
@@ -55,6 +58,7 @@ class HomeFragment : Fragment() {
                     // 示例：val action = HomeFragmentDirections.actionHomeToDetail(note.noteId)
                     //       findNavController().navigate(action)
                 }
+
                 is HomeUiMode.Managing -> {
                     // 在管理模式下，点击是切换选中状态
                     viewModel.toggleNoteSelection(note.noteId)
@@ -98,6 +102,7 @@ class HomeFragment : Fragment() {
         setupTagFilterRail()//标签筛选栏
         setupNotesRecyclerView()//笔记预览
         setupSearchListener() // 搜索框
+        setupFab()//添加笔记
         observeViewModel()
     }
 
@@ -106,7 +111,11 @@ class HomeFragment : Fragment() {
      */
     private fun setupTagFilterRail() {
         // 7. 【核心修改】使用 viewLifecycleOwner.lifecycleScope，它的生命周期与 Fragment 的视图绑定。
-        tagFilterRail = TagFilterRail(binding.recyclerViewTagFilter, viewModel, viewLifecycleOwner.lifecycleScope)
+        tagFilterRail = TagFilterRail(
+            binding.recyclerViewTagFilter,
+            viewModel,
+            viewLifecycleOwner.lifecycleScope
+        )
     }
 
     /**
@@ -150,6 +159,9 @@ class HomeFragment : Fragment() {
 
                 // d. 让顶部的菜单栏失效，以便根据新状态重新绘制（比如显示“全选”按钮）
                 requireActivity().invalidateOptionsMenu()
+
+                // e.根据是否是管理模式，来显示或隐藏浮动添加按钮
+                binding.fabAddNote.isVisible = mode !is HomeUiMode.Managing
             }
         }
         // 【新增】观察布局模式的变化，并更新 RecyclerView 的 spanCount
@@ -185,6 +197,16 @@ class HomeFragment : Fragment() {
             viewModel.onSearchQueryChanged(editable.toString())
         }
     }
+    /**
+     * 为浮动添加按钮设置点击事件监听器。
+     */
+    private fun setupFab() {
+        binding.fabAddNote.setOnClickListener {
+            // 点击添加按钮，跳转到笔记详情页，但不传递任何笔记ID（表示是新建笔记）
+            // TODO: 实现跳转逻辑，例如使用 Navigation Component 或 Intent
+        }
+    }
+
     /**
      * 当 Fragment 的视图被销毁时调用。
      * 在这里清理 _binding 以防止内存泄漏。

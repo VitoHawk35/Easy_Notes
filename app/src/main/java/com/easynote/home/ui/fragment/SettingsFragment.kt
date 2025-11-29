@@ -20,7 +20,7 @@ import com.easynote.home.ui.LayoutMode
 import com.easynote.home.ui.SortOrder
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-
+import android.util.Log
 /**
  * 设置页面 Fragment，使用 Spinner 实现下拉菜单来修改应用的排序和布局方式。
  */
@@ -132,6 +132,8 @@ class SettingsFragment : Fragment() {
                 // 只有在新选择的值和 ViewModel 中当前的值不同时才更新，防止重复调用
                 if (viewModel.sortOrder.value != newSortOrder) {
                     viewModel.setSortOrder(newSortOrder)
+                    //更改排序记录下log
+                    Log.d("SettingsFragment", "设置排序方式Sort order changed to: $position")
                 }
             }
 

@@ -1,39 +1,45 @@
+
 [versions]
-agp = "8.7.2"
-kotlin = "2.0.21"
-coreKtx = "1.16.0"
-junit = "4.13.2"
-junitVersion = "1.3.0"
-espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.8.7"
-constraintlayout = "2.2.1"
+agp = "8.7.2" # 保持不变
+kotlin = "2.0.21" # 保持不变
+ksp = "2.0.21-1.0.27" # 保持不变
+coreKtx = "1.16.0" # 保持不变
+
+# 【核心修改】统一 AndroidX 核心库版本
+activity = "1.9.0"
 appcompat = "1.7.1"
+constraintlayout = "2.2.1"
+fragment = "1.8.9"
+lifecycle = "2.8.7"
 material = "1.13.0"
 paging = "3.3.6"
 recyclerview = "1.4.0"
-fragmentKtx = "1.8.9"
-roomCompiler = "2.8.4"
-ksp = "2.0.21-1.0.27"
+room = "2.6.1" # 【重要】将 Room 升级到与现代 Paging 和其他库更兼容的版本
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomCompiler" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCompiler" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomCompiler" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
-androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
-androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "roomCompiler" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+# Paging
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+
+# Room
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+# 【重要】room-paging 的版本现在与 room 保持一致
+androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-

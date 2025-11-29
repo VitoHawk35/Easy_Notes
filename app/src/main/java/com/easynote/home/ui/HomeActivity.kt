@@ -27,11 +27,16 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private val viewModel: HomeViewModel by viewModels {
         object : ViewModelProvider.Factory {
+            // 1. 获取由系统创建的、我们自定义的 Application 实例
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val noteRepository = NoteRepositoryImpl(application)
                 val tagRepository = TagRepositoryImpl(application)
                 @Suppress("UNCHECKED_CAST")
-                return HomeViewModel(application, noteRepository, tagRepository) as T
+                return HomeViewModel(
+                    application,
+                    noteRepository,
+                    tagRepository
+                ) as T
             }
         }
     }
