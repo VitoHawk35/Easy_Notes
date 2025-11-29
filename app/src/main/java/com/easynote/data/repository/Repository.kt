@@ -45,7 +45,7 @@ interface Repository {
      *
      * @param tagId The ID of the tag to delete.
      */
-    suspend fun deleteTagSafelyById(tagId: Int): Boolean
+    suspend fun deleteTagSafelyById(tagId: Long): Boolean
 
     /**
      * Update the content of a specific page in a note.
@@ -69,8 +69,13 @@ interface Repository {
         pageIndex: Int,
         newContent: String,
         newHTMLContent: String = "",
-        vararg imgPath: String
     )
+
+    suspend fun saveImage(
+        noteId: Long,
+        pageIndex: Int,
+        imgPath: String
+    ): String
 
     /**
      * Update the tags associated with a specific note.
@@ -78,7 +83,7 @@ interface Repository {
      * @param noteId The ID of the note.
      * @param tagEntities The list of tag IDs to associate with the note.
      */
-    suspend fun updateNoteTags(noteId: Long, tagEntities: List<TagEntity>)
+    suspend fun updateNoteTags(noteId: Long, vararg tagEntities: TagEntity)
 
     /**
      * Mark or unmark a note as favourite.

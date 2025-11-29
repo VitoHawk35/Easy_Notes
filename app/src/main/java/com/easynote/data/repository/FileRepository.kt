@@ -11,8 +11,13 @@ interface FileRepository {
         pageIndex: Int,
         content: String,
         htmlContent: String,
-        vararg imgPaths: String
     )
+
+    suspend fun saveImage(
+        noteId: Long,
+        pageIndex: Int,
+        imgPath: String
+    ): String
 
     /**
      * Delete a note page.
@@ -43,7 +48,6 @@ interface FileRepository {
         pageIndex: Int,
         content: String,
         htmlContent: String,
-        vararg imgPaths: String
     )
 
     /**

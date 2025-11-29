@@ -16,6 +16,7 @@ import com.easynote.data.dao.NoteTagCrossRefDao
 import com.easynote.data.dao.TagEntityDao
 import com.easynote.data.database.NoteDatabase
 import com.easynote.data.entity.NoteEntity
+import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import com.easynote.data.repository.FileRepository
 import com.easynote.data.repository.NoteRepository
@@ -109,6 +110,20 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         } catch (e: Exception) {
             throw DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED)
         }
+    }
+
+    override suspend fun updateNoteTags(
+        id: Long,
+        vararg tagEntity: TagEntity
+    ) = withContext(Dispatchers.IO) {
+        val list: MutableList<Long> = mutableListOf()
+        for (tag in tagEntity) {
+            if (tag.id != null) {
+                list.add(tag.id!!)
+            }
+        }
+
+        noteTagRefDao.updateNoteTags(id, list)
     }
 
     override suspend fun getAllNotes(): List<NoteEntity> {

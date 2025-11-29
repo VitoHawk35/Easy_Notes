@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.entity.NoteEntity
+import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
 
@@ -58,6 +59,14 @@ interface NoteRepository {
      * @param isFavor
      */
     suspend fun updateNoteFavor(id: Int, isFavor: Boolean)
+
+    /**
+     * Update the tags associated with a note.
+     *
+     * @param id
+     * @param tagEntity
+     */
+    suspend fun updateNoteTags(id: Long, vararg tagEntity: TagEntity)
 
     /**
      * get all notes as a list.

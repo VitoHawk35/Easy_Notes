@@ -12,7 +12,7 @@
         android:theme="@style/Theme.AppCompat.Light"
         tools:targetApi="31">
         <activity
-            android:name="com.easynote.ui.activity.DataTestActivity"
+            android:name="com.easynote.data.test.Activity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light">
             <intent-filter>

@@ -23,7 +23,6 @@ class FileRepositoryImpl(application: Application) : FileRepository {
         pageIndex: Int,
         content: String,
         htmlContent: String,
-        vararg imgPaths: String
     ) = withContext(
         Dispatchers.IO
     ) {
@@ -41,15 +40,25 @@ class FileRepositoryImpl(application: Application) : FileRepository {
             imgDir.mkdirs()
         }
 
-        for (imgPath in imgPaths) {
-            if (imgPath.isBlank()) continue
-            val src = File(imgPath)
-            if (!src.exists() || !src.isFile) continue
-
-            val dst = File(imgDir, src.name)
-            src.copyTo(dst, overwrite = true)
-        }
         return@withContext
+    }
+
+    override suspend fun saveImage(
+        noteId: Long,
+        pageIndex: Int,
+        imgPath: String
+    ): String = withContext(Dispatchers.IO) {
+        val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
+        if (!imgDir.exists()) {
+            imgDir.mkdirs()
+        }
+
+        val src = File(imgPath)
+
+        val dst = File(imgDir, src.name)
+        src.copyTo(dst, overwrite = true)
+
+        dst.absolutePath
     }
 
     override suspend fun deletePage(noteId: Long, pageIndex: Int) =
@@ -103,7 +112,6 @@ class FileRepositoryImpl(application: Application) : FileRepository {
         pageIndex: Int,
         content: String,
         htmlContent: String,
-        vararg imgPaths: String
     ) = withContext(Dispatchers.IO) {
         File(context.filesDir, getTxtFileName(noteId, pageIndex)).apply {
             parentFile?.mkdirs()
@@ -114,19 +122,6 @@ class FileRepositoryImpl(application: Application) : FileRepository {
             writeText(htmlContent)
         }
 
-        val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
-        if (!imgDir.exists()) {
-            imgDir.mkdirs()
-        }
-
-        for (imgPath in imgPaths) {
-            if (imgPath.isBlank()) continue
-            val src = File(imgPath)
-            if (!src.exists() || !src.isFile) continue
-
-            val dst = File(imgDir, src.name)
-            src.copyTo(dst, overwrite = true)
-        }
         return@withContext
     }
 
