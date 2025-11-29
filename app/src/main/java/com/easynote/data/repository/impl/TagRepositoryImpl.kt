@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.easynote.common.exception.DataException
-import com.easynote.common.constants.DataExceptionConstants
+import com.easynote.data.common.exception.DataException
+import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.dao.TagEntityDao
 import com.easynote.data.database.NoteDatabase
 import com.easynote.data.entity.TagEntity

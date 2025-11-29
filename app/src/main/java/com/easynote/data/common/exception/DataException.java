@@ -1,4 +1,4 @@
-package com.easynote.common.exception;
+package com.easynote.data.common.exception;
 
 import androidx.annotation.Nullable;
 

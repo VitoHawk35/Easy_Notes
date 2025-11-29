@@ -1,4 +1,4 @@
-package com.easynote.common.constants;
+package com.easynote.data.common.constants;
 
 public class DataExceptionConstants {
     public static final String DB_INSERT_DATA_FAILED = "插入数据失败";

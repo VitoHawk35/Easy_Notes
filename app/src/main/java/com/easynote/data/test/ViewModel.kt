@@ -18,7 +18,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     fun click() {
         viewModelScope.launch {
-//            val id = repository.createNewNote()
+            val id = repository.createNewNote()
             val pagingData = repository.getAllNoteWithTagsPagingFlow(20)
             Log.d("ViewModel", "Created new note with ID: $pagingData")
         }

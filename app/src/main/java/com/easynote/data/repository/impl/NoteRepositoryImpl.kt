@@ -7,8 +7,8 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.liveData
 import androidx.room.Transaction
-import com.easynote.common.exception.DataException
-import com.easynote.common.constants.DataExceptionConstants
+import com.easynote.data.common.exception.DataException
+import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
 import com.easynote.data.dao.NoteEntityDao
