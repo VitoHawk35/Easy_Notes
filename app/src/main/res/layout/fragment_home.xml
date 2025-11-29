@@ -21,18 +21,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 2. 菜单图标 -->
-    <ImageView
-        android:id="@+id/imageView_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:contentDescription="Menu"
-        android:src="@drawable/ic_menu"
-        app:layout_constraintBottom_toBottomOf="@id/textView_main_title"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/textView_main_title" />
-
     <!-- 3. 搜索框 -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/search_box_container"

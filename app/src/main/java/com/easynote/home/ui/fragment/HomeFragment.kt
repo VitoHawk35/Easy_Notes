@@ -10,12 +10,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.easynote.data.repository.NoteRepository
-import com.easynote.data.repository.TagRepository
 import com.easynote.databinding.FragmentHomeBinding
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.core.widget.addTextChangedListener
+import com.easynote.data.repository.impl.NoteRepositoryImpl
+import com.easynote.data.repository.impl.TagRepositoryImpl
+
 /**
  * 显示笔记列表和筛选栏的主页 Fragment。
  * 这个 Fragment 承载了之前 HomeActivity 的所有 UI 逻辑。
@@ -35,8 +36,8 @@ class HomeFragment : Fragment() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 // 使用 requireActivity().application 来安全地获取 Application 上下文
                 val application = requireActivity().application
-                val noteRepository = NoteRepository(application)
-                val tagRepository = TagRepository(application)
+                val noteRepository = NoteRepositoryImpl(application)
+                val tagRepository = TagRepositoryImpl(application)
                 @Suppress("UNCHECKED_CAST")
                 return HomeViewModel(application, noteRepository, tagRepository) as T
             }

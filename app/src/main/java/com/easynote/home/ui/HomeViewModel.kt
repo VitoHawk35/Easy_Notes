@@ -1,15 +1,17 @@
 package com.easynote.home.ui
 
 import android.app.Application
-import androidx.activity.result.launch
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.domain.model.TagModel
 import com.easynote.data.repository.NoteRepository
 import com.easynote.data.repository.TagRepository
+import com.easynote.data.entity.TagEntity
+import com.easynote.data.relation.NoteWithTags
 import com.easynote.home.mapper.toNotePreviewModel
 import com.easynote.home.mapper.toTagModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -60,7 +62,7 @@ class HomeViewModel(
     private val _layoutMode = MutableStateFlow(LayoutMode.GRID) // 默认是宫格模式
     val layoutMode: StateFlow<LayoutMode> = _layoutMode
     // 2. 标签数据：用于首页预览有哪些标签可供筛选，分页加载所有标签，保持不变。UI可以用它来获取完整的TagModel对象。
-    val tags: Flow<PagingData<TagModel>> = tagRepository.getPagingTags().map{
+    val tags: Flow<PagingData<TagModel>> = tagRepository.getPagingTagsFlow(5).map<PagingData<TagEntity>, PagingData<TagModel>>{
         pagingData: PagingData<TagEntity> -> // 2. 使用 Flow 的 .map 操作符
         // 3. 对 PagingData 内部的每一项 TagEntity 进行转换
         pagingData.map { tagEntity ->
@@ -77,17 +79,18 @@ class HomeViewModel(
             NoteQuery(filter, sort, query) // 将三个状态合并成一个查询对象
         } // 使用 debounce 来防止用户输入过快导致频繁查询数据库
              .debounce(300L) // 只有当用户停止输入300毫秒后，才执行后面的操作
-        .flatMapLatest<NoteQuery, Flow<PagingData<NoteWithTags>>> { query ->
+        .flatMapLatest { query ->
             // 在调用 repository 时，同时传入筛选条件和排序条件
             // 注意：你需要修改 Repository 和 DAO 来接收 SortOrder 参数
-            val queryFlow = when (query.filterState) {
-                is FilterAll -> noteRepository.getPagingNotePreviews(query.sortOrder,query.searchQuery)
-                is FilterByTags -> noteRepository.getPagingNotePreviews(query.filterState.selectedTagIds,query.sortOrder,query.searchQuery)
+            when (query.filterState) {
+                /////////////////////////////!!!!!!!!!!这个后续还要根据不同筛选状态和数据库同学对接，根据query.searchQuery和query.sortOrder
+                is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(10, "ORDER_UPDATE_TIME_DESC")
+                is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(10, "ORDER_UPDATE_TIME_DESC")
+
             }
-            queryFlow
         } //监听上流筛选状态和排序方式的repo方法获取对应的笔记数据流
         // 对上一步流出的 Flow<PagingData<NoteWithTags>> 进行类型映射。
-        .map { pagingData: PagingData<NoteWithTags> ->
+        .map<PagingData<NoteWithTags>, PagingData<NotePreviewModel>> { pagingData: PagingData<NoteWithTags> ->
             // 在 .map 内部，我们对 PagingData 对象进行转换。
             // 这里调用的是 Paging 3 为 PagingData 提供的 map 函数。
             pagingData.map { noteWithTags ->
@@ -198,7 +201,8 @@ class HomeViewModel(
         if (currentMode is HomeUiMode.Managing) {
             val idsToDelete = currentMode.selectedNoteIds
             viewModelScope.launch {
-                noteRepository.deleteNotesByIds(idsToDelete) // 假设Repository有这个方法
+                // TODO: 在这里将设置批量删除
+                // noteRepository.deleteNotesByIds(idsToDelete) // 假设Repository有这个方法
                 exitManagementMode() // 删除后退出管理模式
             }
         }
@@ -215,7 +219,8 @@ class HomeViewModel(
             viewModelScope.launch {
                 // 调用 Repository 的方法来切换置顶状态
                 // 假设 Repository 有一个 togglePinStatusForNotes 方法
-                noteRepository.togglePinStatusForNotes(idsToTogglePin)
+                // TODO: 在这里将设置批量置顶
+                //noteRepository.togglePinStatusForNotes(idsToTogglePin)
                 // 操作完成后，退出管理模式
                 exitManagementMode()
             }

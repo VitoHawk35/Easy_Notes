@@ -10,9 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com..easynote.R
-import com.easynote.data.repository.NoteRepository
-import com.easynote.data.repository.TagRepository
+import com.easynote.R
+import com.easynote.data.repository.impl.NoteRepositoryImpl
+import com.easynote.data.repository.impl.TagRepositoryImpl
 import com.easynote.home.ui.fragmentimport.SettingsFragment
 import com.easynote.databinding.ActivityHomeBinding
 import kotlinx.coroutines.launch
@@ -28,8 +28,8 @@ class HomeActivity : AppCompatActivity() {
     private val viewModel: HomeViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val noteRepository = NoteRepository(application)
-                val tagRepository = TagRepository(application)
+                val noteRepository = NoteRepositoryImpl(application)
+                val tagRepository = TagRepositoryImpl(application)
                 @Suppress("UNCHECKED_CAST")
                 return HomeViewModel(application, noteRepository, tagRepository) as T
             }

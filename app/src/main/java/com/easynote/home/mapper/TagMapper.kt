@@ -8,8 +8,8 @@ import com.easynote.home.domain.model.TagModel    // UI/领域层模型
  */
 fun TagEntity.toTagModel(): TagModel {
     return TagModel(
-        tagId = this.tagId,
-        tagName = this.tagName,
-        color = this.color
+        tagId =requireNotNull(this.id) { "TagEntity.id from database cannot be null" },
+        tagName = this.name ?: "",
+        color =this.color?:"#FFFFFF"
     )
 }

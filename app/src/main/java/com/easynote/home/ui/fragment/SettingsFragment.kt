@@ -12,8 +12,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.easynote.R
-import com.easynote.data.repository.NoteRepository
-import com.easynote.data.repository.TagRepository
+import com.easynote.data.repository.impl.NoteRepositoryImpl
+import com.easynote.data.repository.impl.TagRepositoryImpl
 import com.easynote.databinding.FragmentSettingsBinding // 【重要】导入 ViewBinding 类
 import com.easynote.home.ui.HomeViewModel
 import com.easynote.home.ui.LayoutMode
@@ -35,8 +35,8 @@ class SettingsFragment : Fragment() {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val application = requireActivity().application
-                val noteRepository = NoteRepository(application)
-                val tagRepository = TagRepository(application)
+                val noteRepository = NoteRepositoryImpl(application)
+                val tagRepository = TagRepositoryImpl(application)
                 @Suppress("UNCHECKED_CAST")
                 return HomeViewModel(application, noteRepository, tagRepository) as T
             }

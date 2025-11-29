@@ -1,11 +1,11 @@
 pluginManagement {
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/google' }
-        maven { url 'https://maven.aliyun.com/repository/public' }
-        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
     }
 }
 dependencyResolutionManagement {
@@ -13,8 +13,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()
     }
 }
-
-rootProject.name = "MyDemo"
+rootProject.name = "easynote"
 include ':app'
