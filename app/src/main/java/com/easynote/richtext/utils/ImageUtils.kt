@@ -5,47 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
+import com.easynote.data.repository.Repository
+import com.easynote.data.repository.impl.RepositoryImpl
 import java.io.File
 import kotlin.math.min
 
 object ImageUtils {
 
-
-    fun copyImageToAppStorage(context: Context, sourceUri: Uri) : String? {
-
-        //实际中调用数据层的接口
-
-        try {
-            // 如果已经是 file:// 开头且在应用目录下，直接返回（避免重复拷贝）
-            if (sourceUri.scheme == "file" && sourceUri.path?.contains(context.packageName) == true) {
-                return sourceUri.toString()
-            }
-
-            val inputStream = context.contentResolver.openInputStream(sourceUri) ?: return null
-
-            // 创建存放目录 (建议放在 cache 或 files/images 下)
-            val dir = File(context.filesDir, "images")
-            if (!dir.exists()) dir.mkdirs()
-
-            // 生成新文件名
-            val fileName = "img_${System.currentTimeMillis()}_${java.util.UUID.randomUUID()}.jpg"
-            val destFile = File(dir, fileName)
-
-            // 执行拷贝
-            val outputStream = java.io.FileOutputStream(destFile)
-            inputStream.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
-
-            // 返回 file:// 绝对路径
-            return "file://${destFile.absolutePath}"
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
-    }
 
     /**
      * 自适应加载图片
