@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:innerRadiusRatio="3"
+    android:shape="ring"
+    android:thicknessRatio="8"
+    android:useLevel="false"> <!-- false=固定显示环形，true=配合进度条使用 -->
+    <!-- 内圆半径 = 外圆半径 / 3 -->
+    <!-- 环的厚度 = 外圆半径 / 8 -->
+    <!-- false=固定显示环形，true=配合进度条使用 -->
+    <!-- 环形渐变填充（从红色到橙色）
+    效果：100dp 大小的环形，内圆半径是外圆的 1/3，环厚度是外圆的 1/8，呈现红橙扫描渐变。
+    -->
+    <gradient
+        android:endColor="#FF9800"
+        android:startColor="#FF5722"
+        android:type="sweep" />
+
+</shape>

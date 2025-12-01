@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="primary">#90CAF9</color>
+    <color name="primaryDark">#64B5F6</color>
+    <color name="secondary">#80CBC4</color>
+    <color name="onPrimary">#000000</color>
+    <color name="background">#121212</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="textPrimary">#FFFFFF</color>
+    <color name="textSecondary">#B3FFFFFF</color>
+    <color name="inputBackground">#1C1C1C</color>
+    <color name="error">#EF9A9A</color>
+
+    #笔记详情页的颜色  --by黄科杰
+    #背景色
+    <color name="folder_bg_blue">#2E4F78</color>
+    #home颜色
+    <color name="home_icon_tint">#A0B3C9</color>
+    <color name="bg_color">#FFFFFF</color>
+    <color name="paper_color">#F8F5E6</color>
+    <color name="paper_yellow">#F8F5E6</color>
+    <color name="text_color">#333333</color>
+    <color name="icon_color">#555555</color>
+
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"> <!-- 椭圆形状，配合正方形 size 即为圆形 -->
+
+    <!-- 白色填充（作为头像底色） -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- 灰色边框（宽度 2dp） -->
+    <stroke
+        android:width="2dp"
+        android:color="#EEEEEE" />
+
+    <!-- 固定大小（需与 ImageView 尺寸一致，否则会拉伸） -->
+    <size
+        android:width="80dp"
+        android:height="80dp" />
+
+</shape>

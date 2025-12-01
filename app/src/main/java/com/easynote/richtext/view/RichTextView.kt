@@ -1,0 +1,252 @@
+package com.easynote.richtext.view
+
+import android.content.Context
+import android.net.Uri
+import android.util.AttributeSet
+import android.view.LayoutInflater
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import com.easynote.R
+import android.text.method.ArrowKeyMovementMethod
+import android.text.method.LinkMovementMethod
+
+import com.easynote.richtext.view.impl.RichTextController
+import com.easynote.richtext.utils.AIService
+import com.easynote.richtext.utils.SelectionMenuManager
+
+/**
+ * 富文本编辑器组件
+ * * 使用说明：
+ * 1. 在 XML 中引入此 View
+ * 2. 设置监听器：[setOnRichTextListener]
+ * 3. 设置内容：[setHtml] 或 [html] 属性
+ * 4. 插入图片：[insertImage]
+ */
+class RichTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    // UI 组件
+    private var etContent: EditText
+    private var btnBold: ImageView
+    private var btnItalic: ImageView
+    private var btnCancel: ImageView
+    private var btnRecover: ImageView
+    private var btnAddPicture: ImageView
+    private var btnSave: ImageView
+    private var btnLoad: ImageView
+
+    // 核心逻辑控制器 (延迟初始化)
+    private var controller: RichTextController? = null
+
+    // 缓存初始数据（防止 Controller 还没初始化时外部就调用了 setHtml）
+    private var pendingHtml: String? = null
+
+    private var menuManager: SelectionMenuManager? = null
+    private var aiService: AIService? = null
+
+    // 对外暴露的监听接口
+    interface OnRichTextListener {
+        fun onSave(html: String)           // 点击保存按钮
+        fun onInsertImageRequest()         // 点击插入图片按钮
+        fun onContentChanged(html: String) // 内容实时变更（可选，用于自动保存）
+    }
+
+    private var listener: OnRichTextListener? = null
+
+    // ================== 对外 API ==================
+
+    /**
+     * 设置监听器
+     */
+    fun setOnRichTextListener(listener: OnRichTextListener) {
+        this.listener = listener
+    }
+
+    /**
+     * 获取或设置 HTML 内容
+     */
+    var html: String
+        get() = controller?.exportHtml() ?: ""
+        set(value) {
+            if (controller != null) {
+                // 必须在 View 布局完成后（有宽度）才能加载 HTML
+                post { controller?.loadHtml(value) }
+            } else {
+                pendingHtml = value // 存起来，等初始化好了再加载
+            }
+        }
+
+    /**
+     * 插入图片
+     * @param uri 图片的 Uri
+     */
+    fun insertImage(uri: Uri) {
+        controller?.insertImage(uri)
+    }
+
+    /**
+     * 设置只读模式
+     */
+    fun setReadOnly(readOnly: Boolean) {
+        controller?.isReadOnlyMode = readOnly
+        updateUIForReadOnly(readOnly)
+    }
+
+    /**
+     * [高级] 手动绑定生命周期
+     * 通常不需要调用，组件会自动在 onAttachedToWindow 时查找
+     */
+    fun bindLifecycle(owner: LifecycleOwner) {
+        initController(owner)
+    }
+
+    // ================== 内部逻辑 ==================
+
+    init {
+        LayoutInflater.from(context).inflate(R.layout.rich_text, this, true)
+
+        // 绑定 View
+        etContent = findViewById(R.id.et_content)
+        btnBold = findViewById(R.id.btn_bold)
+        btnItalic = findViewById(R.id.btn_italic)
+        btnCancel = findViewById(R.id.btn_cancel)
+        btnRecover = findViewById(R.id.btn_recover)
+        btnAddPicture = findViewById(R.id.btn_add_image)
+        btnSave = findViewById(R.id.btn_save)
+        btnLoad = findViewById(R.id.btn_load) // 如果设计稿不要这个按钮，可以隐藏
+
+        setupWindowInsets()
+        setupClickListeners()
+        initMenuManager()
+    }
+
+    // 【新】初始化菜单管理器
+    private fun initMenuManager() {
+        menuManager = SelectionMenuManager(this, etContent)
+
+        // 绑定 AI 任务触发事件
+        menuManager?.onAITaskTriggered = { taskType ->
+            val start = etContent.selectionStart
+            val end = etContent.selectionEnd
+            if (start < end) {
+                val text = etContent.text.substring(start, end)
+                // 委托给 AIService 处理
+                aiService?.performAITask(taskType, text, start, end)
+            }
+        }
+    }
+
+    /**
+     * 关键优化：View 附着到窗口时，自动查找生命周期并初始化
+     * 这样使用者就不需要在 Adapter 里手动传 LifecycleOwner 了
+     */
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (controller == null) {
+            val owner = findViewTreeLifecycleOwner()
+            if (owner != null) {
+                initController(owner)
+            }
+        }
+    }
+
+    private fun initController(owner: LifecycleOwner) {
+        if (controller != null) return
+
+        val scope = owner.lifecycleScope
+        controller = RichTextController(etContent, scope).apply {
+            onContentChanged = { html ->
+                listener?.onContentChanged(html)
+            }
+        }
+
+        // 初始化 AIService
+        aiService = AIService(context, controller!!)
+
+        pendingHtml?.let {
+            html = it
+            pendingHtml = null
+        }
+    }
+
+    private fun setupClickListeners() {
+        // 样式操作直接调用 Controller
+        btnBold.setOnClickListener { safeExec { toggleBold() } }
+        btnItalic.setOnClickListener { safeExec { toggleItalic() } }
+        btnCancel.setOnClickListener { safeExec { undo() } }
+        btnRecover.setOnClickListener { safeExec { redo() } }
+
+        // 交互操作回调给外部
+        btnAddPicture.setOnClickListener {
+            if (!isReadOnly()) listener?.onInsertImageRequest()
+        }
+
+        btnSave.setOnClickListener {
+            val currentHtml = controller?.exportHtml() ?: ""
+            listener?.onSave(currentHtml)
+        }
+
+        // 加载按钮通常在自动保存模式下不需要，保留作为重置功能或移除
+        btnLoad.setOnClickListener {
+            // 可选：实现重新加载逻辑
+        }
+    }
+
+    // 辅助方法：确保 Controller 存在且非只读时执行
+    private inline fun safeExec(block: RichTextController.() -> Unit) {
+        if (!isReadOnly()) {
+            controller?.block()
+        }
+    }
+
+    private fun isReadOnly() = controller?.isReadOnlyMode == true
+
+    private fun updateUIForReadOnly(readOnly: Boolean) {
+        // 1. 设置 EditText 属性
+        etContent.keyListener = if (readOnly) null else android.text.method.TextKeyListener.getInstance()
+        etContent.isFocusable = !readOnly
+        etContent.isFocusableInTouchMode = !readOnly
+
+        if (readOnly) {
+            etContent.movementMethod = LinkMovementMethod.getInstance()
+            etContent.clearFocus()
+            // 强制收起键盘
+            (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                ?.hideSoftInputFromWindow(windowToken, 0)
+        } else {
+            etContent.movementMethod = ArrowKeyMovementMethod.getInstance()
+        }
+
+        // 2. 更新按钮视觉状态
+        val alpha = if (readOnly) 0.3f else 1.0f
+        val buttons = listOf(btnBold, btnItalic, btnAddPicture, btnCancel, btnRecover, btnLoad)
+        buttons.forEach { it.alpha = alpha }
+        // Save 按钮通常在只读模式下也允许点击（比如导出），或者你也可以禁掉
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(this) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            view.updatePadding(bottom = insets.bottom)
+            windowInsets
+        }
+    }
+
+
+
+
+
+
+
+}
