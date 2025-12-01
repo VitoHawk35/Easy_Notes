@@ -61,7 +61,7 @@ class HomeFragment : Fragment() {
 
                 is HomeUiMode.Managing -> {
                     // 在管理模式下，点击是切换选中状态
-                    viewModel.toggleNoteSelection(note.noteId)
+                    viewModel.toggleNoteSelection(note.noteId,note.isPinned)
                 }
             }
         },
@@ -69,7 +69,7 @@ class HomeFragment : Fragment() {
         onItemLongClick = { note ->
             // 长按只在浏览模式下触发进入管理模式
             if (viewModel.uiMode.value is HomeUiMode.Browsing) {
-                viewModel.enterManagementMode(note.noteId)
+                viewModel.enterManagementMode(note.noteId,note.isPinned)
                 true // 返回 true 表示事件已被我们消费
             } else {
                 false // 在管理模式下，长按不执行任何操作
@@ -176,7 +176,8 @@ class HomeFragment : Fragment() {
         }
     }
 
-    fun onSelectAllActionClicked() {        val allNoteIds = notePreviewAdapter.snapshot().items.map { it.noteId }
+    fun onSelectAllActionClicked() {
+        val allNoteIds = notePreviewAdapter.snapshot().items.map { it.noteId }
         viewModel.toggleSelectAll(allNoteIds)
     }
 

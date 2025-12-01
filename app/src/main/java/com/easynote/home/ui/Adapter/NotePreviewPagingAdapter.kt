@@ -118,7 +118,7 @@ class NotePreviewPagingAdapter(
                         // 管理模式下，显示复选框
                         selectionCheckbox.visibility = View.VISIBLE
                         // 根据ID是否在选中集合中，来设置复选框的选中状态
-                        selectionCheckbox.isChecked = it.noteId in mode.selectedNoteIds
+                        selectionCheckbox.isChecked = it.noteId in mode.allSelectedIds
                     }
                 }
             }

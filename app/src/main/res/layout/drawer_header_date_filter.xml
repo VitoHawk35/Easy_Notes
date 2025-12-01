@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- 1. 主标题 -->
+    <TextView
+        android:id="@+id/title_date_filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="按日期筛选"
+        android:textSize="22sp"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 2. 开始日期标签 -->
+    <TextView
+        android:id="@+id/label_start_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="开始日期"
+        android:textSize="12sp"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_date_filter" />
+
+    <!-- 3. 开始日期 Spinner 容器 -->
+    <Spinner
+        android:id="@+id/spinner_start_year"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toStartOf="@id/spinner_start_month"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_start_date" />
+
+    <Spinner
+        android:id="@+id/spinner_start_month"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toStartOf="@id/spinner_start_day"
+        app:layout_constraintStart_toEndOf="@id/spinner_start_year"
+        app:layout_constraintTop_toTopOf="@id/spinner_start_year" />
+
+    <Spinner
+        android:id="@+id/spinner_start_day"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/spinner_start_month"
+        app:layout_constraintTop_toTopOf="@id/spinner_start_year" />
+
+    <!-- 4. 结束日期标签 -->
+    <TextView
+        android:id="@+id/label_end_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:dropDownHeight="200dp"
+        android:text="结束日期"
+        android:textSize="12sp"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinner_start_year" />
+
+    <!-- 5. 结束日期 Spinner 容器 -->
+    <Spinner
+        android:id="@+id/spinner_end_year"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toStartOf="@id/spinner_end_month"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_end_date" />
+
+    <Spinner
+        android:id="@+id/spinner_end_month"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toStartOf="@id/spinner_end_day"
+        app:layout_constraintStart_toEndOf="@id/spinner_end_year"
+        app:layout_constraintTop_toTopOf="@id/spinner_end_year" />
+
+    <Spinner
+        android:id="@+id/spinner_end_day"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/spinner_end_month"
+        app:layout_constraintTop_toTopOf="@id/spinner_end_year" />
+
+    <!-- 6. 按钮 -->
+    <Button
+        android:id="@+id/button_clear_date_filter"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:text="清除筛选"
+        app:layout_constraintEnd_toStartOf="@id/button_apply_date_filter"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinner_end_year" />
+
+    <Button
+        android:id="@+id/button_apply_date_filter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="应用筛选"
+        app:layout_constraintBottom_toBottomOf="@id/button_clear_date_filter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/button_clear_date_filter" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,11 +1,16 @@
 package com.easynote.home.ui
 
+import android.icu.util.Calendar
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -15,6 +20,9 @@ import com.easynote.data.repository.impl.NoteRepositoryImpl
 import com.easynote.data.repository.impl.TagRepositoryImpl
 import com.easynote.home.ui.fragmentimport.SettingsFragment
 import com.easynote.databinding.ActivityHomeBinding
+import com.easynote.databinding.DrawerHeaderDateFilterBinding
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 /**
@@ -25,6 +33,7 @@ class HomeActivity : AppCompatActivity() {
 
     // 3. 使用 View Binding 来安全地访问 activity_home.xml 中的视图
     private lateinit var binding: ActivityHomeBinding
+    private lateinit var drawerBinding: DrawerHeaderDateFilterBinding
     private val viewModel: HomeViewModel by viewModels {
         object : ViewModelProvider.Factory {
             // 1. 获取由系统创建的、我们自定义的 Application 实例
@@ -44,6 +53,8 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // 初始化 View Binding
         binding = ActivityHomeBinding.inflate(layoutInflater)
+        // 绑定侧边栏的视图
+        drawerBinding = DrawerHeaderDateFilterBinding.bind(binding.navViewDrawer.getHeaderView(0))
         setContentView(binding.root)
         //设置 Toolbar 作为应用的 ActionBar
         setSupportActionBar(binding.toolbar)
@@ -54,12 +65,13 @@ class HomeActivity : AppCompatActivity() {
         }
         //底部导航栏的Home默认选中
         binding.bottomNavViewBrowse.selectedItemId = R.id.nav_home
+        setupDrawer()//侧边菜单栏
         // 设置预览模式下底部导航栏的点击事件监听器
         setupBrowseBottomNavigation()
         // 设置管理模式下底部导航栏的点击事件监听器
-        setupManagementNavigation()
-        //观察 UI 模式以更新顶部菜单
-        observeUiMode()
+        setupBottomManageNavigation()
+        //观察 UI 模式以更新顶部底部菜单
+        observeViewModelStates()
     }
 
     // 根据uimode加载顶部菜单
@@ -71,9 +83,14 @@ class HomeActivity : AppCompatActivity() {
         }
         return true
     }
+
     // onOptionsItemSelected 来处理菜单项点击
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_menu -> {
+                binding.drawerLayout.openDrawer(GravityCompat.END)
+                true // 返回 true 表示事件已处理
+            }
             // 处理管理模式下的“全选”按钮点击
             R.id.action_select_all -> {
                 val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
@@ -98,14 +115,37 @@ class HomeActivity : AppCompatActivity() {
     /**
      * 观察 ViewModel 的 UI 模式变化，并据此更新 UI。
      */
-    private fun observeUiMode() {
-        lifecycleScope.launch {
-            viewModel.uiMode.collect { mode ->
-                showManagementUI(mode is HomeUiMode.Managing)
+    private fun observeViewModelStates() {
+        //观察更新浏览/管理模式ui
+        viewModel.uiMode.onEach { mode ->
+            showManagementUI(mode is HomeUiMode.Managing)
+        }.launchIn(lifecycleScope)
+        //观察置顶按键ui
+        viewModel.pinActionState.onEach { state ->
+            updatePinActionItem(state)
+        }.launchIn(lifecycleScope)
+    }
+    /**
+     * 更新“置顶/取消置顶”菜单项 UI 的方法。
+     */
+    private fun updatePinActionItem(state: PinActionState) {
+        // 1. 获取底部管理菜单中我们合并后的那个 item
+        val pinMenuItem = binding.bottomNavViewManage.menu.findItem(R.id.action_toggle_pin)
+
+        // 2. 安全地更新它的图标和标题
+        pinMenuItem?.let { item ->
+            when (state) {
+                PinActionState.PIN -> {
+                    item.title = getString(R.string.action_pin)
+                    item.setIcon(R.drawable.ic_pinned) // “置顶”图标
+                }
+                PinActionState.UNPIN -> {
+                    item.title = getString(R.string.action_unpin)
+                    item.setIcon(R.drawable.ic_unpin)   // 假设 ic_unpin 是“取消置顶”图标
+                }
             }
         }
     }
-
     /**
      * 公开方法，供 Fragment 调用，用于切换底部和顶部 UI 的显示。
      * @param show true 表示显示管理模式UI；false 则显示浏览模式UI。
@@ -118,7 +158,7 @@ class HomeActivity : AppCompatActivity() {
             // 【新增】显示返回的叉号图标，并设置标题
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close) // 你需要一个关闭图标
-            supportActionBar?.title = "已选择 ${ (viewModel.uiMode.value as? HomeUiMode.Managing)?.selectedNoteIds?.size ?: 0 } 项"
+            supportActionBar?.title = "已选择 ${ (viewModel.uiMode.value as? HomeUiMode.Managing)?.allSelectedIds?.size ?: 0 } 项"
 
         } else {
             // 退出管理模式
@@ -155,15 +195,15 @@ class HomeActivity : AppCompatActivity() {
     }
 
     /**
-     * 设置管理模式导航栏的点击事件，调用HomeFragment暴露的接口。
+     * 设置管理模式底部导航栏的点击事件，调用HomeFragment暴露的接口。
      */
-    private fun setupManagementNavigation() {
+    private fun setupBottomManageNavigation() {
         binding.bottomNavViewManage.setOnItemSelectedListener { menuItem ->
             val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
             if (currentFragment is HomeFragment) {
                 // 根据点击的按钮ID，调用 Fragment 对应的公开方法
                 when (menuItem.itemId) {
-                    R.id.action_pin -> currentFragment.onPinActionClicked()
+                    R.id.action_toggle_pin -> currentFragment.onPinActionClicked()
                     R.id.action_delete -> currentFragment.onDeleteActionClicked()
                 }
             }
@@ -171,8 +211,128 @@ class HomeActivity : AppCompatActivity() {
             true
         }
     }
+    /**
+     * 【新增】设置侧边栏中所有 Spinner 和按钮的逻辑
+     */
+    private fun setupDrawer() {
+        val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR)
+        val currentMonth = calendar.get(Calendar.MONTH) + 1
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
 
+        // 初始化 Spinner 的 Adapters
+        val yearAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, (currentYear - 10..currentYear).toList().reversed())
+        val monthAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, (1..12).toList())
+        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
+        drawerBinding.spinnerStartYear.adapter = yearAdapter
+        drawerBinding.spinnerEndYear.adapter = yearAdapter
+        drawerBinding.spinnerStartMonth.adapter = monthAdapter
+        drawerBinding.spinnerEndMonth.adapter = monthAdapter
+
+        // 设置 Spinner 监听器
+        val listener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateDaySpinners()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+        drawerBinding.spinnerStartYear.onItemSelectedListener = listener
+        drawerBinding.spinnerStartMonth.onItemSelectedListener = listener
+        drawerBinding.spinnerEndYear.onItemSelectedListener = listener
+        drawerBinding.spinnerEndMonth.onItemSelectedListener = listener
+
+        // 初始化默认日期
+        drawerBinding.spinnerStartYear.setSelection(10) // 默认选中最早的年份
+        drawerBinding.spinnerEndYear.setSelection(0)   // 默认选中当前年份
+        drawerBinding.spinnerStartMonth.setSelection(0) // 1月
+        drawerBinding.spinnerEndMonth.setSelection(currentMonth - 1)
+        updateDaySpinners()
+        drawerBinding.spinnerEndDay.setSelection(currentDay - 1)
+
+        // 设置按钮点击事件
+        drawerBinding.buttonApplyDateFilter.setOnClickListener {
+                // 1. 从开始日期 Spinners 获取时间戳
+                val startTimeStamp = getSelectedTimeStamp(
+                    drawerBinding.spinnerStartYear,
+                    drawerBinding.spinnerStartMonth,
+                    drawerBinding.spinnerStartDay,
+                    isStartOfDay = true // 设置为一天的开始
+                )
+
+                // 2. 从结束日期 Spinners 获取时间戳
+                val endTimeStamp = getSelectedTimeStamp(
+                    drawerBinding.spinnerEndYear,
+                    drawerBinding.spinnerEndMonth,
+                    drawerBinding.spinnerEndDay,
+                    isStartOfDay = false // 设置为一天的结束
+                )
+
+                // 3. 调用 ViewModel 的方法
+                viewModel.applyDateFilter(startTimeStamp, endTimeStamp)
+            // TODO: 从 Spinner 获取选择的年月日，调用 viewModel.applyDateFilter()
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+        }
+        drawerBinding.buttonClearDateFilter.setOnClickListener {
+            viewModel.clearDateFilter()
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+        }
+    }
+    /**
+     * 【新增】一个辅助方法，用于从三个 Spinner 中获取选择的日期并转换为时间戳。
+     * @param isStartOfDay 如果为 true，则将时间设置为 00:00:00；如果为 false，则设置为 23:59:59。
+     * @return 返回计算好的时间戳（Long类型），如果任何一个 Spinner 没有选中项，则返回 null。
+     */
+    private fun getSelectedTimeStamp(
+        yearSpinner: Spinner,
+        monthSpinner: Spinner,
+        daySpinner: Spinner,
+        isStartOfDay: Boolean
+    ): Long? {
+        val year = yearSpinner.selectedItem as? Int
+        val month = monthSpinner.selectedItem as? Int
+        val day = daySpinner.selectedItem as? Int
+
+        if (year != null && month != null && day != null) {
+            return Calendar.getInstance().apply {
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, month - 1) // Calendar 的月份是 0-based
+                set(Calendar.DAY_OF_MONTH, day)
+                if (isStartOfDay) {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                } else {
+                    set(Calendar.HOUR_OF_DAY, 23)
+                    set(Calendar.MINUTE, 59)
+                    set(Calendar.SECOND, 59)
+                    set(Calendar.MILLISECOND, 999)
+                }
+            }.timeInMillis
+        }
+        return null
+    }
+    /**
+     * 【新增】根据选中的年份和月份，动态更新“天”的 Spinner
+     */
+    private fun updateDaySpinners() {
+        updateDaySpinner(drawerBinding.spinnerStartYear, drawerBinding.spinnerStartMonth, drawerBinding.spinnerStartDay)
+        updateDaySpinner(drawerBinding.spinnerEndYear, drawerBinding.spinnerEndMonth, drawerBinding.spinnerEndDay)
+        // TODO: 在这里添加结束日期不能早于开始日期的逻辑
+    }
+
+    private fun updateDaySpinner(yearSpinner: Spinner, monthSpinner: Spinner, daySpinner: Spinner) {
+        val year = yearSpinner.selectedItem as Int
+        val month = monthSpinner.selectedItem as Int
+        val calendar = Calendar.getInstance().apply { set(year, month - 1, 1) }
+        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val dayAdapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_item, (1..daysInMonth).toList())
+        dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        daySpinner.adapter = dayAdapter
+    }
     /**
      * 一个通用的辅助方法，用于在 fragment_container_view 中替换 Fragment。
      * @param fragment 要显示的 Fragment 实例。

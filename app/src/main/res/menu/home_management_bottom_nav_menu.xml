@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_pin"
+        android:id="@+id/action_toggle_pin"
         android:icon="@drawable/ic_pinned"
-    android:title="置顶" />
+        android:title="@string/action_pin" />
 
     <item
         android:id="@+id/action_delete"

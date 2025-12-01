@@ -19,14 +19,25 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-//筛选管理
+//筛选接口
 sealed interface FilterState//抽象筛选状态接口，表明某个属性是不是属于筛选标签的一部分
 data object FilterAll : FilterState//“全部”筛选标签
 data class FilterByTags(val selectedTagIds: Set<Long>) : FilterState //选中的标签
 // UI模式，管理或者预览
 sealed interface HomeUiMode {
     object Browsing : HomeUiMode // 浏览模式
-    data class Managing(val selectedNoteIds: Set<Long>) : HomeUiMode // 管理模式，并持有已选中笔记的ID
+    /**
+     * 管理模式状态，现在包含两个独立的Set来跟踪置顶和非置顶的选中项。
+     */
+    data class Managing(
+        val selectedPinnedIds: Set<Long> = emptySet(),//选中的已置顶笔记集合
+        val selectedUnpinnedIds: Set<Long> = emptySet()//选中的未置顶笔记集合
+    ) : HomeUiMode {
+        // 用于获取所有选中的ID
+        val allSelectedIds: Set<Long> get() = selectedPinnedIds + selectedUnpinnedIds
+        // 判断当前是否有选中项
+        val isSelectionEmpty: Boolean get() = selectedPinnedIds.isEmpty() && selectedUnpinnedIds.isEmpty()
+    }
 }
 // 设置项的枚举类
 enum class SortOrder(val dataLayerValue: String) {
@@ -40,11 +51,20 @@ enum class SortOrder(val dataLayerValue: String) {
 data class NoteQuery(
     val filterState: FilterState,//筛选栏
     val sortOrder: SortOrder,//排序方式
-    val searchQuery: String = "" // 默认搜索为空
+    val searchQuery: String= "", // 默认搜索为空
+    val startDate: Long? = null, // 开始时间戳，默认为空
+    val endDate: Long? = null   // 结束时间戳，默认为空
 )
+//笔记预览的排列模式
 enum class LayoutMode {
     LIST, // 列表模式 (spanCount = 1)
     GRID  // 宫格模式 (spanCount = 2)
+}
+//管理模式下底部菜单栏置顶/取消置顶按钮应该处于的状态
+
+enum class PinActionState {
+    PIN,    // 应该显示“置顶”图标，执行置顶操作
+    UNPIN   // 应该显示“取消置顶”图标，执行取消置顶操作
 }
 class HomeViewModel(
     application: Application,
@@ -54,6 +74,18 @@ class HomeViewModel(
     //通过stateflow管理当前ui模式
     private val _uiMode = MutableStateFlow<HomeUiMode>(HomeUiMode.Browsing)
     val uiMode: StateFlow<HomeUiMode> = _uiMode
+    //管理置顶//取消置顶按键，当选中的标签的置顶非置顶集合发生变化时，底部按键也自动变化。
+    val pinActionState: StateFlow<PinActionState> = combine(uiMode) { (mode) ->
+        if (mode is HomeUiMode.Managing && mode.selectedUnpinnedIds.isNotEmpty()) {
+            PinActionState.PIN
+        } else {
+            PinActionState.UNPIN
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PinActionState.PIN
+    )
     // 1筛选状态：管理当前的筛选模式。默认是选中“全部”。
     private val _filterState = MutableStateFlow<FilterState>(FilterAll)
     val filterState: StateFlow<FilterState> = _filterState
@@ -66,6 +98,8 @@ class HomeViewModel(
     private val _layoutMode = MutableStateFlow(LayoutMode.GRID) // 默认是宫格模式
     val layoutMode: StateFlow<LayoutMode> = _layoutMode
     // 2. 标签数据：用于首页预览有哪些标签可供筛选，分页加载所有标签，保持不变。UI可以用它来获取完整的TagModel对象。
+    private val _dateRange = MutableStateFlow<Pair<Long?, Long?>>(null to null)    // 监听笔记日期范围状态
+    val dateRange: StateFlow<Pair<Long?, Long?>> = _dateRange;
     val tags: Flow<PagingData<TagModel>> = tagRepository.getPagingTagsFlow(5).map<PagingData<TagEntity>, PagingData<TagModel>>{
         pagingData: PagingData<TagEntity> -> // 2. 使用 Flow 的 .map 操作符
         // 3. 对 PagingData 内部的每一项 TagEntity 进行转换
@@ -79,22 +113,39 @@ class HomeViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val notePreviews: Flow<PagingData<NotePreviewModel>> =
         // 2. combine监听三个流：筛选、排序和搜索
-        combine(_filterState, _sortOrder, _searchQuery) { filter, sort, query ->
-            NoteQuery(filter, sort, query) // 将三个状态合并成一个查询对象
-        } // 使用 debounce 来防止用户输入过快导致频繁查询数据库
-             .debounce(300L) // 只有当用户停止输入300毫秒后，才执行后面的操作
+        combine(_filterState, _sortOrder, _searchQuery,_dateRange) {
+            filter, sort, query,dateRange ->
+            NoteQuery(filter, sort, query,dateRange.first,dateRange.second) // 将三个状态合并成一个查询对象
+        }.debounce(300L) //使用 debounce 来防止用户输入过快导致频繁查询数据库只有当用户停止输入300毫秒后，才执行后面的操作
         .flatMapLatest { query ->
             // 在调用 repository 时，同时传入筛选条件和排序条件
-            // 注意：你需要修改 Repository 和 DAO 来接收 SortOrder 参数
             Log.d("HomeViewModel", "触发一次flow收集数据")
             val sortOrderString = query.sortOrder.dataLayerValue
-            when (query.filterState) {
-                /////////////////////////////!!!!!!!!!!这个后续还要根据不同筛选状态和数据库同学对接，根据query.searchQuery和query.sortOrder
-                is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(10, sortOrderString)
-                is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(10, sortOrderString)
-
+            when (val filterState = query.filterState) {
+                is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(
+                    10, sortOrderString
+                )
+                is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(
+                    10, sortOrderString
+                )
+                // TODO:要改对应的repo接口返回对应筛选的笔记
+                /*is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(
+                        tagIds = null, // 传入 null 表示不按标签筛选
+                        sortOrder = sortOrderString,
+                        searchQuery = query.searchQuery,
+                        startDate = query.startDate,
+                        endDate = query.endDate
+                    )
+                    is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(
+                        tagIds = filterState.selectedTagIds, // 传入具体的标签ID集合
+                        sortOrder = sortOrderString,
+                        searchQuery = query.searchQuery,
+                        startDate = query.startDate,
+                        endDate = query.endDate
+                    )*/
             }
-        } //监听上流筛选状态和排序方式的repo方法获取对应的笔记数据流
+
+            } //监听上流筛选状态和排序方式的repo方法获取对应的笔记数据流
         // 对上一步流出的 Flow<PagingData<NoteWithTags>> 进行类型映射。
         .map<PagingData<NoteWithTags>, PagingData<NotePreviewModel>> { pagingData: PagingData<NoteWithTags> ->
             // 在 .map 内部，我们对 PagingData 对象进行转换。
@@ -116,6 +167,14 @@ class HomeViewModel(
         if (_filterState.value !is FilterAll) {
             _filterState.value = FilterAll
         }
+    }
+    // 处理侧边栏日期筛选
+    fun applyDateFilter(start: Long?, end: Long?) {
+        _dateRange.value = start to end
+    }
+    //清除日期筛选
+    fun clearDateFilter() {
+        _dateRange.value = null to null
     }
     /**
      * 当用户修改排序方式
@@ -166,12 +225,18 @@ class HomeViewModel(
     /**
      * 当用户长按笔记，进入管理模式时调用。
      * @param noteId 第一个被选中的笔记的ID。
+     * @param isPinned 第一个被选中的笔记的置顶状态。
      */
-    fun enterManagementMode(noteId: Long) {
-        _uiMode.value = HomeUiMode.Managing(selectedNoteIds = setOf(noteId))
+    fun enterManagementMode(noteId: Long, isPinned: Boolean) {
+        val initialState = if (isPinned) {
+            HomeUiMode.Managing(selectedPinnedIds = setOf(noteId))
+        } else {
+            HomeUiMode.Managing(selectedUnpinnedIds = setOf(noteId))
+        }
+        _uiMode.value = initialState
     }
     /**
-     * 当用户在管理模式下点击返回或完成时，退出管理模式。
+     * 退出管理模式
      */
     fun exitManagementMode() {
         _uiMode.value = HomeUiMode.Browsing
@@ -179,22 +244,40 @@ class HomeViewModel(
 
     /**
      * 在管理模式下，当用户点击一个笔记项时调用。
+     * 这个方法现在只在内存中操作 Set，无需访问数据库。
      * @param noteId 被点击的笔记的ID。
+     * @param isPinned 被点击的笔记的置顶状态。
      */
-    fun toggleNoteSelection(noteId: Long) {
+    fun toggleNoteSelection(noteId: Long, isPinned: Boolean) {
         val currentMode = _uiMode.value
         if (currentMode is HomeUiMode.Managing) {
-            val currentSelectedIds = currentMode.selectedNoteIds.toMutableSet()
-            if (noteId in currentSelectedIds) {
-                currentSelectedIds.remove(noteId)
+            val newPinnedIds = currentMode.selectedPinnedIds.toMutableSet()
+            val newUnpinnedIds = currentMode.selectedUnpinnedIds.toMutableSet()
+
+            // 判断应该在哪个Set中操作
+            val wasPinned = noteId in newPinnedIds
+            val wasUnpinned = noteId in newUnpinnedIds
+
+            if (wasPinned) {
+                newPinnedIds.remove(noteId)
+            } else if (wasUnpinned) {
+                newUnpinnedIds.remove(noteId)
             } else {
-                currentSelectedIds.add(noteId)
+                // 如果之前未被选中，则根据其isPinned状态添加到对应的Set
+                if (isPinned) {
+                    newPinnedIds.add(noteId)
+                } else {
+                    newUnpinnedIds.add(noteId)
+                }
             }
-            // 如果所有笔记都取消选中了，自动退出管理模式
-            if (currentSelectedIds.isEmpty()) {
+
+            val newMode = HomeUiMode.Managing(newPinnedIds, newUnpinnedIds)
+            // 如果所有笔记都取消选中了，自动退出管理模式//
+            // TODO:所有笔记选中，底部功能栏置灰不让点击。而不是退出
+            if (newMode.isSelectionEmpty) {
                 exitManagementMode()
             } else {
-                _uiMode.value = HomeUiMode.Managing(currentSelectedIds)
+                _uiMode.value = newMode
             }
         }
     }
@@ -204,30 +287,44 @@ class HomeViewModel(
      */
     fun deleteSelectedNotes() {
         val currentMode = _uiMode.value
-        if (currentMode is HomeUiMode.Managing) {
-            val idsToDelete = currentMode.selectedNoteIds
+        if (currentMode is HomeUiMode.Managing && !currentMode.isSelectionEmpty) {
+            val idsToDelete = currentMode.allSelectedIds
             viewModelScope.launch {
-                // TODO: 在这里将设置批量删除
-                // noteRepository.deleteNotesByIds(idsToDelete) // 假设Repository有这个方法
-                exitManagementMode() // 删除后退出管理模式
+                // TODO:调用删除接口，传入要删除笔记的id
+                // noteRepository.deleteNotesByIds(idsToDelete)
+                exitManagementMode()//退出管理模式
             }
         }
     }
     /**
-     * 置顶/取消置顶操作。！！！！！！！！！！！后期可能修改，现在默认将选中的所有笔记都置顶
+     * 根据当前的 PinActionState 执行置顶或取消置顶操作。
      */
     fun pinSelectedNotes() {
         val currentMode = _uiMode.value
-        // 确保当前处于管理模式，并且有选中的笔记
-        if (currentMode is HomeUiMode.Managing && currentMode.selectedNoteIds.isNotEmpty()) {
-            val idsToTogglePin = currentMode.selectedNoteIds
-            // 在 viewModelScope 中启动一个协程来执行数据库操作
+        val action = pinActionState.value // 获取当前应该执行的操作
+
+        if (currentMode is HomeUiMode.Managing && !currentMode.isSelectionEmpty) {
             viewModelScope.launch {
-                // 调用 Repository 的方法来切换置顶状态
-                // 假设 Repository 有一个 togglePinStatusForNotes 方法
-                // TODO: 在这里将设置批量置顶
-                //noteRepository.togglePinStatusForNotes(idsToTogglePin)
-                // 操作完成后，退出管理模式
+                when (action) {
+                    PinActionState.PIN -> {
+                        // 如果是置顶操作，只处理那些未置顶的选中项
+                        val idsToPin = currentMode.selectedUnpinnedIds
+                        if (idsToPin.isNotEmpty()) {
+                            Log.d("HomeViewModel", "Pinning notes: $idsToPin")
+                            //TODO:调用置顶笔记接口
+                            // TODO: noteRepository.pinNotesByIds(idsToPin)
+                        }
+                    }
+                    PinActionState.UNPIN -> {
+                        // 如果是取消置顶操作，只处理那些已置顶的选中项
+                        val idsToUnpin = currentMode.selectedPinnedIds
+                        if (idsToUnpin.isNotEmpty()) {
+                            Log.d("HomeViewModel", "Unpinning notes: $idsToUnpin")
+                            //TODO:调用取消置顶笔记接口
+                            // TODO: noteRepository.unpinNotesByIds(idsToUnpin)
+                        }
+                    }
+                }
                 exitManagementMode()
             }
         }
@@ -240,7 +337,7 @@ class HomeViewModel(
     fun toggleSelectAll(allNoteIds: List<Long>) {
         val currentMode = _uiMode.value
         if (currentMode is HomeUiMode.Managing) {
-            val allSelected = currentMode.selectedNoteIds.containsAll(allNoteIds)
+            val allSelected = currentMode.allSelectedIds.containsAll(allNoteIds)
             if (allSelected) {
                 // 如果已全选，则全部取消
                 exitManagementMode()
