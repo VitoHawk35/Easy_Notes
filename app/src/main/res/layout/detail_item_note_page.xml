@@ -13,18 +13,24 @@
         android:layout_marginVertical="16dp"
         android:elevation="4dp">
 
-        <EditText
+<!--        <EditText-->
+<!--            android:id="@+id/detail_paper_content"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:background="@null"-->
+<!--            android:gravity="top"-->
+<!--            android:hint="点击此处输入内容"-->
+<!--            android:padding="24dp"-->
+<!--            android:textSize="16sp"-->
+<!--            android:inputType="textMultiLine"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            />-->
+<!--        替换为富文本view  -->
+        <com.easynote.richtext.view.RichTextView
             android:id="@+id/detail_paper_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@null"
-            android:gravity="top"
-            android:hint="点击此处输入内容"
-            android:padding="24dp"
-            android:textSize="16sp"
-            android:inputType="textMultiLine"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
