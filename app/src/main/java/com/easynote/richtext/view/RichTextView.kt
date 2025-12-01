@@ -1,5 +1,7 @@
 package com.easynote.richtext.view
 
+import android.app.AlertDialog
+import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
 import android.util.AttributeSet
@@ -17,10 +19,11 @@ import androidx.lifecycle.lifecycleScope
 import com.easynote.R
 import android.text.method.ArrowKeyMovementMethod
 import android.text.method.LinkMovementMethod
+import android.widget.Toast
 
 import com.easynote.richtext.view.impl.RichTextController
-import com.easynote.richtext.utils.AIService
 import com.easynote.richtext.utils.SelectionMenuManager
+import com.example.mydemo.ai.core.TaskType
 
 /**
  * 富文本编辑器组件
@@ -53,13 +56,15 @@ class RichTextView @JvmOverloads constructor(
     private var pendingHtml: String? = null
 
     private var menuManager: SelectionMenuManager? = null
-    private var aiService: AIService? = null
 
     // 对外暴露的监听接口
     interface OnRichTextListener {
         fun onSave(html: String)           // 点击保存按钮
         fun onInsertImageRequest()         // 点击插入图片按钮
         fun onContentChanged(html: String) // 内容实时变更（可选，用于自动保存）
+
+        // callback 是外界处理完后调用的，传入处理后的文本
+        fun onAIRequest(text: String, taskType: TaskType, onResult: (String) -> Unit)
     }
 
     private var listener: OnRichTextListener? = null
@@ -92,6 +97,8 @@ class RichTextView @JvmOverloads constructor(
      * @param uri 图片的 Uri
      */
     fun insertImage(uri: Uri) {
+
+
         controller?.insertImage(uri)
     }
 
@@ -101,14 +108,6 @@ class RichTextView @JvmOverloads constructor(
     fun setReadOnly(readOnly: Boolean) {
         controller?.isReadOnlyMode = readOnly
         updateUIForReadOnly(readOnly)
-    }
-
-    /**
-     * [高级] 手动绑定生命周期
-     * 通常不需要调用，组件会自动在 onAttachedToWindow 时查找
-     */
-    fun bindLifecycle(owner: LifecycleOwner) {
-        initController(owner)
     }
 
     // ================== 内部逻辑 ==================
@@ -142,10 +141,41 @@ class RichTextView @JvmOverloads constructor(
             if (start < end) {
                 val text = etContent.text.substring(start, end)
                 // 委托给 AIService 处理
-                aiService?.performAITask(taskType, text, start, end)
+                listener?.onAIRequest(text, taskType) { resultText ->
+                    // 收到结果后的回调：弹窗或替换
+                    // 这里可以保留弹窗逻辑在 View 层，或者连弹窗也移出去
+                    // 为了简单，我们假设外界处理完直接返回结果文本，我们在 View 里弹窗确认
+                    showAIResultDialog(taskType, resultText, start, end)
+                }
             }
         }
     }
+
+    private fun showAIResultDialog(taskType: TaskType, result: String, start: Int, end: Int) {
+        val title = when (taskType) {
+            TaskType.CORRECT -> "纠错建议"
+            TaskType.POLISH -> "润色结果"
+            TaskType.TRANSLATE -> "翻译结果"
+            TaskType.SUMMARY -> "摘要"
+        }
+
+        AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(result)
+            .setPositiveButton("替换原文") { _, _ ->
+                // 调用 Controller 的新方法
+                controller?.performReplace(start, end, result)
+            }
+            .setNegativeButton("复制") { _, _ ->
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = android.content.ClipData.newPlainText("AI Result", result)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(context, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("取消", null)
+            .show()
+    }
+
 
     /**
      * 关键优化：View 附着到窗口时，自动查找生命周期并初始化
@@ -171,8 +201,6 @@ class RichTextView @JvmOverloads constructor(
             }
         }
 
-        // 初始化 AIService
-        aiService = AIService(context, controller!!)
 
         pendingHtml?.let {
             html = it
@@ -242,8 +270,6 @@ class RichTextView @JvmOverloads constructor(
             windowInsets
         }
     }
-
-
 
 
 
