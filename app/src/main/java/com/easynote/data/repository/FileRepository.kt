@@ -13,6 +13,13 @@ interface FileRepository {
         htmlContent: String,
     )
 
+    /**
+     * Save an image to the note's image directory.
+     *
+     * @param noteId The id of the note.
+     * @param imgPath The path of the image to save.
+     * @return The new path of the saved image.
+     */
     suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,

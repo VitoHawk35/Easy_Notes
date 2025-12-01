@@ -2,6 +2,7 @@ package com.easynote.data.repository.impl
 
 import android.app.Application
 import android.content.Context
+import androidx.room.Transaction
 import com.easynote.data.repository.FileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -107,6 +108,7 @@ class FileRepositoryImpl(application: Application) : FileRepository {
         TODO("Not yet implemented")
     }
 
+    @Transaction
     override suspend fun updateFile(
         noteId: Long,
         pageIndex: Int,

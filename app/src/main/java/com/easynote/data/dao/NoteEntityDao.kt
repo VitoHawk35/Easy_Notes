@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.easynote.data.annotation.NoteOrderWay
+import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
 import com.easynote.data.entity.NoteEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +43,7 @@ interface NoteEntityDao {
     /**
      * Delete a note entity by its ID.
      */
-    @Query("DELETE FROM note WHERE id = :id")
+    @Query("DELETE FROM note WHERE rowid = :id")
     suspend fun deleteById(id: Long)
 
     /**
@@ -52,9 +53,15 @@ interface NoteEntityDao {
     suspend fun update(vararg noteEntity: NoteEntity)
 
     /**
+     * Update the abstract of a note entity by its ID.
+     */
+    @Query("UPDATE note SET abstract = :abstract,update_time = :updateTime WHERE rowid = :noteId")
+    suspend fun updateAbstract(noteId: Long, abstract: String, updateTime: Long)
+
+    /**
      * Update the favorite status of a note entity by its ID.
      */
-    @Query("UPDATE note SET is_favorite = :isFavor WHERE id = :id")
+    @Query("UPDATE note SET is_favorite = :isFavor WHERE rowid = :id")
     suspend fun updateFavor(id: Int, isFavor: Boolean)
 
     @Query("SELECT * FROM note")
@@ -66,10 +73,30 @@ interface NoteEntityDao {
     @Query("SELECT * FROM note ORDER BY update_time DESC")
     fun getAllLive(): LiveData<MutableList<NoteEntity>>
 
+    @Transaction
+    @Query(
+        """
+        SELECT DISTINCT n.*
+        FROM  note AS n
+        JOIN note_tag_ref AS r ON n.rowid = r.note_id
+        WHERE (:size = 0 OR r.tag_id IN (:tagIds))
+        ORDER BY
+            CASE WHEN :orderWay = 'UPDATE_TIME_DESC' THEN n.update_time END DESC,
+            CASE WHEN :orderWay = 'UPDATE_TIME_ASC' THEN n.update_time END ASC,
+            CASE WHEN :orderWay = 'TITLE_ASC' THEN n.title END ASC,
+            CASE WHEN :orderWay = 'TITLE_DESC' THEN n.title END DESC
+    """
+    )
+    fun getPagingByTagIds(
+        tagIds: Set<Long>? = emptySet(),
+        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC,
+        size: Int? = tagIds?.size ?: 0
+    ): PagingSource<Int, NoteEntity>
+
     /**
      * Get a note entity by its ID as LiveData.
      */
-    @Query("SELECT * FROM note WHERE id = :id")
+    @Query("SELECT * FROM note WHERE rowid = :id")
     fun getLiveById(id: Int): LiveData<NoteEntity>
 
     /**
@@ -83,7 +110,7 @@ interface NoteEntityDao {
      * Get a note entity with its associated tags by note ID as LiveData.
      */
     @Transaction
-    @Query("SELECT * FROM note WHERE id = :noteId")
+    @Query("SELECT * FROM note WHERE rowid = :noteId")
     fun getNoteWithTagsLive(noteId: Long): LiveData<NoteWithTags?>
 
     /**
@@ -91,8 +118,8 @@ interface NoteEntityDao {
      *
      */
     @Transaction
-    @Query("SELECT * FROM note WHERE abstract LIKE '%' || :query || '%' ORDER BY update_time DESC")
-    fun searchNotesByAbstractFlow(query: String): Flow<List<NoteWithTags>>
+    @Query("SELECT * FROM note WHERE (abstract MATCH :query  OR title MATCH :query )ORDER BY update_time DESC")
+    fun searchNotesByAbstractFlow(query: String): PagingSource<Int, NoteWithTags>
 
     /**
      * Get all note entities with paging support.
@@ -112,4 +139,10 @@ interface NoteEntityDao {
                 " CASE WHEN :orderWay = 'TITLE_DESC' THEN title END DESC"
     )
     fun getAllWithTagsPaging(@NoteOrderWay orderWay: String): PagingSource<Int, NoteWithTags>
+
+    /**
+     * Update the update time of a note entity by its ID.
+     */
+    @Query("UPDATE note SET update_time = :currentTimeMillis WHERE rowid = :noteId")
+    fun updateUpdateTime(noteId: Long, currentTimeMillis: Long)
 }
