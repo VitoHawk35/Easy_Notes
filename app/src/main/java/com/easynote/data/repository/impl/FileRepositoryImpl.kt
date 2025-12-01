@@ -2,10 +2,12 @@ package com.easynote.data.repository.impl
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import com.easynote.data.repository.FileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.UUID
 
 class FileRepositoryImpl(application: Application) : FileRepository {
     private val context: Context = application.applicationContext
@@ -46,19 +48,43 @@ class FileRepositoryImpl(application: Application) : FileRepository {
     override suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,
-        imgPath: String
+        imgPath: Uri
     ): String = withContext(Dispatchers.IO) {
-        val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
-        if (!imgDir.exists()) {
-            imgDir.mkdirs()
+        try {
+            // 1. 检查是否已经是本地应用私有目录的文件 (避免重复拷贝)
+            if (imgPath.scheme == "file" && imgPath.path?.contains(context.packageName) == true) {
+                return@withContext imgPath.toString()
+            }
+
+            // 2. 规划存储路径：filesDir/noteId/pageIndex/img/
+            val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
+            if (!imgDir.exists()) {
+                imgDir.mkdirs()
+            }
+
+            // 3. 生成唯一文件名
+            val fileName = "img_${System.currentTimeMillis()}_${UUID.randomUUID()}.jpg"
+            val destFile = File(imgDir, fileName)
+
+            // 4. 执行流拷贝
+            // 使用 ContentResolver 打开输入流，这是读取 Uri 的标准方式
+            val inputStream = context.contentResolver.openInputStream(imgPath)
+                ?: throw Exception("无法打开图片流: $imgPath")
+
+            inputStream.use { input ->
+                java.io.FileOutputStream(destFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            // 5. 返回 file:// 格式的绝对路径
+            return@withContext "file://${destFile.absolutePath}"
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // 出错时返回空字符串，或者根据你的需求抛出异常
+            return@withContext ""
         }
-
-        val src = File(imgPath)
-
-        val dst = File(imgDir, src.name)
-        src.copyTo(dst, overwrite = true)
-
-        dst.absolutePath
     }
 
     override suspend fun deletePage(noteId: Long, pageIndex: Int) =

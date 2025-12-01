@@ -1,6 +1,7 @@
 package com.easynote.data.repository
 
 import android.content.Context
+import android.net.Uri
 import androidx.paging.PagingData
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
@@ -74,7 +75,7 @@ interface Repository {
     suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,
-        imgPath: String
+        imgPath: Uri
     ): String
 
     /**

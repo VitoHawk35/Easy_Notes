@@ -1,5 +1,7 @@
 package com.easynote.data.repository
 
+import android.net.Uri
+
 interface FileRepository {
     /**
      * Insert a file path.
@@ -16,7 +18,7 @@ interface FileRepository {
     suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,
-        imgPath: String
+        imgPath: Uri
     ): String
 
     /**
