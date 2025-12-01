@@ -126,16 +126,40 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         noteTagRefDao.updateNoteTags(id, list)
     }
 
-    override suspend fun getAllNotes(): List<NoteEntity> {
-        try {
-            return noteEntityDao.getAll()
-        } catch (e: Exception) {
-            throw DataException(e, DataExceptionConstants.DB_QUERY_DATA_FAILED)
+    override suspend fun updateAbstract(noteId: Long, abstract: String) =
+        withContext(Dispatchers.IO) {
+            noteEntityDao.updateAbstract(noteId, abstract, System.currentTimeMillis())
         }
-    }
+
+    override suspend fun getAllNotes(): List<NoteEntity> =
+        withContext(Dispatchers.IO) {
+            try {
+                noteEntityDao.getAll()
+            } catch (e: Exception) {
+                throw DataException(e, DataExceptionConstants.DB_QUERY_DATA_FAILED)
+            }
+        }
 
     override suspend fun getNoteById(id: Int): NoteEntity {
         TODO("Not yet implemented")
+    }
+
+    override fun getNoteByTagIdPagingFlow(
+        TagIds: Set<Long>?,
+        pageSize: Int,
+        orderWay: String?
+    ): Flow<PagingData<NoteEntity>> {
+        val pager = Pager<Int, NoteEntity>(
+            PagingConfig(
+                pageSize = pageSize,
+                prefetchDistance = pageSize,
+                enablePlaceholders = false,
+                initialLoadSize = pageSize * 2
+            )
+        ) {
+            noteEntityDao.getPagingByTagIds(TagIds, orderWay ?: ORDER_UPDATE_TIME_DESC)
+        }
+        return pager.flow
     }
 
     override fun getNoteByIdLive(id: Int): LiveData<NoteEntity> {
@@ -173,5 +197,26 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             noteEntityDao.getAllWithTagsPaging(orderWay ?: ORDER_UPDATE_TIME_DESC)
         }
         return pager.flow
+    }
+
+    override fun searchNotesByQueryFlow(
+        query: String,
+        pageSize: Int
+    ): Flow<PagingData<NoteWithTags>> {
+        val pager: Pager<Int, NoteWithTags> = Pager(
+            PagingConfig(
+                pageSize,
+                pageSize,
+                false,
+                pageSize * 2
+            )
+        ) {
+            noteEntityDao.searchNotesByAbstractFlow(query)
+        }
+        return pager.flow
+    }
+
+    override suspend fun updateNoteUpdateTime(noteId: Long) {
+        noteEntityDao.updateUpdateTime(noteId, System.currentTimeMillis())
     }
 }
