@@ -38,7 +38,7 @@ class AIService(
                 }
             }
 
-            override fun onFailure(call: Call<ChatCompletionResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ChatCompletionResponse>?, t: Throwable) {
                 showToast("网络错误: ${t.message}")
             }
         })
