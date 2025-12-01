@@ -2,6 +2,7 @@ package com.easynote.data.repository.impl
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import androidx.paging.PagingData
 import androidx.room.Transaction
 import com.easynote.data.entity.TagEntity
@@ -66,9 +67,9 @@ class RepositoryImpl(application: Application) : Repository {
     override suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,
-        imgPath: String
+        imgUri: Uri
     ): String {
-        return fileRepository.saveImage(noteId, pageIndex, imgPath)
+        return fileRepository.saveImage(noteId, pageIndex, imgUri)
     }
 
     @Transaction

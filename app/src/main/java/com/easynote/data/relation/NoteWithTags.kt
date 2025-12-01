@@ -10,7 +10,7 @@ import com.easynote.data.entity.TagEntity
 data class NoteWithTags(
     @Embedded val noteEntity: NoteEntity? = NoteEntity(),
     @Relation(
-        parentColumn = "rowid",
+        parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
             value = NoteTagCrossRef::class,

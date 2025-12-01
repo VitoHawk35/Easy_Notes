@@ -2,11 +2,16 @@ package com.easynote.data.repository.impl
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
+import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.room.Transaction
+import com.easynote.data.common.exception.DataException
 import com.easynote.data.repository.FileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 class FileRepositoryImpl(application: Application) : FileRepository {
     private val context: Context = application.applicationContext
@@ -47,19 +52,25 @@ class FileRepositoryImpl(application: Application) : FileRepository {
     override suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,
-        imgPath: String
+        imgUri: Uri
     ): String = withContext(Dispatchers.IO) {
-        val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
-        if (!imgDir.exists()) {
-            imgDir.mkdirs()
+        try {
+            val imgDir = File(context.filesDir, "$noteId/$pageIndex/img")
+            if (!imgDir.exists()) {
+                imgDir.mkdirs()
+            }
+            val destFile =
+                File(imgDir, "img_${System.currentTimeMillis()}_${UUID.randomUUID()}.jpg")
+            context.contentResolver.openInputStream(imgUri)?.use { input ->
+                FileOutputStream(destFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            destFile.absolutePath
+        } catch (e: Exception) {
+            throw DataException(e, "FILE_SAVE_IMAGE_FAILED")
         }
 
-        val src = File(imgPath)
-
-        val dst = File(imgDir, src.name)
-        src.copyTo(dst, overwrite = true)
-
-        dst.absolutePath
     }
 
     override suspend fun deletePage(noteId: Long, pageIndex: Int) =
