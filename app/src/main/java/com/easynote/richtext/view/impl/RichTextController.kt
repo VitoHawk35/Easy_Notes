@@ -78,15 +78,13 @@ class RichTextController(
 
         // 使用协程处理图片拷贝，避免阻塞主线程
         scope.launch(Dispatchers.IO) {
-            // 将图片拷贝到 App 私有目录，防止原图被删导致显示不出来
-            val localPath = ImageUtils.copyImageToAppStorage(context, uri) ?: uri.toString()
 
             withContext(Dispatchers.Main) {
                 val op = Operation(
                     start = insertPos,
                     end = insertPos + 1,
                     operation = OperationType.IMAGE,
-                    text = localPath
+                    text = uri.toString()
                 )
                 // 执行插入并入栈
                 performUndoRedo {
@@ -98,6 +96,7 @@ class RichTextController(
     }
 
     fun exportHtml(): String {
+
         return HtmlConverter.toHtml(etContent.text)
     }
 

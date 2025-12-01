@@ -1,5 +1,6 @@
 package com.easynote.detail.adapter
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,10 +13,13 @@ import com.easynote.detail.data.model.NotePage // 引用刚才建的数据模型
 
 
 import com.easynote.richtext.view.RichTextView
+import com.example.mydemo.ai.core.TaskType
+
 class NotePagerAdapter(
     private val pages: MutableList<NotePage>,
-    private val addImage: () -> Unit,
-    private val save: (Int, String)->Unit
+    private val addImage: (callback: (Uri) -> Unit) -> Unit,
+    private val save: (Int, String)->Unit,
+    private val onAiRequest: (String, TaskType, (String) -> Unit) -> Unit // 新参数
 ) : RecyclerView.Adapter<NotePagerAdapter.PageViewHolder>() {
 
     private var isReadOnly: Boolean = true
@@ -32,8 +36,9 @@ class NotePagerAdapter(
     }
 
     override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
+
         val page = pages[position]
-        // 1. 设置内容 (使用新的属性语法)
+        // 获取内容
         holder.richEditor.html = page.content
 
         // 2. 设置只读状态
@@ -55,13 +60,23 @@ class NotePagerAdapter(
             }
 
             override fun onInsertImageRequest() {
-                // 转发图片请求
-                addImage()
+                // 当 RichTextView 请求图片时，我们调用 Activity 传来的方法
+                // 并且直接传入一个 Lambda，这就形成了一个闭包
+                addImage { uri ->
+                    // 这里的 holder.richEditor 就是当前发起请求的那个 View！
+                    // 不需要 Activity 去遍历查找了
+                    holder.richEditor.insertImage(uri)
+                }
             }
 
             override fun onContentChanged(html: String) {
                 // 实时更新数据模型，防止划走后数据丢失
                 page.content = html
+            }
+
+            override fun onAIRequest(text: String, taskType: TaskType, onResult: (String) -> Unit) {
+                // 转发给 Activity
+                onAiRequest(text, taskType, onResult)
             }
         })
     }
