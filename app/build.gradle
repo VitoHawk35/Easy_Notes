@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.mydemo'
+    namespace 'com.easynote'
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.example.mydemo"
+        applicationId "com.easynote"
         minSdk 24
         targetSdk 35
         versionCode 1
@@ -34,6 +34,7 @@ android {
     }
     buildFeatures {
         compose true
+        viewBinding = true
     }
 }
 
@@ -61,4 +62,7 @@ dependencies {
     androidTestImplementation libs.androidx.ui.test.junit4
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest
+    // 1. Gson: 用于把 List<NotePage> 转成 JSON 字符串存数据库
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'androidx.activity:activity-ktx:1.7.2'
 }

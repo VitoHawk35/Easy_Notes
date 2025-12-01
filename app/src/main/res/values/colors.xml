@@ -18,4 +18,16 @@
     <color name="textSecondary">#B3FFFFFF</color>
     <color name="inputBackground">#1C1C1C</color>
     <color name="error">#EF9A9A</color>
+
+    #笔记详情页的颜色  --by黄科杰
+    #背景色
+    <color name="folder_bg_blue">#2E4F78</color>
+    #home颜色
+    <color name="home_icon_tint">#A0B3C9</color>
+    <color name="bg_color">#FFFFFF</color>
+    <color name="paper_color">#F8F5E6</color>
+    <color name="paper_yellow">#F8F5E6</color>
+    <color name="text_color">#333333</color>
+    <color name="icon_color">#555555</color>
+
 </resources>
