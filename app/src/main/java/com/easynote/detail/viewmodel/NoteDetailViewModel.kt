@@ -1,17 +1,28 @@
 package com.easynote.detail.viewmodel
 
 import android.app.Application
+import android.net.Uri
+import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.easynote.data.repository.Repository
+import com.easynote.data.repository.impl.RepositoryImpl
 import com.easynote.detail.data.model.NotePage
+import com.example.mydemo.ai.core.AIProvider
+import com.example.mydemo.ai.core.TaskType
+import com.example.mydemo.ai.model.Response.ChatCompletionResponse
 import com.example.mydemo.data.entity.NoteEntity
 import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -73,4 +84,65 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun getNoteById(id: Int): LiveData<NoteEntity> {
         return repository.getNoteByIdLive(id)
     }
+
+
+    private val repository2: Repository = RepositoryImpl(application)
+
+    fun saveNotePage(noteId: Long, pageIndex: Int, htmlContent: String) {
+        viewModelScope.launch {
+            try {
+                // 提取纯文本用于搜索预览（可选，简单正则去标签）
+                val plainText = htmlContent.replace(Regex("<[^>]*>"), "")
+
+                // 调用 Repository 保存
+                repository2.updateNoteContent(
+                    noteId = noteId,
+                    pageIndex = pageIndex,
+                    newContent = plainText,
+                    newHTMLContent = htmlContent
+                )
+
+                Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功")
+                // 这里可以通过 LiveData/Flow 通知 Activity "保存成功" (可选)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // 通知 Activity "保存失败"
+            }
+        }
+    }
+
+    // 3. 之前讨论的图片保存也可以搬到这里
+    fun saveImage(noteId: Long, pageIndex: Int, sourceUri: Uri, onResult: (Uri) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val localPath = repository2.saveImage(noteId, pageIndex, sourceUri)
+                onResult(localPath.toUri())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // 处理 AI 任务
+    fun performAiTask(text: String, taskType: TaskType, onResult: (String) -> Unit, onError: (String) -> Unit) {
+        // 这里调用 AIProvider
+        // 注意：AIProvider 最好也注入进来，或者单例调用
+        AIProvider.getInstance().process(text, taskType, object : Callback<ChatCompletionResponse> {
+            override fun onResponse(call: Call<ChatCompletionResponse>, response: Response<ChatCompletionResponse>) {
+                val result = response.body()?.choices?.firstOrNull()?.message?.content
+                if (result != null) {
+                    onResult(result) // 成功，回调结果
+                } else {
+                    onError("AI返回内容为空")
+                }
+            }
+
+            override fun onFailure(call: Call<ChatCompletionResponse>?, t: Throwable) {
+                onError("网络错误: ${t.message}")
+            }
+        })
+    }
+
+
 }

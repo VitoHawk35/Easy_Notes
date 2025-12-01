@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.easynote.R
@@ -21,10 +20,7 @@ import android.content.Intent
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.easynote.detail.adapter.NavAdapter
-import com.easynote.richtext.utils.NoteSaver
-import com.easynote.richtext.view.RichTextView
 import com.example.mydemo.ai.service.AIConfig
-import kotlinx.coroutines.launch
 
 class NoteDetailActivity : AppCompatActivity() {
 
