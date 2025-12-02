@@ -87,7 +87,7 @@ interface NoteRepository {
      * Get a note by its ID.
      * @return NoteEntity
      */
-    suspend fun getNoteById(id: Int): NoteEntity
+    suspend fun getNoteById(id: Long): NoteWithTags?
 
     /**
      * Get notes by tag IDs with pagination support as a flow.
@@ -157,6 +157,6 @@ interface NoteRepository {
      * @param noteId
      * @param take
      */
-    suspend fun updateSearchTable(noteId: Long, take: String)
+    suspend fun updateSearchTable(noteId: Long,pageIndex: Int, take: String)
 
 }

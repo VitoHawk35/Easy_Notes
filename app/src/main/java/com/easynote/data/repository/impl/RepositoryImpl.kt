@@ -47,10 +47,10 @@ class RepositoryImpl(application: Application) : Repository {
         fileRepository.deleteFile(noteId)
     }
 
+    @Transaction
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
-
+        noteRepository.deleteNotePage(noteId, pageIndex)
         fileRepository.deletePage(noteId, pageIndex)
-
     }
 
     @Transaction
@@ -80,7 +80,7 @@ class RepositoryImpl(application: Application) : Repository {
         newHTMLContent: String
     ) {
         fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent)
-        noteRepository.updateSearchTable(noteId, newContent.take(500))
+        noteRepository.updateSearchTable(noteId, pageIndex,newContent.take(500))
     }
 
     override suspend fun updateAbstract(noteId: Long, abstract: String) {
@@ -137,6 +137,10 @@ class RepositoryImpl(application: Application) : Repository {
 
     override suspend fun getNoteCountByTags(tagIds: Set<Long>): Int {
         return noteRepository.getNoteCountByTags(tagIds)
+    }
+
+    override suspend fun getNoteWithTagsById(noteId: Long): NoteWithTags? {
+        return noteRepository.getNoteById(noteId)
     }
 
 

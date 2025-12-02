@@ -88,13 +88,15 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             try {
                 noteEntityDao.deleteById(id)
                 noteTagRefDao.deleteCrossRefsByNoteId(id)
+                noteContentSearchDao.deleteByNoteId(id)
+                fileRepository.deleteFile(id)
             } catch (e: Exception) {
                 throw DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED)
             }
         }
 
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
-
+        noteContentSearchDao.deleteByNoteIdAndPageIndex(noteId, pageIndex)
     }
 
     override suspend fun updateNote(vararg noteEntity: NoteEntity) {
@@ -144,8 +146,8 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             }
         }
 
-    override suspend fun getNoteById(id: Int): NoteEntity {
-        TODO("Not yet implemented")
+    override suspend fun getNoteById(id: Long): NoteWithTags? =
+        withContext(Dispatchers.IO){ noteEntityDao.getWithTags(id)
     }
 
     override fun getNoteByTagIdPagingFlow(
@@ -240,8 +242,8 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             noteEntityDao.getCountByTagIds(tagIds)
         }
 
-    override suspend fun updateSearchTable(noteId: Long, take: String) =
+    override suspend fun updateSearchTable(noteId: Long, pageIndex: Int, take: String) =
         withContext(Dispatchers.IO) {
-            noteContentSearchDao.insert(noteId, take)
+            noteContentSearchDao.insert(noteId, pageIndex, take)
         }
 }

@@ -155,6 +155,14 @@ interface Repository {
     suspend fun getNoteCountByTags(tagIds: Set<Long>): Int
 
     /**
+     * Get a note along with its associated tags by note ID.
+     *
+     * @param noteId The ID of the note.
+     * @return The NoteWithTags object, or null if not found.
+     */
+    suspend fun getNoteWithTagsById(noteId: Long): NoteWithTags?
+
+    /**
      * Search notes by a query string.
      *
      * @param query The search query.

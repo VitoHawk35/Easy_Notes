@@ -185,4 +185,8 @@ interface NoteEntityDao {
     """
     )
     suspend fun getCountByTagIds(tagIds: Set<Long>, size: Int? = tagIds.size): Int
+
+    @Transaction
+    @Query("SELECT * FROM note WHERE id = :id")
+    suspend fun getWithTags(id: Long): NoteWithTags?
 }
