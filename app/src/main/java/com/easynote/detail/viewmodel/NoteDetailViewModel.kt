@@ -14,8 +14,8 @@ import com.easynote.detail.data.model.NotePage
 import com.example.mydemo.ai.core.AIProvider
 import com.example.mydemo.ai.core.TaskType
 import com.example.mydemo.ai.model.Response.ChatCompletionResponse
-import com.example.mydemo.data.entity.NoteEntity
-import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
+import com.easynote.data.entity.NoteEntity
+import com.easynote.data.repository.impl.NoteRepositoryImpl
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers

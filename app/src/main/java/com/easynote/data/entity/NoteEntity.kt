@@ -13,7 +13,7 @@ data class NoteEntity(
     var title: String? = null,
 
     @ColumnInfo
-    var abstract: String? = null,
+    var summary: String? = null,
 
     @ColumnInfo(name = "create_time")
     var createTime: Long? = null,
