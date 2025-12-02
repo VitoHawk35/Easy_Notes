@@ -182,8 +182,12 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         return pager.liveData
     }
 
-    override fun getAllNoteWithTagsPagingFlow(
+    override fun getAllNotePagingFlow(
         pageSize: Int,
+        tagIds: Set<Long>?,
+        query: String?,
+        startTime: Long?,
+        endTime: Long?,
         @NoteOrderWay orderWay: String?
     ): Flow<PagingData<NoteWithTags>> {
         val pager: Pager<Int, NoteWithTags> = Pager(
@@ -194,7 +198,14 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 initialLoadSize = pageSize * 2
             )
         ) {
-            noteEntityDao.getAllWithTagsPaging(orderWay ?: ORDER_UPDATE_TIME_DESC)
+            noteEntityDao.getAllWithTagsPaging(
+                tagIds,
+                query,
+                startTime,
+                endTime,
+                orderWay ?: ORDER_UPDATE_TIME_DESC,
+                tagIds?.size ?: 0
+            )
         }
         return pager.flow
     }
@@ -219,4 +230,9 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     override suspend fun updateNoteUpdateTime(noteId: Long) {
         noteEntityDao.updateUpdateTime(noteId, System.currentTimeMillis())
     }
+
+    override suspend fun getNoteCountByTags(tagIds: Set<Long>): Int =
+        withContext(Dispatchers.IO) {
+            noteEntityDao.getCountByTagIds(tagIds)
+        }
 }

@@ -110,6 +110,10 @@ interface Repository {
      */
     fun getAllNoteWithTagsPagingFlow(
         pageSize: Int,
+        query: String? = null,
+        tagIds: Set<Long>? = null,
+        startTime: Long? = null,
+        endTime: Long? = null,
         @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC
     ): Flow<PagingData<NoteWithTags>>
 
@@ -141,6 +145,14 @@ interface Repository {
      * @return The content of the specified page, or null if not found.
      */
     suspend fun getNoteContentByIdAndPageIndex(noteId: Long, pageIndex: Int): String?
+
+    /**
+     * Get the count of notes associated with specific tag IDs.
+     *
+     * @param tagIds The set of tag IDs to filter notes.
+     * @return The count of notes that match the tag IDs.
+     */
+    suspend fun getNoteCountByTags(tagIds: Set<Long>): Int
 
     /**
      * Search notes by a query string.

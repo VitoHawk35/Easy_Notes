@@ -4,7 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
 import com.easynote.data.repository.Repository
 import com.easynote.data.repository.impl.RepositoryImpl
 import kotlinx.coroutines.launch

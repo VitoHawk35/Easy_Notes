@@ -121,8 +121,12 @@ interface NoteRepository {
      * Get all notes with their associated tags as a paging flow.
      * @return Flow<PagingData<NoteWithTags>>
      */
-    fun getAllNoteWithTagsPagingFlow(
+    fun getAllNotePagingFlow(
         pageSize: Int,
+        tagIds: Set<Long>?,
+        query: String?,
+        startTime: Long?,
+        endTime: Long?,
         @NoteOrderWay orderWay: String?
     ): Flow<PagingData<NoteWithTags>>
 
@@ -138,5 +142,13 @@ interface NoteRepository {
      * @param noteId
      */
     suspend fun updateNoteUpdateTime(noteId: Long)
+
+    /**
+     * Get the count of notes associated with specific tag IDs.
+     *
+     * @param tagIds The set of tag IDs to filter notes.
+     * @return The count of notes that match the tag IDs.
+     */
+    suspend fun getNoteCountByTags(tagIds: Set<Long>): Int
 
 }
