@@ -15,6 +15,7 @@ import com.example.mydemo.ai.core.AIProvider
 import com.example.mydemo.ai.core.TaskType
 import com.example.mydemo.ai.model.Response.ChatCompletionResponse
 import com.easynote.data.entity.NoteEntity
+import com.easynote.data.entity.TagEntity
 import com.easynote.data.repository.impl.NoteRepositoryImpl
 //import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,10 @@ import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.lifecycle.asLiveData
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import kotlinx.coroutines.flow.Flow
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -31,7 +36,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     val notePages = MutableLiveData<List<NotePage>>()
     val saveResult = MutableLiveData<Boolean>()
     val isLoading = MutableLiveData<Boolean>()
-
+    val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true
         viewModelScope.launch {

@@ -20,8 +20,11 @@ import android.content.Intent
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.easynote.detail.adapter.NavAdapter
+import com.easynote.detail.adapter.TagPagingAdapter
 import com.example.mydemo.ai.service.AIConfig
-
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 class NoteDetailActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager2
@@ -38,6 +41,11 @@ class NoteDetailActivity : AppCompatActivity() {
     private val viewModel: NoteDetailViewModel by viewModels()
     private var currentNoteId: Long = -1L
     private var noteTitle: String = ""
+    private lateinit var ivTag: ImageView
+    private var currentTags = hashSetOf("默认")
+    private val allTagList = listOf("默认", "工作", "个人", "学习", "旅行", "重要")
+    private val tagList = listOf("默认", "工作", "个人", "学习", "旅行", "重要")
+    private var currentTagName: String = "默认" // 当前选中的标签
 
     // 1. 定义一个暂存回调的变量
     private var pendingImageCallback: ((Uri) -> Unit)? = null
@@ -104,10 +112,8 @@ class NoteDetailActivity : AppCompatActivity() {
 //                if (entity != null) {
 //                    etTitle.setText(entity.title)
 //
-//                    //让ViewModel帮忙解析JSON变回List<NotePage>
 //                    val savedPages = viewModel.parsePagesFromJson(entity.content)
 //
-//                    //刷新列表
 //                    pageList.clear()
 //                    pageList.addAll(savedPages)
 //                    pagerAdapter.notifyDataSetChanged()
@@ -128,8 +134,8 @@ class NoteDetailActivity : AppCompatActivity() {
 
         btnModeToggle = findViewById(R.id.btmModeToggle)
         btnShare = findViewById(R.id.btmShare)
+        ivTag = findViewById(R.id.ivTag)
 
-        //
         pagerAdapter = NotePagerAdapter(
             pages = pageList,
 
@@ -212,6 +218,10 @@ class NoteDetailActivity : AppCompatActivity() {
 
         btnShare.setOnClickListener {
             exportNoteText()
+        }
+
+        ivTag.setOnClickListener {
+            showTagSelectionDialog()
         }
     }
 
@@ -314,5 +324,56 @@ class NoteDetailActivity : AppCompatActivity() {
 
         dialog.setContentView(view)
         dialog.show()
+    }
+
+    private fun showTagSelectionDialog() {
+        currentFocus?.clearFocus()
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.detail_tag_selector, null)
+
+        val tempSelectedTags = HashSet(currentTags)
+
+        val rvTags: RecyclerView = view.findViewById(R.id.rvTags)
+        val btnConfirm: android.widget.Button = view.findViewById(R.id.btnConfirmTags)
+
+        rvTags.layoutManager = LinearLayoutManager(this)
+
+        val pagingAdapter = TagPagingAdapter(tempSelectedTags)
+        rvTags.adapter = pagingAdapter
+
+        lifecycleScope.launch {
+            viewModel.allTagsFlow.collectLatest { pagingData ->
+                pagingAdapter.submitData(pagingData)
+            }
+        }
+
+        btnConfirm.setOnClickListener {
+            currentTags.clear()
+            currentTags.addAll(tempSelectedTags)
+
+            val msg = if (currentTags.isEmpty()) "未选择标签" else "已选: ${currentTags.joinToString(",")}"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+
+            val firstTag = currentTags.firstOrNull() ?: "无"
+            updateTagIconColor(firstTag)
+
+            // viewModel.updateNoteTags(...) // 将来放这里
+
+            dialog.dismiss()
+        }
+
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private fun updateTagIconColor(tag: String) {
+        val colorHex = when (tag) {
+            "工作" -> "#2196F3" //蓝
+            "生活" -> "#FFC107" //黄
+            "学习" -> "#4CAF50" //绿
+            "重要" -> "#F44336" //红
+            else -> "#555555"  //灰
+        }
+        ivTag.setColorFilter(android.graphics.Color.parseColor(colorHex))
     }
 }
