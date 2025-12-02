@@ -48,6 +48,12 @@ class RepositoryImpl(application: Application) : Repository {
     }
 
     @Transaction
+    override suspend fun deleteNoteById(noteId: Set<Long>) {
+        noteRepository.deleteNoteById(noteId)
+        fileRepository.deleteFile(noteId)
+    }
+
+    @Transaction
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
         noteRepository.deleteNotePage(noteId, pageIndex)
         fileRepository.deletePage(noteId, pageIndex)
@@ -166,6 +172,13 @@ class RepositoryImpl(application: Application) : Repository {
         }
 
     override suspend fun updateNoteFavorite(noteId: Long, isFavour: Boolean) {
-        TODO("Not yet implemented")
+        noteRepository.updateNoteFavor(noteId,isFavour)
+    }
+
+    override suspend fun updateNoteFavorite(
+        noteIds: Set<Long>,
+        isFavour: Boolean
+    ) {
+        noteRepository.updateNoteFavor(noteIds, isFavour)
     }
 }

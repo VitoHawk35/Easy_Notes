@@ -111,6 +111,17 @@ class FileRepositoryImpl(application: Application) : FileRepository {
             }
         }
 
+    @Transaction
+    override suspend fun deleteFile(noteIds: Set<Long>) =
+        withContext(Dispatchers.IO) {
+            noteIds.forEach { id ->
+                val dir = File(context.filesDir, id.toString())
+                if (dir.exists() && dir.isDirectory) {
+                    dir.deleteRecursively()
+                }
+            }
+        }
+
     override suspend fun updateFile(
         noteId: Long,
         pageIndex: Int,

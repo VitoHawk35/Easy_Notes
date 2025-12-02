@@ -42,6 +42,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         this.noteContentSearchDao = noteDatabase.getNoteContentSearchDao()
     }
 
+    @Transaction
     override suspend fun insertNote(noteEntity: NoteEntity): Long =
         withContext(Dispatchers.IO) {
             try {
@@ -53,7 +54,9 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                     noteEntity.isFavorite = false
                 }
 
-                noteEntityDao.insert(noteEntity)
+                val id = noteEntityDao.insert(noteEntity)
+                noteContentSearchDao.insert(id, 0, "")
+                id
             } catch (e: Exception) {
                 throw DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED)
             }
@@ -95,6 +98,14 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             }
         }
 
+    @Transaction
+    override suspend fun deleteNoteById(id: Set<Long>) =
+        withContext(Dispatchers.IO) {
+            noteEntityDao.deleteById(id)
+            noteTagRefDao.deleteCrossRefsByNoteId(id)
+            noteContentSearchDao.deleteByNoteId(id)
+        }
+
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
         noteContentSearchDao.deleteByNoteIdAndPageIndex(noteId, pageIndex)
     }
@@ -110,12 +121,19 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         }
     }
 
-    override suspend fun updateNoteFavor(id: Int, isFavor: Boolean) {
+    override suspend fun updateNoteFavor(id: Long, isFavor: Boolean) {
         try {
             noteEntityDao.updateFavor(id, isFavor)
         } catch (e: Exception) {
             throw DataException(e, DataExceptionConstants.DB_UPDATE_DATA_FAILED)
         }
+    }
+
+    override suspend fun updateNoteFavor(
+        id: Set<Long>,
+        isFavor: Boolean
+    ) = withContext(Dispatchers.IO) {
+        noteEntityDao.updateFavor(id, isFavor)
     }
 
     override suspend fun updateNoteTags(
@@ -147,8 +165,9 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         }
 
     override suspend fun getNoteById(id: Long): NoteWithTags? =
-        withContext(Dispatchers.IO){ noteEntityDao.getWithTags(id)
-    }
+        withContext(Dispatchers.IO) {
+            noteEntityDao.getWithTags(id)
+        }
 
     override fun getNoteByTagIdPagingFlow(
         TagIds: Set<Long>?,
@@ -244,6 +263,6 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
 
     override suspend fun updateSearchTable(noteId: Long, pageIndex: Int, take: String) =
         withContext(Dispatchers.IO) {
-            noteContentSearchDao.insert(noteId, pageIndex, take)
+            noteContentSearchDao.update(noteId, pageIndex, take)
         }
 }

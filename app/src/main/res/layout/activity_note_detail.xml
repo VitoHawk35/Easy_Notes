@@ -22,24 +22,48 @@
             app:layout_constraintTop_toTopOf="parent"
             />
 
-        <EditText
-            android:id="@+id/edTitle"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_white_bg"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@drawable/detail_home_ic_bg_folder_paper"
-            android:hint="无标题文档"
-            android:gravity="center"
             android:layout_marginEnd="8dp"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_color"
-            android:singleLine="true"
             app:layout_constraintStart_toEndOf="@id/btnHome"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/btnHome"
-            android:inputType="text"
-            />
+            app:layout_constraintBottom_toBottomOf="@id/btnHome">
+
+            <ImageView
+                android:id="@+id/ivTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/detail_ic_tag"
+                app:tint="@color/text_color"
+                android:padding="10dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/edTitle"/>
+
+            <EditText
+                android:id="@+id/edTitle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:gravity="center"
+                android:hint="无标题文档"
+                android:inputType="text"
+                android:singleLine="true"
+                android:textColor="@color/text_color"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginHorizontal="40dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

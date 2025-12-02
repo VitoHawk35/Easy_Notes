@@ -46,6 +46,9 @@ interface NoteEntityDao {
     @Query("DELETE FROM note WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("DELETE FROM note WHERE id IN (:id)")
+    suspend fun deleteById(id: Set<Long>)
+
     /**
      * Update a note entity in the database.
      */
@@ -55,14 +58,18 @@ interface NoteEntityDao {
     /**
      * Update the abstract of a note entity by its ID.
      */
-    @Query("UPDATE note SET summary = :abstract,update_time = :updateTime WHERE id = :noteId")
-    suspend fun updateAbstract(noteId: Long, abstract: String, updateTime: Long)
+    @Query("UPDATE note SET summary = :summary,update_time = :updateTime WHERE id = :noteId")
+    suspend fun updateAbstract(noteId: Long, summary: String, updateTime: Long)
+
 
     /**
      * Update the favorite status of a note entity by its ID.
      */
     @Query("UPDATE note SET is_favorite = :isFavor WHERE id = :id")
-    suspend fun updateFavor(id: Int, isFavor: Boolean)
+    suspend fun updateFavor(id: Long, isFavor: Boolean)
+
+    @Query("UPDATE note SET is_favorite = :isFavor WHERE id IN (:id)")
+    suspend fun updateFavor(id: Set<Long>, isFavor: Boolean)
 
     @Query("SELECT * FROM note")
     suspend fun getAll(): List<NoteEntity>
@@ -135,9 +142,13 @@ interface NoteEntityDao {
         """
     SELECT DISTINCT n.*
     FROM note AS n
-    LEFT JOIN note_tag_ref AS r ON n.id = r.note_id
     WHERE
-        (:tagSize = 0 OR r.tag_id IN (:tagIds))
+        (:tagSize = 0 OR
+            (SELECT COUNT(DISTINCT r.tag_id)
+                FROM note_tag_ref AS r
+                WHERE r.note_id = n.id AND r.tag_id IN (:tagIds)
+            ) = :tagSize
+        )
         AND
         (
             :query IS NULL

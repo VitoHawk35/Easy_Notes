@@ -35,6 +35,13 @@ interface Repository {
     suspend fun deleteNoteById(noteId: Long)
 
     /**
+     * Delete multiple notes by their IDs.
+     *
+     * @param noteId The set of note IDs to delete.
+     */
+    suspend fun deleteNoteById(noteId: Set<Long>)
+
+    /**
      * Delete a specific page from a note.
      *
      * @param noteId The ID of the note.
@@ -102,6 +109,8 @@ interface Repository {
      * @param isFavour True to mark as favourite, false to unmark.
      */
     suspend fun updateNoteFavorite(noteId: Long, isFavour: Boolean)
+
+    suspend fun updateNoteFavorite(noteIds: Set<Long>, isFavour: Boolean)
 
     /**
      * Get all notes with their associated tags as a paging flow.

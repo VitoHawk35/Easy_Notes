@@ -42,6 +42,8 @@ interface FileRepository {
      */
     suspend fun deleteFile(noteId: Long)
 
+    suspend fun deleteFile(noteIds: Set<Long>)
+
     /**
      * update a file path.
      * @param oldName The old path of the file.

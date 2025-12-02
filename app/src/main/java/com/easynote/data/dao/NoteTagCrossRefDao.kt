@@ -16,6 +16,9 @@ interface NoteTagCrossRefDao {
     @Query("DELETE FROM note_tag_ref WHERE note_id = :noteId")
     suspend fun deleteCrossRefsByNoteId(noteId: Long)
 
+    @Query("DELETE FROM note_tag_ref WHERE note_id IN (:noteId)")
+    suspend fun deleteCrossRefsByNoteId(noteId: Set<Long>)
+
     @Transaction
     suspend fun insertNoteWithTags(
         noteId: Long,

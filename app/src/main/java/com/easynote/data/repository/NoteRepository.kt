@@ -39,6 +39,13 @@ interface NoteRepository {
     suspend fun deleteNoteById(id: Long)
 
     /**
+     * Delete multiple notes by their IDs.
+     *
+     * @param id
+     */
+    suspend fun deleteNoteById(id: Set<Long>)
+
+    /**
      * Delete a specific page from a note.
      *
      * @param noteId
@@ -59,7 +66,9 @@ interface NoteRepository {
      * @param id
      * @param isFavor
      */
-    suspend fun updateNoteFavor(id: Int, isFavor: Boolean)
+    suspend fun updateNoteFavor(id: Long, isFavor: Boolean)
+
+    suspend fun updateNoteFavor(id:Set<Long>, isFavor: Boolean)
 
     /**
      * Update the tags associated with a note.
