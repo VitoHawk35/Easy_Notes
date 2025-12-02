@@ -151,4 +151,12 @@ interface NoteRepository {
      */
     suspend fun getNoteCountByTags(tagIds: Set<Long>): Int
 
+    /**
+     * Update the search table for a note.
+     *
+     * @param noteId
+     * @param take
+     */
+    suspend fun updateSearchTable(noteId: Long, take: String)
+
 }

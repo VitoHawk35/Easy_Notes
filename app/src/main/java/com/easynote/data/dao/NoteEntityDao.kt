@@ -142,7 +142,13 @@ interface NoteEntityDao {
         (
             :query IS NULL
             OR :query = ''
-            OR (n.abstract LIKE '%' || :query || '%' OR n.title LIKE  '%' || :query || '%')
+            OR n.id IN (
+                SELECT rowid
+                FROM note_content_search
+                WHERE content MATCH :query
+            )
+            OR n.title LIKE '%' || :query || '%'
+            OR n.abstract LIKE '%' || :query || '%'
         )
         AND
         (:startTime IS NULL OR n.update_time >= :startTime)
@@ -160,7 +166,7 @@ interface NoteEntityDao {
         query: String?,
         startTime: Long?,
         endTime: Long?,
-        @NoteOrderWay orderWay: String,
+        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC,
         tagSize: Int? = tagIds?.size ?: 0
     ): PagingSource<Int, NoteWithTags>
 

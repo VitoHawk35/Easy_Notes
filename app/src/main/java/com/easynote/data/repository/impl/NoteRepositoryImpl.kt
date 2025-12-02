@@ -11,6 +11,7 @@ import com.easynote.data.common.exception.DataException
 import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
+import com.easynote.data.dao.NoteContentSearchDao
 import com.easynote.data.dao.NoteEntityDao
 import com.easynote.data.dao.NoteTagCrossRefDao
 import com.easynote.data.dao.TagEntityDao
@@ -30,12 +31,15 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     private val fileRepository: FileRepository
     private val noteTagRefDao: NoteTagCrossRefDao
 
+    private val noteContentSearchDao: NoteContentSearchDao
+
     init {
         val noteDatabase = NoteDatabase.getInstance(application)
         this.noteEntityDao = noteDatabase.getNoteEntityDao()
         this.tagEntityDao = noteDatabase.getTagEntityDao()
         this.noteTagRefDao = noteDatabase.getNoteTagCrossRefDao()
         this.fileRepository = FileRepositoryImpl(application)
+        this.noteContentSearchDao = noteDatabase.getNoteContentSearchDao()
     }
 
     override suspend fun insertNote(noteEntity: NoteEntity): Long =
@@ -234,5 +238,10 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     override suspend fun getNoteCountByTags(tagIds: Set<Long>): Int =
         withContext(Dispatchers.IO) {
             noteEntityDao.getCountByTagIds(tagIds)
+        }
+
+    override suspend fun updateSearchTable(noteId: Long, take: String) =
+        withContext(Dispatchers.IO) {
+            noteContentSearchDao.insert(noteId, take)
         }
 }

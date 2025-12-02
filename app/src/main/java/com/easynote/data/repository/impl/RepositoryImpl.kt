@@ -80,7 +80,7 @@ class RepositoryImpl(application: Application) : Repository {
         newHTMLContent: String
     ) {
         fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent)
-        noteRepository.updateAbstract(noteId, newContent.take(200))
+        noteRepository.updateSearchTable(noteId, newContent.take(500))
     }
 
     override suspend fun updateAbstract(noteId: Long, abstract: String) {
