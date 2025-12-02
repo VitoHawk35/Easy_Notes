@@ -1,5 +1,6 @@
 package com.easynote.home.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 import androidx.core.widget.addTextChangedListener
 import com.easynote.data.repository.impl.NoteRepositoryImpl
 import com.easynote.data.repository.impl.TagRepositoryImpl
+import com.easynote.detail.NoteDetailActivity
 import com.easynote.home.ui.Adapter.NotePreviewPagingAdapter
 import com.easynote.home.ui.Adapter.TagFilterRail
 
@@ -55,6 +57,7 @@ class HomeFragment : Fragment() {
             when (viewModel.uiMode.value) {
                 is HomeUiMode.Browsing -> {
                     // TODO: 在浏览模式下，点击是进入详情页
+                    navigateToDetailScreen(note.noteId, note.title)
                     // 示例：val action = HomeFragmentDirections.actionHomeToDetail(note.noteId)
                     //       findNavController().navigate(action)
                 }
@@ -105,7 +108,22 @@ class HomeFragment : Fragment() {
         setupFab()//添加笔记
         observeViewModel()
     }
+    /**
+     * 【新增】一个专门负责跳转到笔记详情页的方法。
+     * @param noteId 要打开的笔记的 ID。如果是新建笔记，可以传入 -1L。
+     * @param noteTitle 要打开的笔记的标题。
+     */
+    private fun navigateToDetailScreen(noteId: Long, noteTitle: String) {
+        // 1. 创建一个明确指向 NoteDetailActivity 的 Intent
+        val intent = Intent(requireContext(), NoteDetailActivity::class.java)
 
+        // 2. 使用 putExtra 将数据放入 Intent 的 Bundle 中
+        intent.putExtra("NOTE_ID", noteId)
+        intent.putExtra("NOTE_TITLE", noteTitle)
+
+        // 3. 启动 Activity
+        startActivity(intent)
+    }
     /**
      * 设置标签筛选栏的逻辑。
      */
@@ -203,8 +221,9 @@ class HomeFragment : Fragment() {
      */
     private fun setupFab() {
         binding.fabAddNote.setOnClickListener {
-            // 点击添加按钮，跳转到笔记详情页，但不传递任何笔记ID（表示是新建笔记）
-            // TODO: 实现跳转逻辑，例如使用 Navigation Component 或 Intent
+            // 点击添加按钮，跳转到笔记详情页，但不传递任何笔记ID和标题（表示是新建笔记）
+            val intent = Intent(requireContext(), NoteDetailActivity::class.java)
+            startActivity(intent)
         }
     }
 
