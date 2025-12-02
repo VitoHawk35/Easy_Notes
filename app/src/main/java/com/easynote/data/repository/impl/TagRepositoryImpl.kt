@@ -5,11 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.easynote.common.exception.DataException
-import com.easynote.common.constants.DataExceptionConstants
+import com.easynote.data.common.exception.DataException
+import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.dao.TagEntityDao
 import com.easynote.data.database.NoteDatabase
 import com.easynote.data.entity.TagEntity
+import com.easynote.data.relation.TagWithNotes
 import com.easynote.data.repository.TagRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -56,7 +57,7 @@ class TagRepositoryImpl(application: Application) : TagRepository {
         }
     }
 
-    override suspend fun deleteTagById(id: Int) = withContext(Dispatchers.IO) {
+    override suspend fun deleteTagById(id: Long) = withContext(Dispatchers.IO) {
         try {
             tagEntityDao.deleteById(id)
         } catch (e: Exception) {
@@ -76,5 +77,8 @@ class TagRepositoryImpl(application: Application) : TagRepository {
         TODO("Not yet implemented")
     }
 
-
+    override suspend fun getTagWithNotesById(id: Long): TagWithNotes =
+        withContext(Dispatchers.IO) {
+            tagEntityDao.getWithNotesById(id)
+        }
 }

@@ -2,7 +2,7 @@ package com.easynote.data.repository.impl
 
 import android.app.Application
 import android.content.Context
-import androidx.annotation.StringDef
+import android.net.Uri
 import androidx.paging.PagingData
 import androidx.room.Transaction
 import com.easynote.data.entity.TagEntity
@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import androidx.core.content.edit
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
+import com.easynote.data.entity.NoteEntity
+import com.easynote.data.relation.TagWithNotes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -45,40 +47,52 @@ class RepositoryImpl(application: Application) : Repository {
         fileRepository.deleteFile(noteId)
     }
 
-    @Transaction
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
 
         fileRepository.deletePage(noteId, pageIndex)
 
     }
 
-    override suspend fun deleteTagSafelyById(tagId: Int): Boolean {
-        TODO("Not yet implemented")
+    @Transaction
+    override suspend fun deleteTagSafelyById(tagId: Long): Boolean {
+        val tagWithNotes: TagWithNotes = tagRepository.getTagWithNotesById(tagId)
+        return if (tagWithNotes.notes.isNullOrEmpty()) {
+            tagRepository.deleteTagById(tagId)
+            true
+        } else {
+            false
+        }
     }
 
-    override suspend fun updateNoteContent(
+    override suspend fun saveImage(
         noteId: Long,
         pageIndex: Int,
-        newContent: String
-    ) {
-        TODO("Not yet implemented")
+        imgUri: Uri
+    ): String {
+        return fileRepository.saveImage(noteId, pageIndex, imgUri)
     }
 
+    @Transaction
     override suspend fun updateNoteContent(
         noteId: Long,
         pageIndex: Int,
         newContent: String,
-        newHTMLContent: String,
-        vararg imgPath: String
+        newHTMLContent: String
     ) {
-        fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent, *imgPath)
+        fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent)
+        noteRepository.updateAbstract(noteId, newContent.take(200))
+        noteRepository.updateNoteUpdateTime(noteId)
+    }
+
+    override suspend fun updateAbstract(noteId: Long, abstract: String) {
+        noteRepository.updateAbstract(noteId, abstract)
     }
 
     override suspend fun updateNoteTags(
         noteId: Long,
-        tagEntities: List<TagEntity>
+        vararg tagEntities: TagEntity
     ) {
-        TODO("Not yet implemented")
+        noteRepository.updateNoteTags(noteId, *tagEntities)
     }
 
     override fun getAllNoteWithTagsPagingFlow(
@@ -91,6 +105,22 @@ class RepositoryImpl(application: Application) : Repository {
         )
     }
 
+    override fun getNoteByTags(
+        tagIds: Set<Long>?,
+        pageSize: Int,
+        orderWay: String?
+    ): Flow<PagingData<NoteEntity>> {
+        return noteRepository.getNoteByTagIdPagingFlow(
+            tagIds,
+            pageSize,
+            orderWay ?: ORDER_UPDATE_TIME_DESC
+        )
+    }
+
+    override fun getAllTagsFlow(pageSize: Int): Flow<PagingData<TagEntity>> {
+        return tagRepository.getPagingTagsFlow(pageSize)
+    }
+
     override suspend fun getNoteContentByIdAndPageIndex(
         noteId: Long,
         pageIndex: Int
@@ -98,8 +128,12 @@ class RepositoryImpl(application: Application) : Repository {
         return fileRepository.readH5File(noteId, pageIndex)
     }
 
-    override suspend fun searchNotesByQuery(query: String): Flow<List<NoteWithTags>> {
-        TODO("Not yet implemented")
+
+    override suspend fun searchNotesByQuery(
+        query: String,
+        pageSize: Int
+    ): Flow<PagingData<NoteWithTags>> {
+        return noteRepository.searchNotesByQueryFlow(query, pageSize)
     }
 
     override suspend fun modifyOrderWay(context: Context, way: String) =

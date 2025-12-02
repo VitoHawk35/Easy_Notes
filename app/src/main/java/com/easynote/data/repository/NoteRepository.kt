@@ -3,7 +3,9 @@ package com.easynote.data.repository
 import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
 import com.easynote.data.annotation.NoteOrderWay
+import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
 import com.easynote.data.entity.NoteEntity
+import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
 
@@ -60,6 +62,22 @@ interface NoteRepository {
     suspend fun updateNoteFavor(id: Int, isFavor: Boolean)
 
     /**
+     * Update the tags associated with a note.
+     *
+     * @param id
+     * @param tagEntity
+     */
+    suspend fun updateNoteTags(id: Long, vararg tagEntity: TagEntity)
+
+    /**
+     * Update the abstract of a note.
+     *
+     * @param noteId
+     * @param abstract
+     */
+    suspend fun updateAbstract(noteId: Long, abstract: String)
+
+    /**
      * get all notes as a list.
      * @return List<NoteEntity>
      */
@@ -70,6 +88,16 @@ interface NoteRepository {
      * @return NoteEntity
      */
     suspend fun getNoteById(id: Int): NoteEntity
+
+    /**
+     * Get notes by tag IDs with pagination support as a flow.
+     * @return Flow<PagingData<NoteEntity>>
+     */
+    fun getNoteByTagIdPagingFlow(
+        TagIds: Set<Long>? = emptySet(),
+        pageSize: Int,
+        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC
+    ): Flow<PagingData<NoteEntity>>
 
     /**
      * Get all notes as LiveData.
@@ -97,5 +125,18 @@ interface NoteRepository {
         pageSize: Int,
         @NoteOrderWay orderWay: String?
     ): Flow<PagingData<NoteWithTags>>
+
+    /**
+     * Search notes by a query string with pagination support as a flow.
+     * @return Flow<PagingData<NoteWithTags>>
+     */
+    fun searchNotesByQueryFlow(query: String, pageSize: Int): Flow<PagingData<NoteWithTags>>
+
+    /**
+     * Update the update time of a note.
+     *
+     * @param noteId
+     */
+    suspend fun updateNoteUpdateTime(noteId: Long)
 
 }

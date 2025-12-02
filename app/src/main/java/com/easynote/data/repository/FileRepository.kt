@@ -1,5 +1,7 @@
 package com.easynote.data.repository
 
+import android.net.Uri
+
 interface FileRepository {
     /**
      * Insert a file path.
@@ -11,8 +13,20 @@ interface FileRepository {
         pageIndex: Int,
         content: String,
         htmlContent: String,
-        vararg imgPaths: String
     )
+
+    /**
+     * Save an image to the note's image directory.
+     *
+     * @param noteId The id of the note.
+     * @param imgUri The path of the image to save.
+     * @return The new path of the saved image.
+     */
+    suspend fun saveImage(
+        noteId: Long,
+        pageIndex: Int,
+        imgUri: Uri
+    ): String
 
     /**
      * Delete a note page.
@@ -43,7 +57,6 @@ interface FileRepository {
         pageIndex: Int,
         content: String,
         htmlContent: String,
-        vararg imgPaths: String
     )
 
     /**

@@ -1,9 +1,11 @@
 package com.easynote.data.repository
 
 import android.content.Context
+import android.net.Uri
 import androidx.paging.PagingData
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
+import com.easynote.data.entity.NoteEntity
 import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
@@ -45,16 +47,8 @@ interface Repository {
      *
      * @param tagId The ID of the tag to delete.
      */
-    suspend fun deleteTagSafelyById(tagId: Int): Boolean
+    suspend fun deleteTagSafelyById(tagId: Long): Boolean
 
-    /**
-     * Update the content of a specific page in a note.
-     *
-     * @param noteId The ID of the note.
-     * @param pageIndex The index of the page to update.
-     * @param newContent The new content for the specified page.
-     */
-    suspend fun updateNoteContent(noteId: Long, pageIndex: Int, newContent: String)
 
     /**
      * Update the content of a note.
@@ -69,8 +63,29 @@ interface Repository {
         pageIndex: Int,
         newContent: String,
         newHTMLContent: String = "",
-        vararg imgPath: String
     )
+
+    /**
+     * Update the abstract of a note.
+     *
+     * @param noteId The ID of the note.
+     * @param abstract The new abstract for the note.
+     */
+    suspend fun updateAbstract(noteId: Long, abstract: String)
+
+    /**
+     * Save an image associated with a note.
+     *
+     * @param noteId The ID of the note.
+     * @param pageIndex The index of the page.
+     * @param imgUri The path of the image to save.
+     * @return The path where the image is saved.
+     */
+    suspend fun saveImage(
+        noteId: Long,
+        pageIndex: Int,
+        imgUri: Uri
+    ): String
 
     /**
      * Update the tags associated with a specific note.
@@ -78,7 +93,7 @@ interface Repository {
      * @param noteId The ID of the note.
      * @param tagEntities The list of tag IDs to associate with the note.
      */
-    suspend fun updateNoteTags(noteId: Long, tagEntities: List<TagEntity>)
+    suspend fun updateNoteTags(noteId: Long, vararg tagEntities: TagEntity)
 
     /**
      * Mark or unmark a note as favourite.
@@ -99,6 +114,26 @@ interface Repository {
     ): Flow<PagingData<NoteWithTags>>
 
     /**
+     * Get notes by a set of tag IDs.
+     *
+     * @param tagIds The set of tag IDs to filter notes.
+     * @param orderWay The order way for sorting notes.
+     * @return A Flow emitting a list of NoteWithTags that match the tag IDs.
+     */
+    fun getNoteByTags(
+        tagIds: Set<Long>? = emptySet(),
+        pageSize: Int,
+        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC
+    ): Flow<PagingData<NoteEntity>>
+
+    /**
+     * Get all tags as a flow list.
+     *
+     * @return A Flow emitting a list of TagEntity.
+     */
+    fun getAllTagsFlow(pageSize: Int): Flow<PagingData<TagEntity>>
+
+    /**
      * Get the content of a specific page in a note by note ID and page index.
      *
      * @param noteId The ID of the note.
@@ -113,7 +148,7 @@ interface Repository {
      * @param query The search query.
      * @return A Flow emitting a list of NoteWithTags that match the query.
      */
-    suspend fun searchNotesByQuery(query: String): Flow<List<NoteWithTags>>
+    suspend fun searchNotesByQuery(query: String, pageSize: Int): Flow<PagingData<NoteWithTags>>
 
     /**
      * Modify the order way of notes.

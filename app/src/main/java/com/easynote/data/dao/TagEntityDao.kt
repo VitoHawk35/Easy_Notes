@@ -7,8 +7,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.easynote.data.entity.TagEntity
+import com.easynote.data.relation.TagWithNotes
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -38,7 +40,7 @@ interface TagEntityDao {
      * @param id
      */
     @Query("DELETE FROM tag WHERE id = :id")
-    suspend fun deleteById(id: Int)
+    suspend fun deleteById(id: Long)
 
     /**
      * Update a tag entity in the database.
@@ -81,4 +83,13 @@ interface TagEntityDao {
      */
     @Query("SELECT * FROM tag ORDER BY id DESC")
     fun getAllFlow(): Flow<List<TagEntity>>
+
+    /**
+     * Get tag with associated notes by tag ID.
+     * @param id
+     * @return List<TagWithNotes>
+     */
+    @Transaction
+    @Query("SELECT * FROM tag WHERE id = :id")
+    suspend fun getWithNotesById(id: Long): TagWithNotes
 }
