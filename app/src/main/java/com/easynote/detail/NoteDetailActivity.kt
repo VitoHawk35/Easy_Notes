@@ -35,9 +35,9 @@ class NoteDetailActivity : AppCompatActivity() {
     private lateinit var pagerAdapter: NotePagerAdapter
     private var isReadOnly = true
 
+    // 1. 获取 ViewModel
     private val viewModel: NoteDetailViewModel by viewModels()
-    private var currentNoteId: Long = -1L
-    private var noteTitle: String = ""
+    private var currentNoteId: Int = -1
 
     // 1. 定义一个暂存回调的变量
     private var pendingImageCallback: ((Uri) -> Unit)? = null
@@ -46,8 +46,8 @@ class NoteDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
 
-        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
-        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
+//        currentNoteId = intent.getIntExtra("NOTE_ID", -1)
+        currentNoteId = 106
 
         initView()
         initData()
@@ -86,37 +86,24 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
     private fun initData() {
-        if (currentNoteId != -1L) {
-            viewModel.notePages.observe(this) { pages ->
-                pageList.clear()
-                pageList.addAll(pages)
-                pagerAdapter.notifyDataSetChanged()
+        if (currentNoteId != -1) {
+            viewModel.getNoteById(currentNoteId).observe(this) { entity ->
+                if (entity != null) {
+                    etTitle.setText(entity.title)
+
+                    //让ViewModel帮忙解析JSON变回List<NotePage>
+                    val savedPages = viewModel.parsePagesFromJson(entity.content)
+
+                    //刷新列表
+                    pageList.clear()
+                    pageList.addAll(savedPages)
+                    pagerAdapter.notifyDataSetChanged()
+                }
             }
-
-            viewModel.loadNoteContent(currentNoteId)
-
         } else {
             pageList.add(NotePage(System.currentTimeMillis(), 1, ""))
             pagerAdapter.notifyDataSetChanged()
         }
-//        if (currentNoteId != -1) {
-//            viewModel.getNoteById(currentNoteId).observe(this) { entity ->
-//                if (entity != null) {
-//                    etTitle.setText(entity.title)
-//
-//                    //让ViewModel帮忙解析JSON变回List<NotePage>
-//                    val savedPages = viewModel.parsePagesFromJson(entity.content)
-//
-//                    //刷新列表
-//                    pageList.clear()
-//                    pageList.addAll(savedPages)
-//                    pagerAdapter.notifyDataSetChanged()
-//                }
-//            }
-//        } else {
-//            pageList.add(NotePage(System.currentTimeMillis(), 1, ""))
-//            pagerAdapter.notifyDataSetChanged()
-//        }
     }
 
     private fun initView() {
@@ -179,16 +166,16 @@ class NoteDetailActivity : AppCompatActivity() {
 
         pagerAdapter.setReadOnlyMode(isReadOnly)
 
-        etTitle.setText(noteTitle)
+        etTitle.setText("未命名的笔记")
 
         updateModeState()
     }
 
     private fun initListeners() {
         btnHome.setOnClickListener {
-            finish()
-//            saveData()
-//            Toast.makeText(this, "保存", Toast.LENGTH_SHORT).show()
+//            finish()
+            saveData()
+            Toast.makeText(this, "保存", Toast.LENGTH_SHORT).show()
         }
 
         btmThumbnail.setOnClickListener {
@@ -242,23 +229,23 @@ class NoteDetailActivity : AppCompatActivity() {
 
     }
 
-//    private fun saveData() {
-//
-//        currentFocus?.clearFocus()
-//
-//        val title = etTitle.text.toString()
-//
-//        val isContentEmpty = pageList.all { it.content.isBlank() }
-//        if (title.isBlank() && isContentEmpty) {
-//            return
-//        }
-//
-//        viewModel.saveNote(currentNoteId, title, pageList)
-//    }
+    private fun saveData() {
+
+        currentFocus?.clearFocus()
+
+        val title = etTitle.text.toString()
+
+        val isContentEmpty = pageList.all { it.content.isBlank() }
+        if (title.isBlank() && isContentEmpty) {
+            return
+        }
+
+        viewModel.saveNote(currentNoteId, title, pageList)
+    }
 
     override fun onPause() {
         super.onPause()
-//        saveData()
+        saveData()
     }
 
     private fun exportNoteText() {
