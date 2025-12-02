@@ -19,9 +19,17 @@ import com.easynote.home.mapper.toTagModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import kotlin.Int
 import kotlin.Long
 
+
+// 定义主页处于那个Fragment
+sealed interface Screen {
+    data object Home : Screen
+    data object Calendar : Screen
+    data object Settings : Screen
+}
 //筛选接口
 sealed interface FilterState//抽象筛选状态接口，表明某个属性是不是属于筛选标签的一部分
 data object FilterAll : FilterState//“全部”筛选标签
@@ -50,7 +58,13 @@ enum class SortOrder(val dataLayerValue: String) {
     BY_UPDATE_TIME("UPDATE_TIME_DESC"),
     BY_CREATION_TIME("UPDATE_TIME_ASC")
 }
-// 查询参数类
+// 用于日历页面的状态
+data class CalendarState(
+    val selectedYear: Int,
+    val selectedMonth: Int, // 1-12
+    val selectedDay: Int? = null // 可选，null 表示选中整个月
+)
+// 主页查询参数类
 data class NoteQuery(
     val filterState: FilterState,//筛选栏
     val sortOrder: SortOrder,//排序方式
@@ -74,8 +88,9 @@ class HomeViewModel(
     private val noteRepository: NoteRepository,
     private val tagRepository: TagRepository
 ): AndroidViewModel(application){
-    //通过stateflow管理当前ui模式
-    private val _uiMode = MutableStateFlow<HomeUiMode>(HomeUiMode.Browsing)
+    // --- 状态管理 ---
+    private val _currentScreen = MutableStateFlow<Screen>(Screen.Home) // 管理当前显示哪个屏幕的StateFlow
+    private val _uiMode = MutableStateFlow<HomeUiMode>(HomeUiMode.Browsing) //通过stateflow管理当前ui模式
     val uiMode: StateFlow<HomeUiMode> = _uiMode
     //管理置顶//取消置顶按键，当选中的标签的置顶非置顶集合发生变化时，底部按键也自动变化。
     val pinActionState: StateFlow<PinActionState> = combine(uiMode) { (mode) ->
@@ -89,20 +104,27 @@ class HomeViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = PinActionState.PIN
     )
-    // 1筛选状态：管理当前的筛选模式。默认是选中“全部”。
-    private val _filterState = MutableStateFlow<FilterState>(FilterAll)
+    private val _filterState = MutableStateFlow<FilterState>(FilterAll)    // 标签筛选状态：管理当前的筛选模式。默认是选中“全部”。
     val filterState: StateFlow<FilterState> = _filterState
-    // 监听搜索 StateFlow
-    private val _searchQuery = MutableStateFlow("")
+    private val _searchQuery = MutableStateFlow("")    // 监听搜索字段
     val searchQuery: StateFlow<String> = _searchQuery
-    // 设置项状态
-    private val _sortOrder = MutableStateFlow(SortOrder.BY_UPDATE_TIME) // 默认按更新时间
+
+    private val _sortOrder = MutableStateFlow(SortOrder.BY_UPDATE_TIME) // 设置中排序项状态 默认按更新时间
     val sortOrder: StateFlow<SortOrder> = _sortOrder
-    private val _layoutMode = MutableStateFlow(LayoutMode.GRID) // 默认是宫格模式
+    private val _layoutMode = MutableStateFlow(LayoutMode.GRID) //设置中布局状态， 默认是宫格模式
     val layoutMode: StateFlow<LayoutMode> = _layoutMode
-    // 2. 标签数据：用于首页预览有哪些标签可供筛选，分页加载所有标签，保持不变。UI可以用它来获取完整的TagModel对象。
-    private val _dateRange = MutableStateFlow<Pair<Long?, Long?>>(null to null)    // 监听笔记日期范围状态
+    private val _dateRange = MutableStateFlow<Pair<Long?, Long?>>(null to null) // 监听笔记日期范围状态
     val dateRange: StateFlow<Pair<Long?, Long?>> = _dateRange;
+    private val _calendarState = MutableStateFlow(
+        Calendar.getInstance().let {
+            CalendarState(
+                selectedYear = it.get(Calendar.YEAR),
+                selectedMonth = it.get(Calendar.MONTH) + 1 // Calendar.MONTH 是 0-based
+            )
+        }
+    )    // 管理日历页面的状态
+    val calendarState: StateFlow<CalendarState> = _calendarState
+    // 标签数据：用于首页预览有哪些标签可供筛选，分页加载所有标签，保持不变。UI可以用它来获取完整的TagModel对象。
     val tags: Flow<PagingData<TagModel>> = tagRepository.getPagingTagsFlow(5).map<PagingData<TagEntity>, PagingData<TagModel>>{
         pagingData: PagingData<TagEntity> -> // 2. 使用 Flow 的 .map 操作符
         // 3. 对 PagingData 内部的每一项 TagEntity 进行转换
@@ -110,55 +132,127 @@ class HomeViewModel(
             tagEntity.toTagModel() // 4. 调用映射函数
         }
     }.cachedIn(viewModelScope) // 5. 缓存最终转换好的 Flow
-
-    // 3. 笔记预览数据，根据筛选状态（_filterState）的变化和排序方式，动态切换笔记数据源。
+    // 【新增】日历“小红点”数据流
+    // 返回一个 Set<Int>，包含本月所有有笔记的“日”（例如：1号, 5号, 12号...）
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val daysWithNotes: StateFlow<Set<Int>> = _calendarState
+        // 1. 忽略 selectedDay 的变化，只在年月变化时重新查询
+        .map { it.selectedYear to it.selectedMonth }
+        .distinctUntilChanged()
+        .flatMapLatest { (year, month) ->
+            // 2. 获取本月起止时间戳
+            val (start, end) = getMonthRange(year, month)
+            // 3. 调用 Repo 查询时间戳 (注意：请确保 Repository 中实现了此方法)
+            noteRepository.getNoteTimestampsFlow(start, end)
+        }
+        .map { timestamps ->
+            // 4. 将时间戳转换为 Day of Month
+            val calendar = Calendar.getInstance()
+            val daySet = HashSet<Int>()
+            for (time in timestamps) {
+                calendar.timeInMillis = time
+                val day = calendar.get(Calendar.DAY_OF_MONTH)
+                daySet.add(day)
+            }
+            daySet // 返回 Set
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptySet()
+        )
+    // 笔记预览数据，根据筛选状态（_filterState）的变化和排序方式，动态切换笔记数据源。
     // 通过flatMapLates来使得用户多次点击标签后，快速得到最后一次筛选状态的数据
     @OptIn(ExperimentalCoroutinesApi::class)
     val notePreviews: Flow<PagingData<NotePreviewModel>> =
         // 2. combine监听三个流：筛选、排序和搜索
-        combine(_filterState, _sortOrder, _searchQuery,_dateRange) {
-            filter, sort, query,dateRange ->
-            NoteQuery(filter, sort, query,dateRange.first,dateRange.second) // 将三个状态合并成一个查询对象
+        combine(_currentScreen, _filterState, _sortOrder, _searchQuery, _dateRange, _calendarState) {
+                values->
+            // 从数组中按顺序解构并转换类型
+            @Suppress("UNCHECKED_CAST")
+            val screen = values[0] as Screen
+            val homeFilter = values[1] as FilterState
+            val sort = values[2] as SortOrder
+            val query = values[3] as String
+            val dateRange = values[4] as Pair<Long?, Long?>
+            val calendar = values[5] as CalendarState
+
+            // 【核心修改】根据 screen 动态决定 filterState 和日期范围
+            val finalFilterState: FilterState
+            val startDate: Long?
+            val endDate: Long?
+            when (screen) {
+                is Screen.Home -> {
+                    finalFilterState = homeFilter
+                    startDate = dateRange.first
+                    endDate = dateRange.second
+                }
+                is Screen.Calendar -> {
+                    finalFilterState = FilterAll // 日历页固定为“全部”筛选
+                    val (calStart, calEnd) = getTimestampsForCalendarState(calendar)
+                    startDate = calStart
+                    endDate = calEnd
+                }
+                is Screen.Settings -> {
+                    // 设置页面不加载笔记，可以创建一个无效的查询
+                    finalFilterState = FilterByTags(setOf(-1L)) // 一个永远不会匹配的筛选
+                    startDate = null
+                    endDate = null
+                }
+            }
+            // 创建最终的查询对象
+            NoteQuery(finalFilterState, sort, query, startDate, endDate)
+
         }.debounce(300L) //使用 debounce 来防止用户输入过快导致频繁查询数据库只有当用户停止输入300毫秒后，才执行后面的操作
-        .flatMapLatest { query ->
-            // 在调用 repository 时，同时传入筛选条件和排序条件
-            Log.d("HomeViewModel", "触发一次flow收集数据")
-            val sortOrderString = query.sortOrder.dataLayerValue
-            when (val filterState = query.filterState) {
-                is FilterAll -> noteRepository.getAllNotePagingFlow(
-                    10,
-                    null,
-                    query.searchQuery.ifEmpty { null },
-                    query.startDate,
-                    query.endDate,
-                    sortOrderString
-                )
-                is FilterByTags -> noteRepository.getAllNotePagingFlow(
-                    10,
-                    filterState.selectedTagIds,
-                    query.searchQuery.ifEmpty { null },
-                    query.startDate,
-                    query.endDate,
-                    sortOrderString
-                )
-
-            }
-
-            } //监听上流筛选状态和排序方式的repo方法获取对应的笔记数据流
+        .flatMapLatest {
+            query ->
+            Log.d("HomeViewModel", "触发统一的数据流, query: $query")
+            getPagingDataFlow(query)
+            } //监听上流筛选状态方法获取对应的笔记数据流
         // 对上一步流出的 Flow<PagingData<NoteWithTags>> 进行类型映射。
-        .map<PagingData<NoteWithTags>, PagingData<NotePreviewModel>> { pagingData: PagingData<NoteWithTags> ->
-            // 在 .map 内部，我们对 PagingData 对象进行转换。
-            // 这里调用的是 Paging 3 为 PagingData 提供的 map 函数。
-            pagingData.map { noteWithTags ->
-                // 调用你定义在 mapper 文件中的扩展函数进行转换。
-                noteWithTags.toNotePreviewModel()
-            }
-        }
         // 第三步：对最终转换好的、类型正确的 Flow<PagingData<NotePreviewModel>> 进行缓存。
         .cachedIn(viewModelScope)
 
-//////// --- 事件处理方法 (Event Handlers)，由UI调用 ---
+    // --- 私有的、可复用的数据获取逻辑 ---
+    private fun getPagingDataFlow(query: NoteQuery): Flow<PagingData<NotePreviewModel>> {
+        // 如果筛选条件是一个不可能的ID，则返回空流，避免不必要的查询
+        if (query.filterState is FilterByTags && query.filterState.selectedTagIds.contains(-1L)) {
+            return emptyFlow()
+        }
 
+        val sortOrderString = query.sortOrder.dataLayerValue
+
+        // 【核心修改】第一步：先从 when 表达式中获取原始的 Flow<PagingData<NoteWithTags>>
+        val sourceFlow: Flow<PagingData<NoteWithTags>> = when (val filterState = query.filterState) {
+            is FilterAll -> noteRepository.getAllNotePagingFlow(
+                10,
+                null,
+                query.searchQuery.ifEmpty { null },
+                query.startDate,
+                query.endDate,
+                sortOrderString
+            )
+            is FilterByTags -> noteRepository.getAllNotePagingFlow(
+                10,
+                filterState.selectedTagIds,
+                query.searchQuery.ifEmpty { null },
+                query.startDate,
+                query.endDate,
+                sortOrderString
+            )
+        }
+
+        // 【核心修改】第二步：然后再对这个获取到的 sourceFlow 应用 .map 操作符
+        return sourceFlow.map { pagingData -> // 这是 flow.map
+            pagingData.map { noteWithTags -> // 这是 pagingData.map
+                noteWithTags.toNotePreviewModel()
+            }
+        }
+    }
+//////// --- 事件处理方法 (Event Handlers)，由UI调用 ---
+    fun setCurrentScreen(screen: Screen) {
+        _currentScreen.value = screen
+    }
     /**
      * 当用户点击“全部”标签时调用。
      */
@@ -167,14 +261,16 @@ class HomeViewModel(
             _filterState.value = FilterAll
         }
     }
-    // 处理侧边栏日期筛选
-    fun applyDateFilter(start: Long?, end: Long?) {
-        _dateRange.value = start to end
-    }
-    //清除日期筛选
-    fun clearDateFilter() {
-        _dateRange.value = null to null
-    }
+    /**
+     * 应用日期筛选。
+     * @param start 开始日期
+     * @param end 结束日期
+     */
+    fun applyDateFilter(start: Long?, end: Long?) { _dateRange.value = start to end }
+    /**
+     * 应用日期筛选。
+     */
+    fun clearDateFilter() { _dateRange.value = null to null }
     /**
      * 当用户修改排序方式
      */
@@ -290,7 +386,7 @@ class HomeViewModel(
             val idsToDelete = currentMode.allSelectedIds
             viewModelScope.launch {
                 // TODO:调用删除接口，传入要删除笔记的id
-                // noteRepository.deleteNotesByIds(idsToDelete)
+                //noteRepository.deleteNotesByIds(idsToDelete)
                 exitManagementMode()//退出管理模式
             }
         }
@@ -345,5 +441,46 @@ class HomeViewModel(
                 _uiMode.value = HomeUiMode.Managing(allNoteIds.toSet())
             }
         }
+    }
+
+    // --- 新增的日历事件处理方法 ---
+
+    fun onCalendarDateSelected(day: Int) {
+        val currentState = _calendarState.value
+        val newDay = if (currentState.selectedDay == day) null else day // 再次点击则取消选中
+        _calendarState.value = currentState.copy(selectedDay = newDay)
+    }
+
+    fun onCalendarMonthChanged(year: Int, month: Int) {
+        _calendarState.value = CalendarState(selectedYear = year, selectedMonth = month)
+    }
+
+    // 辅助方法：根据日历状态计算开始和结束时间戳
+    private fun getTimestampsForCalendarState(calendarState: CalendarState): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        val start: Long
+        val end: Long
+        if (calendarState.selectedDay != null) {
+            calendar.set(calendarState.selectedYear, calendarState.selectedMonth - 1, calendarState.selectedDay)
+            start = calendar.apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
+            end = calendar.apply { set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999) }.timeInMillis
+        } else {
+            return getMonthRange(calendarState.selectedYear, calendarState.selectedMonth)
+        }
+        return start to end
+    }
+    private fun getMonthRange(year: Int, month: Int): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(year, month - 1, 1)
+        val start = calendar.apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        val end = calendar.apply {
+            set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999)
+        }.timeInMillis
+        return start to end
     }
 }

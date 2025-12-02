@@ -55,8 +55,8 @@ interface NoteEntityDao {
     /**
      * Update the abstract of a note entity by its ID.
      */
-    @Query("UPDATE note SET abstract = :abstract,update_time = :updateTime WHERE id = :noteId")
-    suspend fun updateAbstract(noteId: Long, abstract: String, updateTime: Long)
+    @Query("UPDATE note SET summary = :summary,update_time = :updateTime WHERE id = :noteId")
+    suspend fun updateAbstract(noteId: Long, summary: String, updateTime: Long)
 
     /**
      * Update the favorite status of a note entity by its ID.
@@ -118,7 +118,7 @@ interface NoteEntityDao {
      *
      */
     @Transaction
-    @Query("SELECT * FROM note WHERE (abstract LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%' )ORDER BY update_time DESC")
+    @Query("SELECT * FROM note WHERE (summary LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%' )ORDER BY update_time DESC")
     fun searchNotesByAbstractFlow(query: String): PagingSource<Int, NoteWithTags>
 
     /**
@@ -148,7 +148,7 @@ interface NoteEntityDao {
                 WHERE content MATCH :query
             )
             OR n.title LIKE '%' || :query || '%'
-            OR n.abstract LIKE '%' || :query || '%'
+            OR n.summary LIKE '%' || :query || '%'
         )
         AND
         (:startTime IS NULL OR n.update_time >= :startTime)

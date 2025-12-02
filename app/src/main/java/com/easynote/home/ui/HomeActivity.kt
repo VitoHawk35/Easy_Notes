@@ -21,6 +21,7 @@ import com.easynote.data.repository.impl.TagRepositoryImpl
 import com.easynote.home.ui.fragmentimport.SettingsFragment
 import com.easynote.databinding.ActivityHomeBinding
 import com.easynote.databinding.DrawerHeaderDateFilterBinding
+import com.easynote.home.ui.fragment.CalendarFragment
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -179,17 +180,20 @@ class HomeActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_home -> {
                     replaceFragment(HomeFragment())
-                    true // 返回 true 表示事件已处理
+                    viewModel.setCurrentScreen(Screen.Home) // 通知 ViewModel 当前是主页
+                    true
                 }
                 R.id.nav_calendar -> {
-                    // replaceFragment(CalendarFragment())
+                    replaceFragment(CalendarFragment()) // 假设你已经创建了 CalendarFragment
+                    viewModel.setCurrentScreen(Screen.Calendar) // 通知 ViewModel 当前是日历页
                     true
                 }
                 R.id.nav_settings -> {
                     replaceFragment(SettingsFragment())
+                    viewModel.setCurrentScreen(Screen.Settings) // 通知 ViewModel 当前是设置页
                     true
                 }
-                else -> false // 如果是未知的ID，返回 false
+                else -> false
             }
         }
     }

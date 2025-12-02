@@ -24,7 +24,7 @@ fun NoteWithTags.toNotePreviewModel(): NotePreviewModel {
         title = note.title ?: "",
 
         //   摘要默认为空。
-        summary = note.abstract ?: "",
+        summary = note.summary ?: "",
 
         // 4. 从 List<TagEntity> 中安全地提取出 Set<TagModel>
         tagIds = tagList.map { it.toTagModel() }.toSet(),

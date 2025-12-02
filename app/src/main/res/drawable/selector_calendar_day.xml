@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 状态一：当视图被激活时 (state_activated="true") -->
+    <!-- 我们将在 Adapter 中通过 view.isActivated = true 来触发这个状态 -->
+    <item android:state_activated="true">
+        <!-- 定义一个圆形的背景 -->
+        <shape android:shape="oval">
+            <!-- 圆形的填充颜色，我们引用主题中的主色，以保证颜色统一 -->
+            <solid android:color="?attr/colorPrimary" />
+        </shape>
+    </item>
+
+    <!-- 状态二：默认状态 (所有其他情况) -->
+    <!-- 我们使用一个完全透明的颜色，让格子的背景不显示任何东西 -->
+    <item android:drawable="@android:color/transparent" />
+
+</selector>

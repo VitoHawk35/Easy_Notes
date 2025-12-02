@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E0E0E0"> <!-- 【修改1】底层背景改为稍深一点的灰色，突出层次感 -->
+
+    <!-- ========================================= -->
+    <!-- 第一层：底层 (Back Layer) - 放置日历 -->
+    <!-- ========================================= -->
+    <LinearLayout
+        android:id="@+id/calendar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="16dp"> <!-- 【修改】减小 padding，留一点缝隙即可 -->
+        <TextView
+            android:id="@+id/text_view_year_month"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="16dp"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="2025年 12月" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_calendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            tools:layoutManager="GridLayoutManager"
+            tools:spanCount="7"
+            tools:itemCount="35" />
+    </LinearLayout>
+
+    <!-- ========================================= -->
+    <!-- 第二层：顶层 (Front Layer) - 底部抽屉 -->
+    <!-- ========================================= -->
+    <LinearLayout
+        android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/bg_bottom_sheet_rounded"
+        android:backgroundTint="#F5F5F5"
+        android:elevation="8dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        <!--
+           【修改2】添加了 android:backgroundTint="#F5F5F5"
+            这会将原本白色的圆角背景(@drawable/bg_bottom_sheet_rounded)
+            渲染成浅灰色，同时保留圆角形状。
+        -->
+
+        <!-- 拖动把手 (Drag Handle) -->
+        <FrameLayout
+            android:id="@+id/drag_handle_area"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:background="@android:color/transparent">
+
+            <!-- 那个灰色的小横条 -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_drag_handle_pill" />
+        </FrameLayout>
+
+        <!-- 笔记列表 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_note_previews"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            tools:listitem="@layout/item_note_preview" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
