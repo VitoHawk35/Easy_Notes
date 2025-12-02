@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.domain.model.TagModel
 import com.easynote.data.repository.NoteRepository
@@ -18,6 +19,8 @@ import com.easynote.home.mapper.toTagModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlin.Int
+import kotlin.Long
 
 //筛选接口
 sealed interface FilterState//抽象筛选状态接口，表明某个属性是不是属于筛选标签的一部分
@@ -122,27 +125,23 @@ class HomeViewModel(
             Log.d("HomeViewModel", "触发一次flow收集数据")
             val sortOrderString = query.sortOrder.dataLayerValue
             when (val filterState = query.filterState) {
-                is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(
-                    10, sortOrderString
+                is FilterAll -> noteRepository.getAllNotePagingFlow(
+                    10,
+                    null,
+                    query.searchQuery.ifEmpty { null },
+                    query.startDate,
+                    query.endDate,
+                    sortOrderString
                 )
-                is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(
-                    10, sortOrderString
+                is FilterByTags -> noteRepository.getAllNotePagingFlow(
+                    10,
+                    filterState.selectedTagIds,
+                    query.searchQuery.ifEmpty { null },
+                    query.startDate,
+                    query.endDate,
+                    sortOrderString
                 )
-                // TODO:要改对应的repo接口返回对应筛选的笔记
-                /*is FilterAll -> noteRepository.getAllNoteWithTagsPagingFlow(
-                        tagIds = null, // 传入 null 表示不按标签筛选
-                        sortOrder = sortOrderString,
-                        searchQuery = query.searchQuery,
-                        startDate = query.startDate,
-                        endDate = query.endDate
-                    )
-                    is FilterByTags -> noteRepository.getAllNoteWithTagsPagingFlow(
-                        tagIds = filterState.selectedTagIds, // 传入具体的标签ID集合
-                        sortOrder = sortOrderString,
-                        searchQuery = query.searchQuery,
-                        startDate = query.startDate,
-                        endDate = query.endDate
-                    )*/
+
             }
 
             } //监听上流筛选状态和排序方式的repo方法获取对应的笔记数据流
