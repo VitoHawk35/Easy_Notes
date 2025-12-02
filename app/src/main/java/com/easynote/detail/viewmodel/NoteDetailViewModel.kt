@@ -14,55 +14,76 @@ import com.easynote.detail.data.model.NotePage
 import com.example.mydemo.ai.core.AIProvider
 import com.example.mydemo.ai.core.TaskType
 import com.example.mydemo.ai.model.Response.ChatCompletionResponse
-import com.easynote.data.entity.NoteEntity
-import com.easynote.data.repository.impl.NoteRepositoryImpl
-//import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
+import com.example.mydemo.data.entity.NoteEntity
+import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = RepositoryImpl(application)
+    private val repository = NoteRepositoryImpl(application)
+    private val gson = Gson()
 
-    val notePages = MutableLiveData<List<NotePage>>()
-    val saveResult = MutableLiveData<Boolean>()
-    val isLoading = MutableLiveData<Boolean>()
+    private val _saveState = MutableLiveData<Boolean>()
+    val saveState: LiveData<Boolean> = _saveState
 
-    fun loadNoteContent(noteId: Long) {
-        isLoading.value = true
-        viewModelScope.launch {
-            val loadedPages = mutableListOf<NotePage>()
-            var pageIndex = 1
+    /**
+     * 保存笔记逻辑
+     * @param noteId: 数据库中的笔记ID (-1 表示新建)
+     * @param title: 标题
+     * @param pages: 页面列表
+     */
+    fun saveNote(noteId: Int, title: String, pages: List<NotePage>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val contentJson = gson.toJson(pages)
 
-            withContext(Dispatchers.IO) {
-                while (true) {
-                    val content = repository.getNoteContentByIdAndPageIndex(noteId, pageIndex)
+                val entity = NoteEntity().apply {
+                    this.title = title
+                    this.content = contentJson
 
-                    if (content != null) {
-
-                        loadedPages.add(NotePage(System.currentTimeMillis() + pageIndex, pageIndex, content))
-                        pageIndex++
-                    } else {
-                        break
+                    if (noteId != -1) {
+                        this.id = noteId
                     }
                 }
-            }
 
-            if (loadedPages.isEmpty()) {
-                loadedPages.add(NotePage(System.currentTimeMillis(), 1, ""))
-            }
+                if (noteId == -1) {
+                    repository.insertNote(entity)
+                } else {
+                    repository.updateNote(entity)
+                }
 
-            notePages.value = loadedPages
-            isLoading.value = false
+                _saveState.postValue(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _saveState.postValue(false)
+            }
         }
     }
-//        fun getNoteById(id: Int): LiveData<NoteEntity> {
-//            return repository.getNoteByIdLive(id)
-//        }
+
+    /**
+     * 解析逻辑：把数据库读出来的 String 变回 List<NotePage>
+     */
+    fun parsePagesFromJson(json: String?): MutableList<NotePage> {
+        if (json.isNullOrEmpty()) {
+            return mutableListOf(NotePage(System.currentTimeMillis(), 1, ""))
+        }
+        return try {
+            val type = object : TypeToken<List<NotePage>>() {}.type
+            gson.fromJson(json, type)
+        } catch (e: Exception) {
+            mutableListOf(NotePage(System.currentTimeMillis(), 1, json))
+        }
+    }
+
+    fun getNoteById(id: Int): LiveData<NoteEntity> {
+        return repository.getNoteByIdLive(id)
+    }
 
 
     private val repository2: Repository = RepositoryImpl(application)
