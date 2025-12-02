@@ -17,6 +17,7 @@ import com.easynote.detail.adapter.NotePagerAdapter
 import com.easynote.detail.data.model.NotePage
 import com.easynote.detail.viewmodel.NoteDetailViewModel
 import android.content.Intent
+import android.util.Log
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.easynote.detail.adapter.NavAdapter
@@ -61,28 +62,6 @@ class NoteDetailActivity : AppCompatActivity() {
         initData()
         initListeners()
         initAi()
-    }
-    // 注册相册选择器
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { srcUri: Uri? ->
-        if (srcUri != null) {
-            // 假设当前 noteId=1 (实际开发中请从 Intent 获取)
-            val currentNoteId = 1L
-            // 获取当前页码
-            val currentPageIndex = pageList[viewPager.currentItem].pageNumber
-
-            // ViewModel保存图片
-            viewModel.saveImage(currentNoteId, currentPageIndex, srcUri) { localUri ->
-
-                // 1. ViewModel 保存成功，回调返回本地路径 (file://...)
-                // 2. 将这个本地路径传给 RichTextView 进行显示
-                pendingImageCallback?.invoke(localUri)
-
-                // 3. 清理引用
-                pendingImageCallback = null
-            }
-        } else {
-            pendingImageCallback = null
-        }
     }
 
     private fun initAi(){
@@ -375,5 +354,28 @@ class NoteDetailActivity : AppCompatActivity() {
             else -> "#555555"  //灰
         }
         ivTag.setColorFilter(android.graphics.Color.parseColor(colorHex))
+    }
+
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { srcUri: Uri? ->
+        if (srcUri != null) {
+            // 假设当前 noteId=1 (实际开发中请从 Intent 获取)
+            val currentNoteId = 1L
+            // 获取当前页码
+            val currentPageIndex = pageList[viewPager.currentItem].pageNumber
+
+            // ViewModel保存图片
+            viewModel.saveImage(currentNoteId, currentPageIndex, srcUri) { localUri ->
+
+                // 1. ViewModel 保存成功，回调返回本地路径 (file://...)
+                // 2. 将这个本地路径传给 RichTextView 进行显示
+                pendingImageCallback?.invoke(localUri)
+
+                // 3. 清理引用
+                pendingImageCallback = null
+            }
+        } else {
+            pendingImageCallback = null
+        }
     }
 }

@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.easynote.data.repository.Repository
@@ -14,17 +13,13 @@ import com.easynote.detail.data.model.NotePage
 import com.example.mydemo.ai.core.AIProvider
 import com.example.mydemo.ai.core.TaskType
 import com.example.mydemo.ai.model.Response.ChatCompletionResponse
-import com.easynote.data.entity.NoteEntity
 import com.easynote.data.entity.TagEntity
-import com.easynote.data.repository.impl.NoteRepositoryImpl
-//import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import androidx.lifecycle.asLiveData
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +36,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         isLoading.value = true
         viewModelScope.launch {
             val loadedPages = mutableListOf<NotePage>()
-            var pageIndex = 1
+            var pageIndex = 0
 
             withContext(Dispatchers.IO) {
                 while (true) {
@@ -127,6 +122,5 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             }
         })
     }
-
 
 }

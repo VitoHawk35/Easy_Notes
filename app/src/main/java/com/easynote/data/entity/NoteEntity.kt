@@ -2,7 +2,6 @@ package com.easynote.data.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Fts4
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "note")
@@ -14,7 +13,7 @@ data class NoteEntity(
     var title: String? = null,
 
     @ColumnInfo
-    var abstract: String? = null,
+    var summary: String? = null,
 
     @ColumnInfo(name = "create_time")
     var createTime: Long? = null,

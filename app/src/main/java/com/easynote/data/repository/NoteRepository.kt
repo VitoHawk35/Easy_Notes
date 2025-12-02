@@ -39,6 +39,13 @@ interface NoteRepository {
     suspend fun deleteNoteById(id: Long)
 
     /**
+     * Delete multiple notes by their IDs.
+     *
+     * @param id
+     */
+    suspend fun deleteNoteById(id: Set<Long>)
+
+    /**
      * Delete a specific page from a note.
      *
      * @param noteId
@@ -59,7 +66,9 @@ interface NoteRepository {
      * @param id
      * @param isFavor
      */
-    suspend fun updateNoteFavor(id: Int, isFavor: Boolean)
+    suspend fun updateNoteFavor(id: Long, isFavor: Boolean)
+
+    suspend fun updateNoteFavor(id:Set<Long>, isFavor: Boolean)
 
     /**
      * Update the tags associated with a note.
@@ -87,7 +96,7 @@ interface NoteRepository {
      * Get a note by its ID.
      * @return NoteEntity
      */
-    suspend fun getNoteById(id: Int): NoteEntity
+    suspend fun getNoteById(id: Long): NoteWithTags?
 
     /**
      * Get notes by tag IDs with pagination support as a flow.
@@ -121,8 +130,12 @@ interface NoteRepository {
      * Get all notes with their associated tags as a paging flow.
      * @return Flow<PagingData<NoteWithTags>>
      */
-    fun getAllNoteWithTagsPagingFlow(
+    fun getAllNotePagingFlow(
         pageSize: Int,
+        tagIds: Set<Long>?,
+        query: String?,
+        startTime: Long?,
+        endTime: Long?,
         @NoteOrderWay orderWay: String?
     ): Flow<PagingData<NoteWithTags>>
 
@@ -138,5 +151,21 @@ interface NoteRepository {
      * @param noteId
      */
     suspend fun updateNoteUpdateTime(noteId: Long)
+
+    /**
+     * Get the count of notes associated with specific tag IDs.
+     *
+     * @param tagIds The set of tag IDs to filter notes.
+     * @return The count of notes that match the tag IDs.
+     */
+    suspend fun getNoteCountByTags(tagIds: Set<Long>): Int
+
+    /**
+     * Update the search table for a note.
+     *
+     * @param noteId
+     * @param take
+     */
+    suspend fun updateSearchTable(noteId: Long,pageIndex: Int, take: String)
 
 }

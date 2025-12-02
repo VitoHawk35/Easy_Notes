@@ -47,10 +47,16 @@ class RepositoryImpl(application: Application) : Repository {
         fileRepository.deleteFile(noteId)
     }
 
+    @Transaction
+    override suspend fun deleteNoteById(noteId: Set<Long>) {
+        noteRepository.deleteNoteById(noteId)
+        fileRepository.deleteFile(noteId)
+    }
+
+    @Transaction
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
-
+        noteRepository.deleteNotePage(noteId, pageIndex)
         fileRepository.deletePage(noteId, pageIndex)
-
     }
 
     @Transaction
@@ -80,8 +86,7 @@ class RepositoryImpl(application: Application) : Repository {
         newHTMLContent: String
     ) {
         fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent)
-        noteRepository.updateAbstract(noteId, newContent.take(200))
-        noteRepository.updateNoteUpdateTime(noteId)
+        noteRepository.updateSearchTable(noteId, pageIndex,newContent.take(500))
     }
 
     override suspend fun updateAbstract(noteId: Long, abstract: String) {
@@ -97,10 +102,18 @@ class RepositoryImpl(application: Application) : Repository {
 
     override fun getAllNoteWithTagsPagingFlow(
         pageSize: Int,
+        query: String?,
+        tagIds: Set<Long>?,
+        startTime: Long?,
+        endTime: Long?,
         @NoteOrderWay orderWay: String?
     ): Flow<PagingData<NoteWithTags>> {
-        return noteRepository.getAllNoteWithTagsPagingFlow(
+        return noteRepository.getAllNotePagingFlow(
             pageSize,
+            tagIds,
+            query,
+            startTime,
+            endTime,
             orderWay ?: ORDER_UPDATE_TIME_DESC
         )
     }
@@ -128,6 +141,14 @@ class RepositoryImpl(application: Application) : Repository {
         return fileRepository.readH5File(noteId, pageIndex)
     }
 
+    override suspend fun getNoteCountByTags(tagIds: Set<Long>): Int {
+        return noteRepository.getNoteCountByTags(tagIds)
+    }
+
+    override suspend fun getNoteWithTagsById(noteId: Long): NoteWithTags? {
+        return noteRepository.getNoteById(noteId)
+    }
+
 
     override suspend fun searchNotesByQuery(
         query: String,
@@ -151,6 +172,13 @@ class RepositoryImpl(application: Application) : Repository {
         }
 
     override suspend fun updateNoteFavorite(noteId: Long, isFavour: Boolean) {
-        TODO("Not yet implemented")
+        noteRepository.updateNoteFavor(noteId,isFavour)
+    }
+
+    override suspend fun updateNoteFavorite(
+        noteIds: Set<Long>,
+        isFavour: Boolean
+    ) {
+        noteRepository.updateNoteFavor(noteIds, isFavour)
     }
 }
