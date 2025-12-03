@@ -164,9 +164,15 @@ interface NoteRepository {
      * Update the search table for a note.
      *
      * @param noteId
-     * @param take
+     * @param content
      */
-    suspend fun updateSearchTable(noteId: Long, pageIndex: Int, take: String)
+    suspend fun updateSearchTable(
+        noteId: Long,
+        pageIndex: Int,
+        title: String? = null,
+        summary: String? = null,
+        content: String? = null
+    )
 
     /**
      * Get all notes with their associated tags as a flow.

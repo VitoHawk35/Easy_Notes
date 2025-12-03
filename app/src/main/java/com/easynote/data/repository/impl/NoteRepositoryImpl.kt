@@ -55,7 +55,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 }
 
                 val id = noteEntityDao.insert(noteEntity)
-                noteFtsDao.insert(id, 0, "")
+                noteFtsDao.insert(id, 1, "")
                 id
             } catch (e: Exception) {
                 throw DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED)
@@ -72,8 +72,18 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         if (noteWithTags.noteEntity?.isFavorite == null) {
             noteWithTags.noteEntity?.isFavorite = false
         }
-        // TODO: 添加标签关联逻辑
-        noteEntityDao.insert(noteWithTags.noteEntity ?: NoteEntity())
+        val id = noteEntityDao.insert(
+            noteWithTags.noteEntity ?: NoteEntity(
+                createTime = now,
+                updateTime = now
+            )
+        )
+        noteTagRefDao.insertNoteWithTags(
+            id,
+            noteWithTags.tags?.mapNotNull { it.id } ?: emptyList()
+        )
+
+        return@withContext id
     }
 
     override suspend fun deleteNote(vararg noteEntity: NoteEntity): Int =
@@ -261,9 +271,21 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             noteEntityDao.getCountByTagIds(tagIds)
         }
 
-    override suspend fun updateSearchTable(noteId: Long, pageIndex: Int, take: String) =
+    override suspend fun updateSearchTable(
+        noteId: Long,
+        pageIndex: Int,
+        title: String?,
+        summary: String?,
+        content: String?
+    ) =
         withContext(Dispatchers.IO) {
-            noteFtsDao.update(noteId, pageIndex, take)
+            noteFtsDao.update(
+                noteId,
+                pageIndex,
+                title = title,
+                summary = summary,
+                content = content
+            )
         }
 
     override fun getAllNoteFlow(
