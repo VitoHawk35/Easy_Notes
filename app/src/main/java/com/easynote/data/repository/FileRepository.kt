@@ -45,12 +45,6 @@ interface FileRepository {
     suspend fun deleteFile(noteIds: Set<Long>)
 
     /**
-     * update a file path.
-     * @param oldName The old path of the file.
-     */
-    suspend fun updateFile(noteId: Long, pageIndex: Int, newContent: String)
-
-    /**
      * update a file path with html content.
      * @param oldName The old path of the file.
      */
@@ -68,14 +62,6 @@ interface FileRepository {
      * @return The content of the file.
      */
     suspend fun readH5File(noteId: Long, pageIndex: Int): String?
-
-    /**
-     * Read a txt file content.
-     *
-     * @param fileName The path of the file to read.
-     * @return The content of the file.
-     */
-    suspend fun readTxtFile(noteId: Long, pageIndex: Int): String?
 
 
 }

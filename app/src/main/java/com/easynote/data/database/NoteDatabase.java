@@ -6,16 +6,16 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.easynote.data.dao.NoteContentSearchDao;
+import com.easynote.data.dao.NoteFtsDao;
 import com.easynote.data.dao.NoteEntityDao;
 import com.easynote.data.dao.NoteTagCrossRefDao;
 import com.easynote.data.dao.TagEntityDao;
-import com.easynote.data.entity.NoteContentSearch;
+import com.easynote.data.entity.NoteFts;
 import com.easynote.data.entity.NoteEntity;
 import com.easynote.data.entity.NoteTagCrossRef;
 import com.easynote.data.entity.TagEntity;
 
-@Database(entities = {NoteEntity.class, TagEntity.class, NoteTagCrossRef.class, NoteContentSearch.class}, version = 1, exportSchema = false)
+@Database(entities = {NoteEntity.class, TagEntity.class, NoteTagCrossRef.class, NoteFts.class}, version = 1, exportSchema = false)
 public abstract class NoteDatabase extends RoomDatabase {
     private static NoteDatabase instance;
 
@@ -34,7 +34,7 @@ public abstract class NoteDatabase extends RoomDatabase {
 
     public abstract NoteTagCrossRefDao getNoteTagCrossRefDao();
 
-    public abstract NoteContentSearchDao getNoteContentSearchDao();
+    public abstract NoteFtsDao getNoteContentSearchDao();
 
 
 }
