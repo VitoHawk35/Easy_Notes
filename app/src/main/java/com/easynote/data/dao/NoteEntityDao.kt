@@ -58,8 +58,22 @@ interface NoteEntityDao {
     /**
      * Update the abstract of a note entity by its ID.
      */
-    @Query("UPDATE note SET summary = :summary,update_time = :updateTime WHERE id = :noteId")
-    suspend fun updateAbstract(noteId: Long, summary: String, updateTime: Long)
+    @Query(
+        """
+        UPDATE note 
+        SET 
+            title = CASE WHEN :title IS NOT NULL THEN :title ELSE title END,
+            summary = CASE WHEN :summary IS NOT NULL THEN :summary ELSE summary END,
+            update_time = :updateTime
+        WHERE id = :noteId
+    """
+    )
+    suspend fun updateTitleOrSummary(
+        noteId: Long,
+        title: String? = null,
+        summary: String? = null,
+        updateTime: Long
+    )
 
 
     /**

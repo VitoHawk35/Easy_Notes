@@ -150,9 +150,9 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         noteTagRefDao.updateNoteTags(id, list)
     }
 
-    override suspend fun updateAbstract(noteId: Long, abstract: String) =
+    override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) =
         withContext(Dispatchers.IO) {
-            noteEntityDao.updateAbstract(noteId, abstract, System.currentTimeMillis())
+            noteEntityDao.updateTitleOrSummary(noteId, title, summary, System.currentTimeMillis())
         }
 
     override suspend fun getAllNotes(): List<NoteEntity> =
