@@ -55,7 +55,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 }
 
                 val id = noteEntityDao.insert(noteEntity)
-                noteFtsDao.insert(id, 1, "")
+                noteFtsDao.insert(id, 1)
                 id
             } catch (e: Exception) {
                 throw DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED)
@@ -163,6 +163,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) =
         withContext(Dispatchers.IO) {
             noteEntityDao.updateTitleOrSummary(noteId, title, summary, System.currentTimeMillis())
+            noteFtsDao.update(noteId, title = title, summary = summary)
         }
 
     override suspend fun getAllNotes(): List<NoteEntity> =
@@ -271,14 +272,23 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             noteEntityDao.getCountByTagIds(tagIds)
         }
 
+    @Transaction
     override suspend fun updateSearchTable(
         noteId: Long,
         pageIndex: Int,
         title: String?,
         summary: String?,
         content: String?
-    ) =
-        withContext(Dispatchers.IO) {
+    ) = withContext(Dispatchers.IO) {
+        if (noteFtsDao.getNoteFtsId(noteId, pageIndex) == null) {
+            noteFtsDao.insert(
+                noteId,
+                pageIndex,
+                title,
+                summary,
+                content
+            )
+        } else {
             noteFtsDao.update(
                 noteId,
                 pageIndex,
@@ -287,6 +297,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 content = content
             )
         }
+    }
 
     override fun getAllNoteFlow(
         query: String?,

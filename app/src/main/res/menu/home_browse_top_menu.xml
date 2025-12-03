@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
+    <item
+        android:id="@+id/action_manage_tags"
+        android:icon="@drawable/detail_ic_tag"
+        android:title="标签管理"
+        app:showAsAction="ifRoom" />
     <!--
         将 ImageView 转换为一个 item 标签。
         这个 item 将会显示在 Toolbar 的右侧。

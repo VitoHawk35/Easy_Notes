@@ -22,6 +22,12 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".home.ui.TagManagementActivity"
+            android:label="标签管理"
+            android:parentActivityName=".home.ui.HomeActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:exported="false" />
+        <activity
             android:name="com.easynote.detail.NoteDetailActivity"
             android:exported="true">
         </activity>

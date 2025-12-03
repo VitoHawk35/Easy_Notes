@@ -9,7 +9,7 @@ import com.easynote.ai.model.Request.ChatCompletionRequest;
 import com.easynote.ai.model.Response.ChatCompletionResponse;
 import com.easynote.ai.service.AIConfig;
 import com.easynote.ai.service.VolcanoArkClient;
-import com.easynote.ai.utils.PromptBuilder;
+import com.easynote.ai.processor.utils.PromptBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

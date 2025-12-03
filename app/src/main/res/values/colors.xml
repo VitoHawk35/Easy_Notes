@@ -29,5 +29,8 @@
     <color name="paper_yellow">#F8F5E6</color>
     <color name="text_color">#333333</color>
     <color name="icon_color">#555555</color>
+    <color name="bg_light_gray">#F5F5F5</color>
+    <color name="app_primary_color">#212121</color>
+    <color name="text_secondary">#757575</color>
 
 </resources>
