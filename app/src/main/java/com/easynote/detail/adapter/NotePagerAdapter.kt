@@ -4,16 +4,13 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.TextView
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R
 import com.easynote.detail.data.model.NotePage // 引用刚才建的数据模型
 
 
 import com.easynote.richtext.view.RichTextView
-import com.example.mydemo.ai.core.TaskType
+import com.easynote.ai.core.TaskType
 
 class NotePagerAdapter(
     private val pages: MutableList<NotePage>,

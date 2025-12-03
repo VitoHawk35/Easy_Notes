@@ -17,12 +17,11 @@ import com.easynote.detail.adapter.NotePagerAdapter
 import com.easynote.detail.data.model.NotePage
 import com.easynote.detail.viewmodel.NoteDetailViewModel
 import android.content.Intent
-import android.util.Log
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.easynote.detail.adapter.NavAdapter
 import com.easynote.detail.adapter.TagPagingAdapter
-import com.example.mydemo.ai.service.AIConfig
+import com.easynote.ai.service.AIConfig
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

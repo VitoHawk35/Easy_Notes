@@ -23,7 +23,7 @@ import android.widget.Toast
 
 import com.easynote.richtext.view.impl.RichTextController
 import com.easynote.richtext.utils.SelectionMenuManager
-import com.example.mydemo.ai.core.TaskType
+import com.easynote.ai.core.TaskType
 
 /**
  * 富文本编辑器组件

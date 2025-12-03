@@ -10,9 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.easynote.data.repository.Repository
 import com.easynote.data.repository.impl.RepositoryImpl
 import com.easynote.detail.data.model.NotePage
-import com.example.mydemo.ai.core.AIProvider
-import com.example.mydemo.ai.core.TaskType
-import com.example.mydemo.ai.model.Response.ChatCompletionResponse
+import com.easynote.ai.core.AIProvider
+import com.easynote.ai.core.TaskType
+import com.easynote.ai.model.Response.ChatCompletionResponse
 import com.easynote.data.entity.TagEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
