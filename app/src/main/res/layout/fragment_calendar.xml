@@ -81,5 +81,19 @@
             tools:listitem="@layout/item_note_preview" />
 
     </LinearLayout>
-
+    <!-- 【新增】浮动添加按钮 (FAB) -->
+    <!-- app:layout_anchor="@id/bottom_sheet" 让按钮吸附在笔记列表顶部 -->
+    <!-- 默认 visibility="gone"，由代码控制显示 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_note_today"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:contentDescription="Add Note Today"
+        android:src="@drawable/ic_add"
+        android:visibility="gone"
+        app:elevation="16dp"
+        app:pressedTranslationZ="16dp"
+        app:layout_anchor="@id/bottom_sheet"
+        app:layout_anchorGravity="top|end" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

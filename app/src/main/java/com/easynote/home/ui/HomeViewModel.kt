@@ -51,11 +51,11 @@ sealed interface HomeUiMode {
 }
 // 设置项的枚举类
 enum class SortOrder(val dataLayerValue: String) {
+    BY_UPDATE_TIME_DESC("UPDATE_TIME_DESC"),
+    BY_UPDATE_TIME_ASC("UPDATE_TIME_ASC"),
+    BY_CREATION_TIME_DESC("CREATE_TIME_DESC"),
+    BY_CREATION_TIME_ASC("CREATE_TIME_ASC")
 
-
-    //TODO要修改对应的设置“”对应的string
-    BY_UPDATE_TIME("UPDATE_TIME_DESC"),
-    BY_CREATION_TIME("UPDATE_TIME_ASC")
 }
 // 用于日历页面的状态
 data class CalendarState(
@@ -108,7 +108,7 @@ class HomeViewModel(
     private val _searchQuery = MutableStateFlow("")    // 监听搜索字段
     val searchQuery: StateFlow<String> = _searchQuery
 
-    private val _sortOrder = MutableStateFlow(SortOrder.BY_UPDATE_TIME) // 设置中排序项状态 默认按更新时间
+    private val _sortOrder = MutableStateFlow(SortOrder.BY_UPDATE_TIME_DESC) // 设置中排序项状态 默认按更新时间
     val sortOrder: StateFlow<SortOrder> = _sortOrder
     private val _layoutMode = MutableStateFlow(LayoutMode.GRID) //设置中布局状态， 默认是宫格模式
     val layoutMode: StateFlow<LayoutMode> = _layoutMode

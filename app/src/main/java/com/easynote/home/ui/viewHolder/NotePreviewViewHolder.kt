@@ -11,10 +11,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.ui.HomeUiMode
+import com.easynote.home.ui.SortOrder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import com.easynote.util.DateUtils
 /**
  * 【公共的笔记预览ViewHolder，供首页和日历页复用】
  * 独立的 ViewHolder，负责持有 View 和绑定数据逻辑。
@@ -24,7 +25,8 @@ class NotePreviewViewHolder(
     itemView: View,
     private val onItemClick: (NotePreviewModel) -> Unit,
     private val onItemLongClick: (NotePreviewModel) -> Boolean,
-    private val getUiMode: () -> HomeUiMode // 通过函数获取当前的 UI Mode，解耦
+    private val getUiMode: () -> HomeUiMode, // 通过函数获取当前的 UI Mode，解耦
+    private val getSortOrder: () -> SortOrder
 ) : RecyclerView.ViewHolder(itemView) {
 
     private val titleTextView: TextView = itemView.findViewById(R.id.textView_note_title)
@@ -70,10 +72,18 @@ class NotePreviewViewHolder(
         titleTextView.text = note.title
         summaryTextView.text = note.summary
 
-        // 格式化时间
-        val date = Date(note.updatedTime)
-        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        timeTextView.text = format.format(date)
+        // 根据排序方式决定显示哪个时间
+        val currentOrder = getSortOrder()
+        val timeToShow = when (currentOrder) {
+            SortOrder.BY_CREATION_TIME_ASC,
+            SortOrder.BY_CREATION_TIME_DESC -> note.createdTime
+
+            SortOrder.BY_UPDATE_TIME_ASC,
+            SortOrder.BY_UPDATE_TIME_DESC -> note.updatedTime
+        }
+
+        // 调用 DateUtils 的智能格式化
+        timeTextView.text = DateUtils.getSmartDate(timeToShow)
 
         // 置顶图标
         pinnedImageView.visibility = if (note.isPinned) View.VISIBLE else View.GONE
@@ -99,11 +109,12 @@ class NotePreviewViewHolder(
             parent: ViewGroup,
             onItemClick: (NotePreviewModel) -> Unit,
             onItemLongClick: (NotePreviewModel) -> Boolean,
-            getUiMode: () -> HomeUiMode
+            getUiMode: () -> HomeUiMode,
+            getSortOrder: () -> SortOrder
         ): NotePreviewViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_note_preview, parent, false)
-            return NotePreviewViewHolder(view, onItemClick, onItemLongClick, getUiMode)
+            return NotePreviewViewHolder(view, onItemClick, onItemLongClick, getUiMode,getSortOrder)
         }
     }
 }

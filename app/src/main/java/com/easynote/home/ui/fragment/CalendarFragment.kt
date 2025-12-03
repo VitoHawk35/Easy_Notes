@@ -16,14 +16,13 @@ import com.easynote.databinding.FragmentCalendarBinding
 import com.easynote.detail.NoteDetailActivity
 import com.easynote.home.ui.Adapter.CalendarAdapter
 import com.easynote.home.ui.Adapter.NotePreviewListAdapter
-import com.easynote.home.ui.HomeUiMode
 import com.easynote.home.ui.HomeViewModel
 import com.easynote.home.ui.Screen
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.util.Calendar
-
+import com.easynote.util.DateUtils
+import android.util.Log
 class CalendarFragment : Fragment() {
 
     private var _binding: FragmentCalendarBinding? = null
@@ -153,6 +152,12 @@ class CalendarFragment : Fragment() {
                 binding.calendarContainer.alpha = 1f - slideOffset
             }
         })
+        // 新建笔记按键，跳转新建笔记
+        binding.fabAddNoteToday.setOnClickListener {
+            val intent = Intent(requireContext(), NoteDetailActivity::class.java)
+            // 可选：如果你想把当前选中的日期传过去作为默认时间，可以在这里 putExtra
+            startActivity(intent)
+        }
     }
 
     /**
@@ -194,6 +199,12 @@ class CalendarFragment : Fragment() {
                         calendarAdapter.updateData(state.selectedYear, state.selectedMonth, state.selectedDay)
                         // 数据结构变化可能导致行数变化，再次校准高度
                         binding.root.post { updatePeekHeight() }
+                        // 判断选中日期是否为“今天”，控制新建笔记按键的显示
+                        if(state.selectedDay==null||!DateUtils.isToday(state.selectedYear, state.selectedMonth, state.selectedDay)){
+                            binding.fabAddNoteToday.visibility = View.GONE
+                        }else{
+                            binding.fabAddNoteToday.visibility = View.VISIBLE
+                        }
                     }
                 }
 
@@ -204,7 +215,7 @@ class CalendarFragment : Fragment() {
                     }
                 }
 
-                // 3. 【核心逻辑】监听全月笔记 + 选中日期 -> 更新底部列表
+                // 3. 监听全月笔记 + 选中日期 -> 更新底部列表
                 // 使用 combine 结合两个流，当任意一个变化时重新计算列表内容
                 launch {
                     combine(
@@ -218,10 +229,9 @@ class CalendarFragment : Fragment() {
                             allNotes
                         } else {
                             // 如果选中了某天，只筛选出那一天的笔记 (使用 createdTime 判断)
-                            val cal = Calendar.getInstance()
+                            val (start, end) = DateUtils.getDayRange(state.selectedYear, state.selectedMonth, selectedDay)
                             allNotes.filter { note ->
-                                cal.timeInMillis = note.createdTime
-                                cal.get(Calendar.DAY_OF_MONTH) == selectedDay
+                                note.createdTime in start..end
                             }
                         }
                     }.collect { filteredList ->
@@ -233,7 +243,6 @@ class CalendarFragment : Fragment() {
             }
         }
     }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

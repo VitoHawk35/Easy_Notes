@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter // 注意导入的是 ListAdapter
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.ui.HomeUiMode
+import com.easynote.home.ui.SortOrder
 
 /**
  * 普通 List 版本的 Adapter (用于日历页的全量数据)
@@ -29,7 +30,8 @@ class NotePreviewListAdapter(
             parent,
             onItemClick,
             onItemLongClick,
-            getUiMode = { currentUiMode }
+            getUiMode = { currentUiMode },
+            { SortOrder.BY_CREATION_TIME_DESC }
         )
     }
 

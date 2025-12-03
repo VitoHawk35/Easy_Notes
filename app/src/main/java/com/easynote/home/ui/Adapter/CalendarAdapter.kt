@@ -11,7 +11,7 @@ import com.easynote.R
 import com.easynote.databinding.ItemCalendarDayBinding
 import com.easynote.home.domain.model.NotePreviewModel
 import java.util.Calendar
-
+import com.easynote.util.DateUtils
 /**
  * 日历项目密封类
  */
@@ -35,7 +35,7 @@ class CalendarAdapter(
     private var dailyData: Map<Int, List<NotePreviewModel>> = emptyMap()
 
     private val displayItems = mutableListOf<CalendarItem>()
-    private val today = Calendar.getInstance()
+
 
     // --- 更新方法 ---
 
@@ -64,9 +64,8 @@ class CalendarAdapter(
 
     private fun regenerateDisplayItems() {
         displayItems.clear()
-        val calendar = Calendar.getInstance().apply { set(year, month - 1, 1) }
-        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // 1=Sunday, 7=Saturday
+        val daysInMonth = DateUtils.getDaysInMonth(year, month)
+        val firstDayOfWeek = DateUtils.getFirstDayOfWeek(year, month)
 
         // 1. 添加星期标题
         WEEK_TITLES.forEach { displayItems.add(CalendarItem.WeekTitle(it)) }
@@ -166,9 +165,7 @@ class CalendarAdapter(
                     // 选中状态
                     binding.root.isActivated = (item.dayOfMonth == selectedDay)
 
-                    val isToday = (year == today.get(Calendar.YEAR) &&
-                            month == today.get(Calendar.MONTH) + 1 &&
-                            item.dayOfMonth == today.get(Calendar.DAY_OF_MONTH))
+                    val isToday = DateUtils.isToday(year, month, item.dayOfMonth)
 
                     // 字体颜色逻辑
                     when {

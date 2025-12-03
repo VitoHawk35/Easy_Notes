@@ -97,8 +97,10 @@ class SettingsFragment : Fragment() {
         // 观察排序方式
         viewModel.sortOrder.onEach { sortOrder ->
             val position = when (sortOrder) {
-                SortOrder.BY_UPDATE_TIME -> 0
-                SortOrder.BY_CREATION_TIME -> 1
+                SortOrder.BY_UPDATE_TIME_ASC -> 0
+                SortOrder.BY_UPDATE_TIME_DESC -> 1
+                SortOrder.BY_CREATION_TIME_ASC -> 2
+                SortOrder.BY_CREATION_TIME_DESC -> 3
             }
             // 防止重复设置触发监听器
             if (binding.spinnerSortOrder.selectedItemPosition != position) {
@@ -126,8 +128,11 @@ class SettingsFragment : Fragment() {
         binding.spinnerSortOrder.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val newSortOrder = when (position) {
-                    1 -> SortOrder.BY_CREATION_TIME
-                    else -> SortOrder.BY_UPDATE_TIME
+                    0-> SortOrder.BY_UPDATE_TIME_ASC
+                    1-> SortOrder.BY_UPDATE_TIME_DESC
+                    2 -> SortOrder.BY_CREATION_TIME_ASC
+                    3 -> SortOrder.BY_CREATION_TIME_DESC
+                    else -> {SortOrder.BY_UPDATE_TIME_DESC}
                 }
                 // 只有在新选择的值和 ViewModel 中当前的值不同时才更新，防止重复调用
                 if (viewModel.sortOrder.value != newSortOrder) {

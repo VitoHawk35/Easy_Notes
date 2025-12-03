@@ -192,6 +192,13 @@ class HomeFragment : Fragment() {
             (binding.recyclerViewNotePreviews.layoutManager as? StaggeredGridLayoutManager)?.spanCount = spanCount
         }
         }
+        // 观察排序方式
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.sortOrder.collect { order ->
+                // 更新 Adapter 的排序状态，触发时间显示刷新
+                notePreviewAdapter.currentSortOrder = order
+            }
+        }
     }
 
     fun onSelectAllActionClicked() {
