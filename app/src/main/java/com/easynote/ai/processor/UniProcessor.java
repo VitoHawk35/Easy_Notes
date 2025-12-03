@@ -2,7 +2,7 @@ package com.easynote.ai.processor;
 
 
 
-import com.easynote.ai.core.IVolcanoApi;
+import com.easynote.ai.service.IVolcanoApi;
 import com.easynote.ai.core.TaskType;
 import com.easynote.ai.model.Message;
 import com.easynote.ai.model.Request.ChatCompletionRequest;

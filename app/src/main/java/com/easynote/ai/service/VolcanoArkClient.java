@@ -2,8 +2,6 @@ package com.easynote.ai.service;
 
 
 
-import com.easynote.ai.core.IVolcanoApi;
-
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;

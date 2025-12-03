@@ -3,7 +3,7 @@ package com.easynote.ai.service;
 import android.content.Context;
 import android.content.res.Resources;
 
-import com.easynote.R;
+import com.example.mydemo.R;
 
 
 public class AIConfig {

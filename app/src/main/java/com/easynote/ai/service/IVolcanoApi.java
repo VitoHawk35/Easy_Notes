@@ -1,4 +1,4 @@
-package com.easynote.ai.core;
+package com.easynote.ai.service;
 
 import com.easynote.ai.model.Request.ChatCompletionRequest;
 import com.easynote.ai.model.Response.ChatCompletionResponse;
