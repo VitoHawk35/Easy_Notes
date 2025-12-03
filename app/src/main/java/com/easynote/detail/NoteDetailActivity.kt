@@ -165,7 +165,7 @@ class NoteDetailActivity : AppCompatActivity() {
 
             onUpdateAbstract = { abstractText ->
                 // 调用 ViewModel 更新数据库
-                viewModel.updateAbstract(currentNoteId, abstractText)
+                viewModel.updateAbstract(currentNoteId,noteTitle, abstractText)
 
                 Toast.makeText(this, "摘要已更新", Toast.LENGTH_SHORT).show()
             }

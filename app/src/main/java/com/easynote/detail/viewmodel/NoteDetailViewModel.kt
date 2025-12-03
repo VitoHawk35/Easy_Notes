@@ -3,23 +3,17 @@ package com.easynote.detail.viewmodel
 import android.app.Application
 import android.net.Uri
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.easynote.data.repository.Repository
 import com.easynote.data.repository.impl.RepositoryImpl
 import com.easynote.detail.data.model.NotePage
 import com.easynote.ai.core.AIProvider
 import com.easynote.ai.core.TaskType
-import com.easynote.ai.model.Response.ChatCompletionResponse
 import com.easynote.data.entity.TagEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.easynote.ai.core.AIResultCallback
@@ -108,10 +102,10 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     // 更新笔记摘要
-    fun updateAbstract(noteId: Long, abstract: String) {
+    fun updateAbstract(noteId: Long, noteTitle:String, abstract: String) {
         viewModelScope.launch {
             try {
-                repository.updateAbstract(noteId, abstract)
+                repository.updateTitleOrTitle(noteId, noteTitle,abstract)
                 Log.d("NoteDetailViewModel", "摘要更新成功")
             } catch (e: Exception) {
                 e.printStackTrace()
