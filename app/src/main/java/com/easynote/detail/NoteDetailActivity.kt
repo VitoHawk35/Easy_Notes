@@ -55,8 +55,8 @@ class NoteDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
 
-//        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
-        currentNoteId = 1L // 测试数据
+        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
+        //currentNoteId = 1L // 测试数据
         noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
 
         initView()
@@ -130,7 +130,7 @@ class NoteDetailActivity : AppCompatActivity() {
             // 2. 处理“保存”请求
             save = { position, html ->
                 // 假设当前 Note ID 为 1 (实际应从 Intent 获取)
-                val currentNoteId = 1L
+                //val currentNoteId = 1L
                 val currentPageIndex = pageList[position].pageNumber // 或者直接用 position + 1
 
                 viewModel.saveNotePage(currentNoteId, currentPageIndex, html)
@@ -373,8 +373,8 @@ class NoteDetailActivity : AppCompatActivity() {
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { srcUri: Uri? ->
         if (srcUri != null) {
-            // 假设当前 noteId=1 (实际开发中请从 Intent 获取)
-            val currentNoteId = 1L
+
+            //val currentNoteId = 1L
             // 获取当前页码
             val currentPageIndex = pageList[viewPager.currentItem].pageNumber
 

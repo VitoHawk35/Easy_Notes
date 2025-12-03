@@ -142,7 +142,6 @@ class RichTextView @JvmOverloads constructor(
 
             when(taskType){
                 TaskType.TRANSLATE -> {
-                    // TODO 要获取选中文本以及选中文本的上下文
                     val start = etContent.selectionStart
                     val end = etContent.selectionEnd
                     if (start < end) {
@@ -192,7 +191,6 @@ class RichTextView @JvmOverloads constructor(
                 .setTitle(title)
                 .setMessage(result)
                 .setPositiveButton("确认") { _, _ ->
-                    // TODO 调用 Repository的    suspend fun updateAbstract(noteId: Long, abstract: String)接口，更新摘要
                     listener?.onUpdateAbstract(result)
                 }
                 .setNegativeButton("复制") { _, _ ->
