@@ -77,7 +77,7 @@ interface Repository {
      * @param noteId The ID of the note.
      * @param summary The new abstract for the note.
      */
-    suspend fun updateTitleOrTitle(noteId: Long, title: String, summary: String)
+    suspend fun updateTitleOrSummary(noteId: Long, title: String? = null, summary: String?=null)
 
     /**
      * Save an image associated with a note.

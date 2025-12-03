@@ -88,8 +88,8 @@ class RepositoryImpl(application: Application) : Repository {
         noteRepository.updateSearchTable(noteId, pageIndex, newContent.take(500))
     }
 
-    override suspend fun updateTitleOrTitle(noteId: Long,title:String ,summary: String) {
-        noteRepository.updateAbstract(noteId, summary)
+    override suspend fun updateTitleOrSummary(noteId: Long, title:String?, summary: String?) {
+        noteRepository.updateTitleOrAbstract(noteId, title,summary)
     }
 
     override suspend fun updateNoteTags(
