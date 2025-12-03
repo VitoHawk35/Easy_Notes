@@ -16,7 +16,7 @@ class NotePagerAdapter(
     private val pages: MutableList<NotePage>,
     private val addImage: (callback: (Uri) -> Unit) -> Unit,
     private val save: (Int, String)->Unit,
-    private val onAiRequest: (String, TaskType, (String) -> Unit) -> Unit // 新参数
+    private val onAiRequest: (String, TaskType, String?, (String) -> Unit) -> Unit
 ) : RecyclerView.Adapter<NotePagerAdapter.PageViewHolder>() {
 
     private var isReadOnly: Boolean = true
@@ -67,9 +67,8 @@ class NotePagerAdapter(
                 page.content = html
             }
 
-            override fun onAIRequest(text: String, taskType: TaskType, onResult: (String) -> Unit) {
-                // 转发给 Activity
-                onAiRequest(text, taskType, onResult)
+            override fun onAIRequest(text: String, taskType: TaskType, context: String?, onResult: (String) -> Unit) {
+                onAiRequest(text, taskType, context, onResult)
             }
         })
     }

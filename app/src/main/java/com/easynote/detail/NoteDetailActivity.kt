@@ -23,6 +23,7 @@ import com.easynote.detail.adapter.NavAdapter
 import com.easynote.detail.adapter.TagPagingAdapter
 import com.easynote.ai.service.AIConfig
 import androidx.lifecycle.lifecycleScope
+import com.easynote.ai.core.TaskType
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 class NoteDetailActivity : AppCompatActivity() {
@@ -137,22 +138,29 @@ class NoteDetailActivity : AppCompatActivity() {
                 Toast.makeText(this, "第 ${position + 1} 页正在保存...", Toast.LENGTH_SHORT).show()
             },
 
-            onAiRequest = { text, taskType, viewCallback ->
-                // 1. 显示 Loading (Activity 负责 UI 反馈)
+            onAiRequest = { text, taskType, context, viewCallback ->
                 Toast.makeText(this, "AI 思考中...", Toast.LENGTH_SHORT).show()
 
-                // 2. 调用 ViewModel
-                viewModel.performAiTask(
-                    text,
-                    taskType,
-                    onResult = { resultText ->
-                        // 3. 拿到结果，传回给 View (闭包的威力)
-                        viewCallback(resultText)
-                    },
-                    onError = { errorMsg ->
-                        Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
-                    }
-                )
+                // 根据任务类型决定调用哪个接口
+                if (taskType == TaskType.TRANSLATE && context != null) {
+                    viewModel.performTranslateTask(
+                        context = context,
+                        text = text,
+                        onResult = viewCallback,
+                        onError = { errorMsg ->
+                            Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                } else {
+                    viewModel.performAiTask(
+                        text,
+                        taskType,
+                        onResult = viewCallback,
+                        onError = { errorMsg ->
+                            Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
             }
         )
 

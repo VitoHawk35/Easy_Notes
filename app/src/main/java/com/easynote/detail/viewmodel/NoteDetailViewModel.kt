@@ -22,6 +22,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.easynote.ai.core.AIResultCallback
+import com.easynote.ai.exception.AIException
 import kotlinx.coroutines.flow.Flow
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
@@ -102,23 +104,41 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
+    // 更新笔记摘要
+    fun updateAbstract(noteId: Long, abstract: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateAbstract(noteId, abstract)
+                Log.d("NoteDetailViewModel", "摘要更新成功")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "摘要更新失败: ${e.message}")
+            }
+        }
+    }
 
     // 处理 AI 任务
     fun performAiTask(text: String, taskType: TaskType, onResult: (String) -> Unit, onError: (String) -> Unit) {
-        // 这里调用 AIProvider
-        // 注意：AIProvider 最好也注入进来，或者单例调用
-        AIProvider.getInstance().process(text, taskType, object : Callback<ChatCompletionResponse> {
-            override fun onResponse(call: Call<ChatCompletionResponse>, response: Response<ChatCompletionResponse>) {
-                val result = response.body()?.choices?.firstOrNull()?.message?.content
-                if (result != null) {
-                    onResult(result) // 成功，回调结果
-                } else {
-                    onError("AI返回内容为空")
-                }
+        AIProvider.getInstance().process(text, taskType, object : AIResultCallback {
+            override fun onSuccess(aiReply: String) {
+                onResult(aiReply)
             }
 
-            override fun onFailure(call: Call<ChatCompletionResponse>?, t: Throwable) {
-                onError("网络错误: ${t.message}")
+            override fun onFailure(e: AIException) {
+                onError("AI请求失败: ${e.message}")
+            }
+        })
+    }
+
+    // 翻译
+    fun performTranslateTask(context: String, text: String, onResult: (String) -> Unit, onError: (String) -> Unit) {
+        AIProvider.getInstance().processTranslate(context, text, object : AIResultCallback {
+            override fun onSuccess(aiReply: String) {
+                onResult(aiReply)
+            }
+
+            override fun onFailure(e: AIException) {
+                onError("翻译请求失败: ${e.message}")
             }
         })
     }

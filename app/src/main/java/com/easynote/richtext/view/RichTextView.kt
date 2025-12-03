@@ -64,7 +64,7 @@ class RichTextView @JvmOverloads constructor(
         fun onContentChanged(html: String) // 内容实时变更（可选，用于自动保存）
 
         // callback 是外界处理完后调用的，传入处理后的文本
-        fun onAIRequest(text: String, taskType: TaskType, onResult: (String) -> Unit)
+        fun onAIRequest(text: String, taskType: TaskType, context: String?, onResult: (String) -> Unit)
     }
 
     private var listener: OnRichTextListener? = null
@@ -136,16 +136,43 @@ class RichTextView @JvmOverloads constructor(
 
         // 绑定 AI 任务触发事件
         menuManager?.onAITaskTriggered = { taskType ->
-            val start = etContent.selectionStart
-            val end = etContent.selectionEnd
-            if (start < end) {
-                val text = etContent.text.substring(start, end)
-                // 委托给 AIService 处理
-                listener?.onAIRequest(text, taskType) { resultText ->
-                    // 收到结果后的回调：弹窗或替换
-                    // 这里可以保留弹窗逻辑在 View 层，或者连弹窗也移出去
-                    // 为了简单，我们假设外界处理完直接返回结果文本，我们在 View 里弹窗确认
-                    showAIResultDialog(taskType, resultText, start, end)
+
+
+            when(taskType){
+                TaskType.TRANSLATE -> {
+                    // TODO 要获取选中文本以及选中文本的上下文
+                    val start = etContent.selectionStart
+                    val end = etContent.selectionEnd
+                    if (start < end) {
+                        val text = etContent.text.substring(start, end)
+                        // 获取全文作为上下文
+                        val contextText = etContent.text.toString()
+
+                        // 传入 context
+                        listener?.onAIRequest(text, taskType, contextText) { resultText ->
+                            showAIResultDialog(taskType, resultText, start, end)
+                        }
+                    } else {
+                        Toast.makeText(context, "请先选择需要翻译的文本", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                TaskType.SUMMARY -> {
+                    val text = etContent.text.toString()
+                    // 委托给 AIService 处理
+                    listener?.onAIRequest(text, taskType,null) { resultText ->
+                        showAIResultDialog(taskType, resultText, -1,-1)
+                    }
+                }
+                else ->{
+                    val start = etContent.selectionStart
+                    val end = etContent.selectionEnd
+                    if (start < end) {
+                        val text = etContent.text.substring(start, end)
+                        listener?.onAIRequest(text, taskType,null) { resultText ->
+
+                            showAIResultDialog(taskType, resultText, start, end)
+                        }
+                    }
                 }
             }
         }
@@ -157,6 +184,24 @@ class RichTextView @JvmOverloads constructor(
             TaskType.POLISH -> "润色结果"
             TaskType.TRANSLATE -> "翻译结果"
             TaskType.SUMMARY -> "摘要"
+        }
+        if(taskType == TaskType.SUMMARY){
+            AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(result)
+                .setPositiveButton("确认") { _, _ ->
+                    // TODO 调用 Repository的    suspend fun updateAbstract(noteId: Long, abstract: String)接口，更新摘要
+
+                }
+                .setNegativeButton("复制") { _, _ ->
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("AI Result", result)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(context, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+                }
+                .setNeutralButton("取消", null)
+                .show()
+            return
         }
 
         AlertDialog.Builder(context)
