@@ -1,8 +1,8 @@
-package com.example.easynote.ai.model.Response;
+package com.easynote.ai.model.Response;
 
 
 
-import com.example.easynote.ai.model.Message;
+import com.easynote.ai.model.Message;
 
 import java.util.List;
 

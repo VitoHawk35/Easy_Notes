@@ -1,9 +1,9 @@
-package com.example.easynote.ai.core;
+package com.easynote.ai.core;
 
-import com.example.easynote.ai.exception.AIException;
-import com.example.easynote.ai.model.Response.ChatCompletionResponse;
-import com.example.easynote.ai.processor.TaskProcessor;
-import com.example.easynote.ai.utils.AIResponseHelper;
+import com.easynote.ai.exception.AIException;
+import com.easynote.ai.model.Response.ChatCompletionResponse;
+import com.easynote.ai.processor.TaskProcessor;
+import com.easynote.ai.utils.AIResponseHelper;
 
 import retrofit2.Callback;
 import retrofit2.Response;

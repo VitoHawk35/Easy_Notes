@@ -1,14 +1,14 @@
-package com.example.easynote.ai.processor;
+package com.easynote.ai.processor;
 
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
 
 
-import com.example.easynote.ai.core.TaskType;
-import com.example.easynote.ai.exception.AIException;
-import com.example.easynote.ai.model.Response.ChatCompletionResponse;
-import com.example.easynote.ai.service.AIConfig;
+import com.easynote.ai.core.TaskType;
+import com.easynote.ai.exception.AIException;
+import com.easynote.ai.model.Response.ChatCompletionResponse;
+import com.easynote.ai.service.AIConfig;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

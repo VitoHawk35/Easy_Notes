@@ -1,4 +1,4 @@
-package com.example.easynote.ai.core;
+package com.easynote.ai.core;
 
 public enum TaskType {
     TRANSLATE,//翻译

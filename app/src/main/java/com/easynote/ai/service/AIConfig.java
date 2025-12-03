@@ -1,4 +1,4 @@
-package com.example.easynote.ai.service;
+package com.easynote.ai.service;
 
 import android.content.Context;
 import android.content.res.Resources;

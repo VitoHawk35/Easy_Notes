@@ -1,6 +1,6 @@
-package com.example.easynote.ai.core;
+package com.easynote.ai.core;
 
-import com.example.easynote.ai.exception.AIException;
+import com.easynote.ai.exception.AIException;
 /**
  * 简化版回调接口：只关注「成功结果」和「失败原因」，屏蔽原始响应细节
  */

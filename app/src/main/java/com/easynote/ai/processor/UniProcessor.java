@@ -1,15 +1,15 @@
-package com.example.easynote.ai.processor;
+package com.easynote.ai.processor;
 
 
 
-import com.example.easynote.ai.service.IVolcanoApi;
-import com.example.easynote.ai.core.TaskType;
-import com.example.easynote.ai.model.Message;
-import com.example.easynote.ai.model.Request.ChatCompletionRequest;
-import com.example.easynote.ai.model.Response.ChatCompletionResponse;
-import com.example.easynote.ai.service.AIConfig;
-import com.example.easynote.ai.service.VolcanoArkClient;
-import com.example.easynote.ai.utils.PromptBuilder;
+import com.easynote.ai.service.IVolcanoApi;
+import com.easynote.ai.core.TaskType;
+import com.easynote.ai.model.Message;
+import com.easynote.ai.model.Request.ChatCompletionRequest;
+import com.easynote.ai.model.Response.ChatCompletionResponse;
+import com.easynote.ai.service.AIConfig;
+import com.easynote.ai.service.VolcanoArkClient;
+import com.easynote.ai.utils.PromptBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

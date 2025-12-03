@@ -1,4 +1,4 @@
-package com.example.easynote.ai.exception;
+package com.easynote.ai.exception;
 
 /**
  * AI通用异常

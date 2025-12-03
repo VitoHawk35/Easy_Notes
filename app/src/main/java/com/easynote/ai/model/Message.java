@@ -1,4 +1,4 @@
-package com.example.easynote.ai.model;
+package com.easynote.ai.model;
 
 import com.google.gson.annotations.SerializedName;
 

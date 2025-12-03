@@ -1,7 +1,7 @@
-package com.example.easynote.ai.utils;
+package com.easynote.ai.utils;
 
-import com.example.easynote.ai.exception.AIException;
-import com.example.easynote.ai.model.Response.ChatCompletionResponse;
+import com.easynote.ai.exception.AIException;
+import com.easynote.ai.model.Response.ChatCompletionResponse;
 
 public class AIResponseHelper {
 

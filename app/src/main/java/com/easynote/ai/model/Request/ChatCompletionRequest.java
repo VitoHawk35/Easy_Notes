@@ -1,7 +1,7 @@
-package com.example.easynote.ai.model.Request;
+package com.easynote.ai.model.Request;
 
-import com.example.easynote.ai.model.Message;
-import com.example.easynote.ai.service.AIConfig;
+import com.easynote.ai.model.Message;
+import com.easynote.ai.service.AIConfig;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;

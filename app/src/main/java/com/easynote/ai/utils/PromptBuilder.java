@@ -1,6 +1,6 @@
-package com.example.easynote.ai.utils;
+package com.easynote.ai.utils;
 
-import com.example.easynote.ai.core.TaskType;
+import com.easynote.ai.core.TaskType;
 
 public class PromptBuilder {
     public static String getSystemPrompt(TaskType taskType){
