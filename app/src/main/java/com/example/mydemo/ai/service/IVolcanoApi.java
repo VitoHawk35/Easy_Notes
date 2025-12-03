@@ -1,4 +1,4 @@
-package com.example.mydemo.ai.core;
+package com.example.mydemo.ai.service;
 
 import com.example.mydemo.ai.model.Request.ChatCompletionRequest;
 import com.example.mydemo.ai.model.Response.ChatCompletionResponse;

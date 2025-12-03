@@ -2,7 +2,7 @@ package com.example.mydemo.ai.processor;
 
 
 
-import com.example.mydemo.ai.core.IVolcanoApi;
+import com.example.mydemo.ai.service.IVolcanoApi;
 import com.example.mydemo.ai.core.TaskType;
 import com.example.mydemo.ai.model.Message;
 import com.example.mydemo.ai.model.Request.ChatCompletionRequest;

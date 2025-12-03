@@ -2,8 +2,6 @@ package com.example.mydemo.ai.service;
 
 
 
-import com.example.mydemo.ai.core.IVolcanoApi;
-
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
