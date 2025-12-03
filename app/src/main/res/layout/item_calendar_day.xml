@@ -7,37 +7,70 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/selector_calendar_day"
-    android:padding="4dp">
+    android:padding="2dp"> <!-- 稍微减小 padding，给标题留空间 -->
 
     <!-- 日期数字 -->
-    <!-- 垂直居中，或者稍微偏上一点给小红点留位置 -->
     <TextView
         android:id="@+id/text_view_day"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minHeight="20dp"
         android:gravity="center"
-        android:minHeight="24dp"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:text="29" />
 
-    <!-- 小红点指示器 -->
-    <!-- 放在日期数字的下方 -->
+    <!-- 标题预览 1 -->
+    <TextView
+        android:id="@+id/text_view_preview_1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="10sp"
+        android:textColor="#666666"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:background="#10000000"
+        android:paddingHorizontal="2dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/text_view_day"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="买菜"
+        tools:visibility="visible"/>
+
+    <!-- 标题预览 2 -->
+    <TextView
+        android:id="@+id/text_view_preview_2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textSize="10sp"
+        android:textColor="#666666"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:background="#10000000"
+        android:paddingHorizontal="2dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/text_view_preview_1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="学习 Kotlin"
+        tools:visibility="visible"/>
+
+    <!-- 原来的小红点 (可选，如果标题太长显示不下时，可以回退到只显示红点) -->
     <View
         android:id="@+id/dot_has_notes"
-        android:layout_width="6dp"
-        android:layout_height="6dp"
-        android:layout_marginTop="4dp"
+        android:layout_width="4dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="2dp"
         android:background="@drawable/dot_indicator"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@id/text_view_day"
-        app:layout_constraintStart_toStartOf="@id/text_view_day"
-        app:layout_constraintTop_toBottomOf="@id/text_view_day"
-        tools:visibility="visible" />
+        app:layout_constraintTop_toBottomOf="@id/text_view_preview_2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

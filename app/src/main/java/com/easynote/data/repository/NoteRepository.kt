@@ -3,7 +3,7 @@ package com.easynote.data.repository
 import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
 import com.easynote.data.annotation.NoteOrderWay
-import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
+import com.easynote.data.annotation.UPDATE_TIME_DESC
 import com.easynote.data.entity.NoteEntity
 import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
@@ -39,6 +39,13 @@ interface NoteRepository {
     suspend fun deleteNoteById(id: Long)
 
     /**
+     * Delete multiple notes by their IDs.
+     *
+     * @param id
+     */
+    suspend fun deleteNoteById(id: Set<Long>)
+
+    /**
      * Delete a specific page from a note.
      *
      * @param noteId
@@ -59,7 +66,9 @@ interface NoteRepository {
      * @param id
      * @param isFavor
      */
-    suspend fun updateNoteFavor(id: Int, isFavor: Boolean)
+    suspend fun updateNoteFavor(id: Long, isFavor: Boolean)
+
+    suspend fun updateNoteFavor(id:Set<Long>, isFavor: Boolean)
 
     /**
      * Update the tags associated with a note.
@@ -96,7 +105,7 @@ interface NoteRepository {
     fun getNoteByTagIdPagingFlow(
         TagIds: Set<Long>? = emptySet(),
         pageSize: Int,
-        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC
+        @NoteOrderWay orderWay: String? = UPDATE_TIME_DESC
     ): Flow<PagingData<NoteEntity>>
 
     /**
@@ -158,5 +167,19 @@ interface NoteRepository {
      * @param take
      */
     suspend fun updateSearchTable(noteId: Long,pageIndex: Int, take: String)
+
+    /**
+     * Get all notes with their associated tags as a flow.
+     *
+     * @return A Flow emitting a list of NoteWithTags.
+     */
+    fun getAllNoteFlow(
+        query: String?,
+        tagIds: Set<Long>?,
+        startTime: Long?,
+        endTime: Long?,
+        orderWay: String?
+    ): Flow<List<NoteWithTags>>
+
 
 }

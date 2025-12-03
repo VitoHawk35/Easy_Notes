@@ -9,7 +9,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.easynote.data.annotation.NoteOrderWay
-import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
+import com.easynote.data.annotation.UPDATE_TIME_DESC
 import com.easynote.data.entity.NoteEntity
 import com.easynote.data.relation.NoteWithTags
 import kotlinx.coroutines.flow.Flow
@@ -46,6 +46,9 @@ interface NoteEntityDao {
     @Query("DELETE FROM note WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("DELETE FROM note WHERE id IN (:id)")
+    suspend fun deleteById(id: Set<Long>)
+
     /**
      * Update a note entity in the database.
      */
@@ -58,11 +61,15 @@ interface NoteEntityDao {
     @Query("UPDATE note SET summary = :summary,update_time = :updateTime WHERE id = :noteId")
     suspend fun updateAbstract(noteId: Long, summary: String, updateTime: Long)
 
+
     /**
      * Update the favorite status of a note entity by its ID.
      */
     @Query("UPDATE note SET is_favorite = :isFavor WHERE id = :id")
-    suspend fun updateFavor(id: Int, isFavor: Boolean)
+    suspend fun updateFavor(id: Long, isFavor: Boolean)
+
+    @Query("UPDATE note SET is_favorite = :isFavor WHERE id IN (:id)")
+    suspend fun updateFavor(id: Set<Long>, isFavor: Boolean)
 
     @Query("SELECT * FROM note")
     suspend fun getAll(): List<NoteEntity>
@@ -89,7 +96,7 @@ interface NoteEntityDao {
     )
     fun getPagingByTagIds(
         tagIds: Set<Long>? = emptySet(),
-        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC,
+        @NoteOrderWay orderWay: String? = UPDATE_TIME_DESC,
         size: Int? = tagIds?.size ?: 0
     ): PagingSource<Int, NoteEntity>
 
@@ -135,16 +142,20 @@ interface NoteEntityDao {
         """
     SELECT DISTINCT n.*
     FROM note AS n
-    LEFT JOIN note_tag_ref AS r ON n.id = r.note_id
     WHERE
-        (:tagSize = 0 OR r.tag_id IN (:tagIds))
+        (:tagSize = 0 OR
+            (SELECT COUNT(DISTINCT r.tag_id)
+                FROM note_tag_ref AS r
+                WHERE r.note_id = n.id AND r.tag_id IN (:tagIds)
+            ) = :tagSize
+        )
         AND
         (
             :query IS NULL
             OR :query = ''
             OR n.id IN (
                 SELECT rowid
-                FROM note_content_search
+                FROM note_fts
                 WHERE content MATCH :query
             )
             OR n.title LIKE '%' || :query || '%'
@@ -155,10 +166,14 @@ interface NoteEntityDao {
         AND
         (:endTime IS NULL OR n.update_time <= :endTime)
     ORDER BY
+        CASE WHEN n.is_favorite = 1 THEN 0 ELSE 1 END ASC,
+        CASE WHEN n.is_favorite = 1 THEN n.favorite_time END DESC,
         CASE WHEN :orderWay = 'UPDATE_TIME_DESC' THEN n.update_time END DESC,
         CASE WHEN :orderWay = 'UPDATE_TIME_ASC' THEN n.update_time END ASC,
         CASE WHEN :orderWay = 'TITLE_ASC' THEN n.title END ASC,
-        CASE WHEN :orderWay = 'TITLE_DESC' THEN n.title END DESC
+        CASE WHEN :orderWay = 'TITLE_DESC' THEN n.title END DESC,
+        CASE WHEN :orderWay = 'CREATE_TIME_DESC' THEN n.create_time END DESC,
+        CASE WHEN :orderWay = 'CREATE_TIME_ASC' THEN n.create_time END ASC
     """
     )
     fun getAllWithTagsPaging(
@@ -166,7 +181,7 @@ interface NoteEntityDao {
         query: String?,
         startTime: Long?,
         endTime: Long?,
-        @NoteOrderWay orderWay: String? = ORDER_UPDATE_TIME_DESC,
+        @NoteOrderWay orderWay: String? = UPDATE_TIME_DESC,
         tagSize: Int? = tagIds?.size ?: 0
     ): PagingSource<Int, NoteWithTags>
 
@@ -189,4 +204,43 @@ interface NoteEntityDao {
     @Transaction
     @Query("SELECT * FROM note WHERE id = :id")
     suspend fun getWithTags(id: Long): NoteWithTags?
+
+
+    @Transaction
+    @Query(
+        """
+        SELECT DISTINCT n.*
+        FROM note AS n
+        WHERE
+        (:tagSize = 0 OR
+            (SELECT COUNT(DISTINCT r.tag_id)
+                FROM note_tag_ref AS r
+                WHERE r.note_id = n.id AND r.tag_id IN (:tagIds)
+            ) = :tagSize
+        )
+        AND
+        (
+            :query IS NULL
+            OR :query = ''
+            OR n.id IN (
+                SELECT rowid
+                FROM note_fts
+                WHERE content MATCH :query
+            )
+            OR n.title LIKE '%' || :query || '%'
+            OR n.summary LIKE '%' || :query || '%'
+        )
+        AND
+            (:startTime IS NULL OR n.update_time >= :startTime)
+        AND
+            (:endTime IS NULL OR n.update_time <= :endTime)
+    """
+    )
+    fun getAllWithTags(
+        query: String?,
+        tagIds: Set<Long>?,
+        startTime: Long?,
+        endTime: Long?,
+        tagSize: Int? = tagIds?.size ?: 0
+    ): Flow<List<NoteWithTags>>
 }

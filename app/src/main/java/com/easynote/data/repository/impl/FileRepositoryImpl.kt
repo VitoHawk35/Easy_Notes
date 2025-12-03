@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.room.Transaction
+import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.common.exception.DataException
 import com.easynote.data.repository.FileRepository
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +69,7 @@ class FileRepositoryImpl(application: Application) : FileRepository {
             }
             destFile.absolutePath
         } catch (e: Exception) {
-            throw DataException(e, "FILE_SAVE_IMAGE_FAILED")
+            throw DataException(e, DataExceptionConstants.FILE_SAVE_IMAGE_FAILED)
         }
 
     }
@@ -111,13 +112,16 @@ class FileRepositoryImpl(application: Application) : FileRepository {
             }
         }
 
-    override suspend fun updateFile(
-        noteId: Long,
-        pageIndex: Int,
-        newContent: String
-    ) {
-        TODO("Not yet implemented")
-    }
+    @Transaction
+    override suspend fun deleteFile(noteIds: Set<Long>) =
+        withContext(Dispatchers.IO) {
+            noteIds.forEach { id ->
+                val dir = File(context.filesDir, id.toString())
+                if (dir.exists() && dir.isDirectory) {
+                    dir.deleteRecursively()
+                }
+            }
+        }
 
     @Transaction
     override suspend fun updateFile(
@@ -142,16 +146,6 @@ class FileRepositoryImpl(application: Application) : FileRepository {
     override suspend fun readH5File(noteId: Long, pageIndex: Int): String? =
         withContext(Dispatchers.IO) {
             val file = File(context.filesDir, getH5FileName(noteId, pageIndex))
-            return@withContext if (file.exists()) {
-                file.readText()
-            } else {
-                null
-            }
-        }
-
-    override suspend fun readTxtFile(noteId: Long, pageIndex: Int): String? =
-        withContext(Dispatchers.IO) {
-            val file = File(context.filesDir, getTxtFileName(noteId, pageIndex))
             return@withContext if (file.exists()) {
                 file.readText()
             } else {

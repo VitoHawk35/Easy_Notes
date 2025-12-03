@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.domain.model.TagModel
 import com.easynote.data.repository.NoteRepository
@@ -132,87 +131,51 @@ class HomeViewModel(
             tagEntity.toTagModel() // 4. 调用映射函数
         }
     }.cachedIn(viewModelScope) // 5. 缓存最终转换好的 Flow
-    // 【新增】日历“小红点”数据流
-    // 返回一个 Set<Int>，包含本月所有有笔记的“日”（例如：1号, 5号, 12号...）
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val daysWithNotes: StateFlow<Set<Int>> = _calendarState
-        // 1. 忽略 selectedDay 的变化，只在年月变化时重新查询
-        .map { it.selectedYear to it.selectedMonth }
-        .distinctUntilChanged()
-        .flatMapLatest { (year, month) ->
-            // 2. 获取本月起止时间戳
-            val (start, end) = getMonthRange(year, month)
-            // 3. 调用 Repo 查询时间戳 (注意：请确保 Repository 中实现了此方法)
-            noteRepository.getNoteTimestampsFlow(start, end)
-        }
-        .map { timestamps ->
-            // 4. 将时间戳转换为 Day of Month
-            val calendar = Calendar.getInstance()
-            val daySet = HashSet<Int>()
-            for (time in timestamps) {
-                calendar.timeInMillis = time
-                val day = calendar.get(Calendar.DAY_OF_MONTH)
-                daySet.add(day)
-            }
-            daySet // 返回 Set
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptySet()
-        )
-    // 笔记预览数据，根据筛选状态（_filterState）的变化和排序方式，动态切换笔记数据源。
+    // Home的笔记预览数据，根据筛选状态（_filterState）的变化和排序方式，动态切换笔记数据源。
     // 通过flatMapLates来使得用户多次点击标签后，快速得到最后一次筛选状态的数据
     @OptIn(ExperimentalCoroutinesApi::class)
-    val notePreviews: Flow<PagingData<NotePreviewModel>> =
+    val homeNotePreviews: Flow<PagingData<NotePreviewModel>> =
         // 2. combine监听三个流：筛选、排序和搜索
-        combine(_currentScreen, _filterState, _sortOrder, _searchQuery, _dateRange, _calendarState) {
-                values->
-            // 从数组中按顺序解构并转换类型
-            @Suppress("UNCHECKED_CAST")
-            val screen = values[0] as Screen
-            val homeFilter = values[1] as FilterState
-            val sort = values[2] as SortOrder
-            val query = values[3] as String
-            val dateRange = values[4] as Pair<Long?, Long?>
-            val calendar = values[5] as CalendarState
-
-            // 【核心修改】根据 screen 动态决定 filterState 和日期范围
-            val finalFilterState: FilterState
-            val startDate: Long?
-            val endDate: Long?
-            when (screen) {
-                is Screen.Home -> {
-                    finalFilterState = homeFilter
-                    startDate = dateRange.first
-                    endDate = dateRange.second
-                }
-                is Screen.Calendar -> {
-                    finalFilterState = FilterAll // 日历页固定为“全部”筛选
-                    val (calStart, calEnd) = getTimestampsForCalendarState(calendar)
-                    startDate = calStart
-                    endDate = calEnd
-                }
-                is Screen.Settings -> {
-                    // 设置页面不加载笔记，可以创建一个无效的查询
-                    finalFilterState = FilterByTags(setOf(-1L)) // 一个永远不会匹配的筛选
-                    startDate = null
-                    endDate = null
-                }
-            }
-            // 创建最终的查询对象
-            NoteQuery(finalFilterState, sort, query, startDate, endDate)
+        combine(
+            _filterState, _sortOrder, _searchQuery, _dateRange) { filter, sort, query, dateRange ->
+            NoteQuery(filter, sort, query, dateRange.first, dateRange.second)
 
         }.debounce(300L) //使用 debounce 来防止用户输入过快导致频繁查询数据库只有当用户停止输入300毫秒后，才执行后面的操作
         .flatMapLatest {
             query ->
-            Log.d("HomeViewModel", "触发统一的数据流, query: $query")
+            Log.d("HomeViewModel", "首页触发一次查询, query: $query")
             getPagingDataFlow(query)
             } //监听上流筛选状态方法获取对应的笔记数据流
         // 对上一步流出的 Flow<PagingData<NoteWithTags>> 进行类型映射。
         // 第三步：对最终转换好的、类型正确的 Flow<PagingData<NotePreviewModel>> 进行缓存。
         .cachedIn(viewModelScope)
 
+    // =================================================================================
+    // 【修改 2】CalendarFragment 专用的全量 List 数据流
+    //  这是一个包含本月所有笔记的 List，不是 PagingData。
+    //  UI 层根据这个 List：1. 渲染日历格子的小红点/标题; 2. 渲染底部的 RecyclerView
+    // =================================================================================
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val calendarNotePreviews: StateFlow<List<NotePreviewModel>> = _calendarState
+        .map { it.selectedYear to it.selectedMonth }
+        .distinctUntilChanged() // 只有年月变了才查数据库
+        .flatMapLatest { (year, month) ->
+            val (start, end) = getMonthRange(year, month)
+            // 调用 Repo 获取全量 List<NoteEntity>，并转换为 List<NotePreviewModel>
+            // 注意：这里需要你去 Mapper 里给 NoteEntity 及其列表写一个转换方法，或者复用 NoteWithTags 的逻辑
+            // 假设 Repo 返回的是 Flow<List<NoteWithTags>> (如果只返回 NoteEntity，你需要手动补全 tags)
+            noteRepository.getAllNoteFlow(null,null,start, end, "UPDATE_TIME_DESC").map { entities ->
+                // 将noteWithTags映射成NotePreview
+                entities.map { noteWithTags -> // 这是 pagingData.map
+                    noteWithTags.toNotePreviewModel()
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     // --- 私有的、可复用的数据获取逻辑 ---
     private fun getPagingDataFlow(query: NoteQuery): Flow<PagingData<NotePreviewModel>> {
         // 如果筛选条件是一个不可能的ID，则返回空流，避免不必要的查询
@@ -249,7 +212,22 @@ class HomeViewModel(
             }
         }
     }
-//////// --- 事件处理方法 (Event Handlers)，由UI调用 ---
+    // 辅助日历渲染的数据流：按天分组的笔记 (用于日历格子显示)
+    val calendarDailyData: StateFlow<Map<Int, List<NotePreviewModel>>> = calendarNotePreviews
+        .map { notes ->
+            val grouped = mutableMapOf<Int, MutableList<NotePreviewModel>>()
+            val calendar = Calendar.getInstance()
+            notes.forEach { note ->
+                // 使用 createdTime 还是 updatedTime 取决于你的策略，这里按之前讨论的 createdTime
+                calendar.timeInMillis = note.createdTime
+                val day = calendar.get(Calendar.DAY_OF_MONTH)
+                grouped.getOrPut(day) { mutableListOf() }.add(note)
+            }
+            grouped
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    //////// --- 事件处理方法 (Event Handlers)，由UI调用 ---
     fun setCurrentScreen(screen: Screen) {
         _currentScreen.value = screen
     }
@@ -385,8 +363,8 @@ class HomeViewModel(
         if (currentMode is HomeUiMode.Managing && !currentMode.isSelectionEmpty) {
             val idsToDelete = currentMode.allSelectedIds
             viewModelScope.launch {
-                // TODO:调用删除接口，传入要删除笔记的id
-                //noteRepository.deleteNotesByIds(idsToDelete)
+                // 调用删除接口，传入要删除笔记的id
+                noteRepository.deleteNoteById(idsToDelete)
                 exitManagementMode()//退出管理模式
             }
         }
@@ -406,8 +384,8 @@ class HomeViewModel(
                         val idsToPin = currentMode.selectedUnpinnedIds
                         if (idsToPin.isNotEmpty()) {
                             Log.d("HomeViewModel", "Pinning notes: $idsToPin")
-                            //TODO:调用置顶笔记接口
-                            // TODO: noteRepository.pinNotesByIds(idsToPin)
+                            //调用置顶笔记接口
+                             noteRepository.updateNoteFavor(idsToPin, true)
                         }
                     }
                     PinActionState.UNPIN -> {
@@ -415,8 +393,8 @@ class HomeViewModel(
                         val idsToUnpin = currentMode.selectedPinnedIds
                         if (idsToUnpin.isNotEmpty()) {
                             Log.d("HomeViewModel", "Unpinning notes: $idsToUnpin")
-                            //TODO:调用取消置顶笔记接口
-                            // TODO: noteRepository.unpinNotesByIds(idsToUnpin)
+                            //调用取消置顶笔记接口
+                             noteRepository.updateNoteFavor(idsToUnpin,false)
                         }
                     }
                 }

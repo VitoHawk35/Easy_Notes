@@ -158,7 +158,7 @@ class HomeFragment : Fragment() {
     private fun observeViewModel() {
         // 观察笔记分页数据
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.notePreviews.collectLatest { pagingData ->
+            viewModel.homeNotePreviews.collectLatest { pagingData ->
                 notePreviewAdapter.submitData(pagingData)
             }
         }
