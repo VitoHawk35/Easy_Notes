@@ -29,6 +29,10 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     val saveResult = MutableLiveData<Boolean>()
     val isLoading = MutableLiveData<Boolean>()
     val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
+
+
+    // 1. 用于暂存当前标题的变量
+    var currentTitle: String = ""
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true
         viewModelScope.launch {
@@ -78,8 +82,8 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                     newContent = plainText,
                     newHTMLContent = htmlContent
                 )
-
-                Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功")
+                repository.updateTitleOrSummary(noteId, currentTitle, null)
+                Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功,标题已更新: $currentTitle")
 
 
             } catch (e: Exception) {
@@ -102,10 +106,10 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     // 更新笔记摘要
-    fun updateAbstract(noteId: Long, noteTitle:String, abstract: String) {
+    fun updateAbstract(noteId: Long, abstract: String) {
         viewModelScope.launch {
             try {
-                repository.updateTitleOrTitle(noteId, noteTitle,abstract)
+                repository.updateTitleOrSummary(noteId, null,abstract)
                 Log.d("NoteDetailViewModel", "摘要更新成功")
             } catch (e: Exception) {
                 e.printStackTrace()

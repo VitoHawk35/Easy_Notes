@@ -26,6 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import com.easynote.ai.core.TaskType
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.core.widget.addTextChangedListener
 class NoteDetailActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager2
@@ -116,6 +117,14 @@ class NoteDetailActivity : AppCompatActivity() {
         btnShare = findViewById(R.id.btmShare)
         ivTag = findViewById(R.id.ivTag)
 
+        // 1. 初始化 ViewModel 中的标题状态
+        viewModel.currentTitle = noteTitle
+
+        // 2. 监听输入框，实时同步标题给 ViewModel
+        etTitle.addTextChangedListener { text ->
+            viewModel.currentTitle = text.toString()
+        }
+
         pagerAdapter = NotePagerAdapter(
             pages = pageList,
 
@@ -165,7 +174,7 @@ class NoteDetailActivity : AppCompatActivity() {
 
             onUpdateAbstract = { abstractText ->
                 // 调用 ViewModel 更新数据库
-                viewModel.updateAbstract(currentNoteId,noteTitle, abstractText)
+                viewModel.updateAbstract(currentNoteId, abstractText)
 
                 Toast.makeText(this, "摘要已更新", Toast.LENGTH_SHORT).show()
             }

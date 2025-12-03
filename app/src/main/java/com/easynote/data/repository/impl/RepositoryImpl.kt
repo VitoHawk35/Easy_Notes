@@ -89,7 +89,7 @@ class RepositoryImpl(application: Application) : Repository {
     }
 
     override suspend fun updateTitleOrSummary(noteId: Long, title:String?, summary: String?) {
-        noteRepository.updateTitleOrAbstract(noteId, title,summary)
+        noteRepository.updateTitleOrSummary(noteId, title,summary)
     }
 
     override suspend fun updateNoteTags(
