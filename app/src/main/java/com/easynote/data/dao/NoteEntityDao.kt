@@ -245,9 +245,9 @@ interface NoteEntityDao {
             OR n.summary LIKE '%' || :query || '%'
         )
         AND
-            (:startTime IS NULL OR n.update_time >= :startTime)
+            (:startTime IS NULL OR n.create_time >= :startTime)
         AND
-            (:endTime IS NULL OR n.update_time <= :endTime)
+            (:endTime IS NULL OR n.create_time <= :endTime)
     """
     )
     fun getAllWithTags(
