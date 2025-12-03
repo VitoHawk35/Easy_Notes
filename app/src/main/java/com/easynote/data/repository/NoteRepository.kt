@@ -68,7 +68,7 @@ interface NoteRepository {
      */
     suspend fun updateNoteFavor(id: Long, isFavor: Boolean)
 
-    suspend fun updateNoteFavor(id:Set<Long>, isFavor: Boolean)
+    suspend fun updateNoteFavor(id: Set<Long>, isFavor: Boolean)
 
     /**
      * Update the tags associated with a note.
@@ -84,7 +84,7 @@ interface NoteRepository {
      * @param noteId
      * @param abstract
      */
-    suspend fun updateAbstract(noteId: Long, abstract: String)
+    suspend fun updateTitleOrSummary(noteId: Long, title: String? = null, summary: String? = null)
 
     /**
      * get all notes as a list.
@@ -164,9 +164,15 @@ interface NoteRepository {
      * Update the search table for a note.
      *
      * @param noteId
-     * @param take
+     * @param content
      */
-    suspend fun updateSearchTable(noteId: Long,pageIndex: Int, take: String)
+    suspend fun updateSearchTable(
+        noteId: Long,
+        pageIndex: Int,
+        title: String? = null,
+        summary: String? = null,
+        content: String? = null
+    )
 
     /**
      * Get all notes with their associated tags as a flow.

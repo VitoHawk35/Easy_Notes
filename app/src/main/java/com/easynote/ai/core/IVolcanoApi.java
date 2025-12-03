@@ -1,7 +1,7 @@
-package com.example.mydemo.ai.core;
+package com.easynote.ai.core;
 
-import com.example.mydemo.ai.model.Request.ChatCompletionRequest;
-import com.example.mydemo.ai.model.Response.ChatCompletionResponse;
+import com.easynote.ai.model.Request.ChatCompletionRequest;
+import com.easynote.ai.model.Response.ChatCompletionResponse;
 
 import retrofit2.Call;
 import retrofit2.http.Body;

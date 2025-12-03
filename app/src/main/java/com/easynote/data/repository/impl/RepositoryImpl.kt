@@ -85,11 +85,11 @@ class RepositoryImpl(application: Application) : Repository {
         newHTMLContent: String
     ) {
         fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent)
-        noteRepository.updateSearchTable(noteId, pageIndex, newContent.take(500))
+        noteRepository.updateSearchTable(noteId, pageIndex, content = newContent.take(500))
     }
 
-    override suspend fun updateTitleOrTitle(noteId: Long,title:String ,summary: String) {
-        noteRepository.updateAbstract(noteId, summary)
+    override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) {
+        noteRepository.updateTitleOrSummary(noteId, title, summary)
     }
 
     override suspend fun updateNoteTags(
@@ -135,7 +135,7 @@ class RepositoryImpl(application: Application) : Repository {
     }
 
     override fun getAllTagsFlow(pageSize: Int): Flow<PagingData<TagEntity>> {
-       return tagRepository.getPagingTagsFlow(pageSize)
+        return tagRepository.getPagingTagsFlow(pageSize)
     }
 
     override suspend fun getNoteWithTagsById(noteId: Long): NoteWithTags? {

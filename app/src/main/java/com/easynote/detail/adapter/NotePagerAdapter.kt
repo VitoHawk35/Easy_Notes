@@ -4,22 +4,20 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.TextView
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R
 import com.easynote.detail.data.model.NotePage // 引用刚才建的数据模型
 
 
 import com.easynote.richtext.view.RichTextView
-import com.example.mydemo.ai.core.TaskType
+import com.easynote.ai.core.TaskType
 
 class NotePagerAdapter(
     private val pages: MutableList<NotePage>,
     private val addImage: (callback: (Uri) -> Unit) -> Unit,
     private val save: (Int, String)->Unit,
-    private val onAiRequest: (String, TaskType, (String) -> Unit) -> Unit // 新参数
+    private val onAiRequest: (String, TaskType, String?, (String) -> Unit) -> Unit,
+    private val onUpdateAbstract: (String) -> Unit
 ) : RecyclerView.Adapter<NotePagerAdapter.PageViewHolder>() {
 
     private var isReadOnly: Boolean = true
@@ -70,9 +68,12 @@ class NotePagerAdapter(
                 page.content = html
             }
 
-            override fun onAIRequest(text: String, taskType: TaskType, onResult: (String) -> Unit) {
-                // 转发给 Activity
-                onAiRequest(text, taskType, onResult)
+            override fun onAIRequest(text: String, taskType: TaskType, context: String?, onResult: (String) -> Unit) {
+                onAiRequest(text, taskType, context, onResult)
+            }
+
+            override fun onUpdateAbstract(abstract: String) {
+                this@NotePagerAdapter.onUpdateAbstract(abstract)
             }
         })
     }
