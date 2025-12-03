@@ -65,6 +65,8 @@ class RichTextView @JvmOverloads constructor(
 
         // callback 是外界处理完后调用的，传入处理后的文本
         fun onAIRequest(text: String, taskType: TaskType, context: String?, onResult: (String) -> Unit)
+        //更新摘要的回调
+        fun onUpdateAbstract(abstract: String)
     }
 
     private var listener: OnRichTextListener? = null
@@ -191,7 +193,7 @@ class RichTextView @JvmOverloads constructor(
                 .setMessage(result)
                 .setPositiveButton("确认") { _, _ ->
                     // TODO 调用 Repository的    suspend fun updateAbstract(noteId: Long, abstract: String)接口，更新摘要
-
+                    listener?.onUpdateAbstract(result)
                 }
                 .setNegativeButton("复制") { _, _ ->
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

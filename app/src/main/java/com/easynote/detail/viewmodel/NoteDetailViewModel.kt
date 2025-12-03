@@ -25,6 +25,7 @@ import androidx.paging.cachedIn
 import com.easynote.ai.core.AIResultCallback
 import com.easynote.ai.exception.AIException
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -38,7 +39,8 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         isLoading.value = true
         viewModelScope.launch {
             val loadedPages = mutableListOf<NotePage>()
-            var pageIndex = 0
+            //修改为1
+            var pageIndex = 1
 
             withContext(Dispatchers.IO) {
                 while (true) {
@@ -67,7 +69,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
 //        }
 
 
-    private val repository2: Repository = RepositoryImpl(application)
+
 
     fun saveNotePage(noteId: Long, pageIndex: Int, htmlContent: String) {
         viewModelScope.launch {
@@ -76,7 +78,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 val plainText = htmlContent.replace(Regex("<[^>]*>"), "")
 
                 // 调用 Repository 保存
-                repository2.updateNoteContent(
+                repository.updateNoteContent(
                     noteId = noteId,
                     pageIndex = pageIndex,
                     newContent = plainText,
@@ -84,7 +86,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 )
 
                 Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功")
-                // 这里可以通过 LiveData/Flow 通知 Activity "保存成功" (可选)
+
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -93,17 +95,18 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // 3. 之前讨论的图片保存也可以搬到这里
+    // 图片保存
     fun saveImage(noteId: Long, pageIndex: Int, sourceUri: Uri, onResult: (Uri) -> Unit) {
         viewModelScope.launch {
             try {
-                val localPath = repository2.saveImage(noteId, pageIndex, sourceUri)
-                onResult(localPath.toUri())
+                val localPath = repository.saveImage(noteId, pageIndex, sourceUri)
+                onResult(Uri.fromFile(File(localPath)))
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
+
     // 更新笔记摘要
     fun updateAbstract(noteId: Long, abstract: String) {
         viewModelScope.launch {

@@ -16,7 +16,8 @@ class NotePagerAdapter(
     private val pages: MutableList<NotePage>,
     private val addImage: (callback: (Uri) -> Unit) -> Unit,
     private val save: (Int, String)->Unit,
-    private val onAiRequest: (String, TaskType, String?, (String) -> Unit) -> Unit
+    private val onAiRequest: (String, TaskType, String?, (String) -> Unit) -> Unit,
+    private val onUpdateAbstract: (String) -> Unit
 ) : RecyclerView.Adapter<NotePagerAdapter.PageViewHolder>() {
 
     private var isReadOnly: Boolean = true
@@ -69,6 +70,10 @@ class NotePagerAdapter(
 
             override fun onAIRequest(text: String, taskType: TaskType, context: String?, onResult: (String) -> Unit) {
                 onAiRequest(text, taskType, context, onResult)
+            }
+
+            override fun onUpdateAbstract(abstract: String) {
+                this@NotePagerAdapter.onUpdateAbstract(abstract)
             }
         })
     }

@@ -55,7 +55,8 @@ class NoteDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
 
-        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
+//        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
+        currentNoteId = 1L // 测试数据
         noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
 
         initView()
@@ -134,7 +135,6 @@ class NoteDetailActivity : AppCompatActivity() {
 
                 viewModel.saveNotePage(currentNoteId, currentPageIndex, html)
 
-                // 只是简单的 UI 反馈
                 Toast.makeText(this, "第 ${position + 1} 页正在保存...", Toast.LENGTH_SHORT).show()
             },
 
@@ -161,6 +161,13 @@ class NoteDetailActivity : AppCompatActivity() {
                         }
                     )
                 }
+            },
+
+            onUpdateAbstract = { abstractText ->
+                // 调用 ViewModel 更新数据库
+                viewModel.updateAbstract(currentNoteId, abstractText)
+
+                Toast.makeText(this, "摘要已更新", Toast.LENGTH_SHORT).show()
             }
         )
 
