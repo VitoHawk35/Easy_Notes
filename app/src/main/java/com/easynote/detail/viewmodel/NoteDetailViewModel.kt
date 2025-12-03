@@ -29,14 +29,28 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     private val repository = RepositoryImpl(application)
 
     val notePages = MutableLiveData<List<NotePage>>()
-    val saveResult = MutableLiveData<Boolean>()
     val isLoading = MutableLiveData<Boolean>()
+    val noteTags = MutableLiveData<List<TagEntity>>()
+    val noteTitle = MutableLiveData<String>()
     val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true
         viewModelScope.launch {
+            val noteWithTags = repository.getNoteWithTagsById(noteId)
+
+            if (noteWithTags != null) {
+                val title = noteWithTags.noteEntity?.title
+                if (!title.isNullOrEmpty()) {
+                    noteTitle.value = title!!
+                }
+
+                noteWithTags.tags?.let { tagEntities ->
+                    noteTags.value = tagEntities
+                }
+            }
+
             val loadedPages = mutableListOf<NotePage>()
-            var pageIndex = 0
+            var pageIndex = 1
 
             withContext(Dispatchers.IO) {
                 while (true) {
@@ -60,10 +74,19 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             isLoading.value = false
         }
     }
-//        fun getNoteById(id: Int): LiveData<NoteEntity> {
-//            return repository.getNoteByIdLive(id)
-//        }
 
+    fun updateNoteTags(noteId: Long, tags: List<TagEntity>) {
+        viewModelScope.launch {
+            try {
+                repository.updateNoteTags(noteId, *tags.toTypedArray())
+
+                Log.d("NoteDetailViewModel", "笔记 $noteId 的标签保存成功，共 ${tags.size} 个")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "保存标签失败: ${e.message}")
+            }
+        }
+    }
 
     private val repository2: Repository = RepositoryImpl(application)
 
