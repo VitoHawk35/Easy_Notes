@@ -12,10 +12,10 @@ data class NoteFts(
     var pageIndex: Int,
 
     @ColumnInfo
-    var title: String,
+    var title: String? = null,
 
     @ColumnInfo
-    var summary: String,
+    var summary: String? = null,
 
     @ColumnInfo
     var content: String? = null
