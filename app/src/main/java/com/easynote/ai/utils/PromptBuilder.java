@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:app/src/main/java/com/easynote/ai/processor/utils/PromptBuilder.java
-package com.easynote.ai.processor.utils;
-========
 package com.easynote.ai.utils;
->>>>>>>> origin/merge-test:app/src/main/java/com/easynote/ai/utils/PromptBuilder.java
 
 import com.easynote.ai.core.TaskType;
 

@@ -245,7 +245,7 @@ class CalendarFragment : Fragment() {
             viewModel.uiEvent.collect { event ->
                 when (event) {
                     is HomeUiEvent.NavigateToDetail -> {
-                        navigateToDetailScreen(event.noteId, null) // 标题为空
+                        navigateToDetailScreen(event.noteId, "未命名笔记") // 标题为空
                     }
 
                 }
