@@ -6,4 +6,6 @@ public class DataExceptionConstants {
     public static final String DB_UPDATE_DATA_FAILED = "更新数据错误";
     public static final String DB_QUERY_DATA_FAILED = "查询数据错误";
     public static final String INVALID_NOTE = "Note格式异常";
+
+    public static final String FILE_SAVE_IMAGE_FAILED = "保存图片文件失败";
 }

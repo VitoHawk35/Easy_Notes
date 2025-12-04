@@ -10,8 +10,8 @@ import androidx.room.Transaction
 import com.easynote.data.common.exception.DataException
 import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.annotation.NoteOrderWay
-import com.easynote.data.annotation.ORDER_UPDATE_TIME_DESC
-import com.easynote.data.dao.NoteContentSearchDao
+import com.easynote.data.annotation.UPDATE_TIME_DESC
+import com.easynote.data.dao.NoteFtsDao
 import com.easynote.data.dao.NoteEntityDao
 import com.easynote.data.dao.NoteTagCrossRefDao
 import com.easynote.data.dao.TagEntityDao
@@ -30,8 +30,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     private val tagEntityDao: TagEntityDao
     private val fileRepository: FileRepository
     private val noteTagRefDao: NoteTagCrossRefDao
-
-    private val noteContentSearchDao: NoteContentSearchDao
+    private val noteFtsDao: NoteFtsDao
 
     init {
         val noteDatabase = NoteDatabase.getInstance(application)
@@ -39,7 +38,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         this.tagEntityDao = noteDatabase.getTagEntityDao()
         this.noteTagRefDao = noteDatabase.getNoteTagCrossRefDao()
         this.fileRepository = FileRepositoryImpl(application)
-        this.noteContentSearchDao = noteDatabase.getNoteContentSearchDao()
+        this.noteFtsDao = noteDatabase.getNoteContentSearchDao()
     }
 
     @Transaction
@@ -55,7 +54,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 }
 
                 val id = noteEntityDao.insert(noteEntity)
-                noteContentSearchDao.insert(id, 0, "")
+                noteFtsDao.insert(id, 1)
                 id
             } catch (e: Exception) {
                 throw DataException(e, DataExceptionConstants.DB_INSERT_DATA_FAILED)
@@ -72,8 +71,18 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         if (noteWithTags.noteEntity?.isFavorite == null) {
             noteWithTags.noteEntity?.isFavorite = false
         }
-        // TODO: 添加标签关联逻辑
-        noteEntityDao.insert(noteWithTags.noteEntity ?: NoteEntity())
+        val id = noteEntityDao.insert(
+            noteWithTags.noteEntity ?: NoteEntity(
+                createTime = now,
+                updateTime = now
+            )
+        )
+        noteTagRefDao.insertNoteWithTags(
+            id,
+            noteWithTags.tags?.mapNotNull { it.id } ?: emptyList()
+        )
+
+        return@withContext id
     }
 
     override suspend fun deleteNote(vararg noteEntity: NoteEntity): Int =
@@ -91,7 +100,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             try {
                 noteEntityDao.deleteById(id)
                 noteTagRefDao.deleteCrossRefsByNoteId(id)
-                noteContentSearchDao.deleteByNoteId(id)
+                noteFtsDao.deleteByNoteId(id)
                 fileRepository.deleteFile(id)
             } catch (e: Exception) {
                 throw DataException(e, DataExceptionConstants.DB_DELETE_DATA_FAILED)
@@ -103,11 +112,11 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         withContext(Dispatchers.IO) {
             noteEntityDao.deleteById(id)
             noteTagRefDao.deleteCrossRefsByNoteId(id)
-            noteContentSearchDao.deleteByNoteId(id)
+            noteFtsDao.deleteByNoteId(id)
         }
 
     override suspend fun deleteNotePage(noteId: Long, pageIndex: Int) {
-        noteContentSearchDao.deleteByNoteIdAndPageIndex(noteId, pageIndex)
+        noteFtsDao.deleteByNoteIdAndPageIndex(noteId, pageIndex)
     }
 
     override suspend fun updateNote(vararg noteEntity: NoteEntity) {
@@ -150,9 +159,10 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         noteTagRefDao.updateNoteTags(id, list)
     }
 
-    override suspend fun updateAbstract(noteId: Long, abstract: String) =
+    override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) =
         withContext(Dispatchers.IO) {
-            noteEntityDao.updateAbstract(noteId, abstract, System.currentTimeMillis())
+            noteEntityDao.updateTitleOrSummary(noteId, title, summary, System.currentTimeMillis())
+            noteFtsDao.update(noteId, title = title, summary = summary)
         }
 
     override suspend fun getAllNotes(): List<NoteEntity> =
@@ -182,7 +192,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 initialLoadSize = pageSize * 2
             )
         ) {
-            noteEntityDao.getPagingByTagIds(TagIds, orderWay ?: ORDER_UPDATE_TIME_DESC)
+            noteEntityDao.getPagingByTagIds(TagIds, orderWay ?: UPDATE_TIME_DESC)
         }
         return pager.flow
     }
@@ -228,7 +238,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
                 query,
                 startTime,
                 endTime,
-                orderWay ?: ORDER_UPDATE_TIME_DESC,
+                orderWay ?: UPDATE_TIME_DESC,
                 tagIds?.size ?: 0
             )
         }
@@ -261,8 +271,50 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             noteEntityDao.getCountByTagIds(tagIds)
         }
 
-    override suspend fun updateSearchTable(noteId: Long, pageIndex: Int, take: String) =
-        withContext(Dispatchers.IO) {
-            noteContentSearchDao.update(noteId, pageIndex, take)
+    @Transaction
+    override suspend fun updateSearchTable(
+        noteId: Long,
+        pageIndex: Int,
+        title: String?,
+        summary: String?,
+        content: String?
+    ) = withContext(Dispatchers.IO) {
+        if (noteFtsDao.getNoteFtsId(noteId, pageIndex) == null) {
+            noteFtsDao.insert(
+                noteId,
+                pageIndex,
+                title,
+                summary,
+                content
+            )
+        } else {
+            noteFtsDao.update(
+                noteId,
+                pageIndex,
+                title = title,
+                summary = summary,
+                content = content
+            )
         }
+    }
+
+    override fun getAllNoteFlow(
+        query: String?,
+        tagIds: Set<Long>?,
+        startTime: Long?,
+        endTime: Long?,
+        orderWay: String?
+    ): Flow<List<NoteWithTags>> {
+        try {
+            return noteEntityDao.getAllWithTags(
+                query,
+                tagIds,
+                startTime,
+                endTime,
+                tagIds?.size ?: 0
+            )
+        } catch (e: Exception) {
+            throw DataException(e, DataExceptionConstants.DB_QUERY_DATA_FAILED)
+        }
+    }
 }
