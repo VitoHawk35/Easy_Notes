@@ -69,6 +69,7 @@
         android:layout_marginTop="2dp"
         android:background="@drawable/dot_indicator"
         android:visibility="gone"
+        android:textColor="#FF0000"
         app:layout_constraintTop_toBottomOf="@id/text_view_preview_2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

@@ -17,12 +17,13 @@ import com.easynote.detail.NoteDetailActivity
 import com.easynote.home.ui.Adapter.CalendarAdapter
 import com.easynote.home.ui.Adapter.NotePreviewListAdapter
 import com.easynote.home.ui.HomeViewModel
-import com.easynote.home.ui.Screen
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import com.easynote.util.DateUtils
 import android.util.Log
+import com.easynote.home.ui.HomeUiEvent
+
 class CalendarFragment : Fragment() {
 
     private var _binding: FragmentCalendarBinding? = null
@@ -43,11 +44,7 @@ class CalendarFragment : Fragment() {
     private val noteListAdapter = NotePreviewListAdapter(
         onItemClick = { note ->
             // 跳转到详情页
-            val intent = Intent(requireContext(), NoteDetailActivity::class.java).apply {
-                putExtra("NOTE_ID", note.noteId)
-                putExtra("NOTE_TITLE", note.title)
-            }
-            startActivity(intent)
+            navigateToDetailScreen(note.noteId,note.title)
         },
         onItemLongClick = {
          /*   // 长按只在浏览模式下触发进入管理模式
@@ -92,13 +89,9 @@ class CalendarFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
         observeViewModel()
+        observeUiEvents()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // 通知 ViewModel 当前处于日历界面，虽然现在数据流分离了，但为了其他逻辑一致性保留
-        viewModel.setCurrentScreen(Screen.Calendar)
-    }
 
     private fun setupUI() {
         // 1. 配置日历 RecyclerView
@@ -127,8 +120,8 @@ class CalendarFragment : Fragment() {
         // 初始计算一次高度
         updatePeekHeight()
 
-        // 4. 点击年月标题，弹出选择器
-        binding.textViewYearMonth.setOnClickListener {
+        // 4. 点击年月标题和图标，弹出选择器
+        binding.headerYearMonthContainer.setOnClickListener {
             val currentState = viewModel.calendarState.value
             YearMonthPickerDialogFragment.newInstance(currentState.selectedYear, currentState.selectedMonth)
                 .show(childFragmentManager, "YearMonthPicker")
@@ -154,9 +147,7 @@ class CalendarFragment : Fragment() {
         })
         // 新建笔记按键，跳转新建笔记
         binding.fabAddNoteToday.setOnClickListener {
-            val intent = Intent(requireContext(), NoteDetailActivity::class.java)
-            // 可选：如果你想把当前选中的日期传过去作为默认时间，可以在这里 putExtra
-            startActivity(intent)
+            viewModel.createNewNote(withCurrentTags = true)
         }
     }
 
@@ -237,11 +228,35 @@ class CalendarFragment : Fragment() {
                     }.collect { filteredList ->
                         // 将筛选后的 List 提交给 ListAdapter
                         // 因为是 ListAdapter，它会自动计算 Diff 并刷新动画
-                        noteListAdapter.submitList(filteredList)
+                        noteListAdapter.submitList(filteredList) {
+                            // 只要列表内容发生了切换（比如选了日期，或者切回了整月），就回到顶部
+                            binding.recyclerViewNotePreviews.scrollToPosition(0)
+                        }
                     }
                 }
             }
         }
+    }
+    // 🟢 [新增] 监听 ViewModel 发来的一次性事件
+    private fun observeUiEvents() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 注意：uiEvent 是 Channel 转换的 Flow，不需要 repeatOnLifecycle 也可以，
+            // 但为了安全起见，通常放在生命周期感知的作用域里
+            viewModel.uiEvent.collect { event ->
+                when (event) {
+                    is HomeUiEvent.NavigateToDetail -> {
+                        navigateToDetailScreen(event.noteId, null) // 标题为空
+                    }
+
+                }
+            }
+        }
+    }
+    private fun navigateToDetailScreen(noteId: Long, noteTitle: String?) {
+        val intent = Intent(requireContext(), NoteDetailActivity::class.java)
+        intent.putExtra("NOTE_ID", noteId)
+        intent.putExtra("NOTE_TITLE", noteTitle)
+        startActivity(intent)
     }
     override fun onDestroyView() {
         super.onDestroyView()

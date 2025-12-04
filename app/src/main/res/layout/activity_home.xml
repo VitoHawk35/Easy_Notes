@@ -47,7 +47,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:menu="@menu/home_browse_bottom_nav_menu" />
+            app:menu="@menu/home_browse_bottom_nav_menu"
+            app:itemIconTint="@color/selector_bottom_nav_browse"
+            app:itemTextColor="@color/selector_bottom_nav_browse"
+            />
         <!-- 管理模式下底部功能栏-->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_nav_view_manage"
@@ -57,7 +60,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:menu="@menu/home_management_bottom_nav_menu" />
+            app:menu="@menu/home_management_bottom_nav_menu"
+            app:itemIconTint="@color/selector_bottom_nav_manage"
+            app:itemTextColor="@color/selector_bottom_nav_manage"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

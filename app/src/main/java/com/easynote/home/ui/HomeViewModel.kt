@@ -14,21 +14,17 @@ import com.easynote.data.repository.TagRepository
 import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import com.easynote.home.mapper.toNotePreviewModel
+import com.easynote.home.mapper.toNoteWithTags
 import com.easynote.home.mapper.toTagModel
+import com.easynote.util.DateUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.Int
 import kotlin.Long
 
-
-// 定义主页处于那个Fragment
-sealed interface Screen {
-    data object Home : Screen
-    data object Calendar : Screen
-    data object Settings : Screen
-}
 //筛选接口
 sealed interface FilterState//抽象筛选状态接口，表明某个属性是不是属于筛选标签的一部分
 data object FilterAll : FilterState//“全部”筛选标签
@@ -82,13 +78,19 @@ enum class PinActionState {
     PIN,    // 应该显示“置顶”图标，执行置顶操作
     UNPIN   // 应该显示“取消置顶”图标，执行取消置顶操作
 }
+// 定义一次性事件
+sealed interface HomeUiEvent {
+    data class NavigateToDetail(val noteId: Long) : HomeUiEvent
+}
 class HomeViewModel(
     application: Application,
     private val noteRepository: NoteRepository,
     private val tagRepository: TagRepository
 ): AndroidViewModel(application){
     // --- 状态管理 ---
-    private val _currentScreen = MutableStateFlow<Screen>(Screen.Home) // 管理当前显示哪个屏幕的StateFlow
+    // UI 事件通道，用于处理跳转等一次性动作
+    private val _uiEvent = Channel<HomeUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
     private val _uiMode = MutableStateFlow<HomeUiMode>(HomeUiMode.Browsing) //通过stateflow管理当前ui模式
     val uiMode: StateFlow<HomeUiMode> = _uiMode
     //管理置顶//取消置顶按键，当选中的标签的置顶非置顶集合发生变化时，底部按键也自动变化。
@@ -160,7 +162,7 @@ class HomeViewModel(
         .map { it.selectedYear to it.selectedMonth }
         .distinctUntilChanged() // 只有年月变了才查数据库
         .flatMapLatest { (year, month) ->
-            val (start, end) = getMonthRange(year, month)
+            val (start, end) = DateUtils.getMonthRange(year, month)
             // 调用 Repo 获取全量 List<NoteEntity>，并转换为 List<NotePreviewModel>
             // 注意：这里需要你去 Mapper 里给 NoteEntity 及其列表写一个转换方法，或者复用 NoteWithTags 的逻辑
             // 假设 Repo 返回的是 Flow<List<NoteWithTags>> (如果只返回 NoteEntity，你需要手动补全 tags)
@@ -227,10 +229,61 @@ class HomeViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    //////// --- 事件处理方法 (Event Handlers)，由UI调用 ---
-    fun setCurrentScreen(screen: Screen) {
-        _currentScreen.value = screen
+    /**
+     * 🟢 [修改] 创建新笔记
+     * @param withCurrentTags 是否携带当前选中的标签。
+     *                        - HomeFragment 调用时，通常传 true。
+     *                        - CalendarFragment 调用时，通常传 false。
+     */
+    fun createNewNote(withCurrentTags: Boolean = false) {
+        viewModelScope.launch {
+            try {
+                // 1. 获取当前的筛选状态
+                val currentFilter = _filterState.value
+
+                // 2. 决定传给 Repo 的参数
+                val noteWithTagsToCreate: NoteWithTags? =
+                    if (withCurrentTags && currentFilter is FilterByTags) {
+                        // 【场景 A】：要求带标签，且当前确实选中了特定标签
+                        val tagIds = currentFilter.selectedTagIds
+
+                        // 构造临时的 TagModel 集合 (只填 ID，名字颜色为空，Repo 只认 ID)
+                        val tagModels = tagIds.map { id ->
+                            TagModel(tagId = id, tagName = "", color = "")
+                        }.toSet()
+
+                        // 构造一个“傀儡” Model，只为了运送 tagModels
+                        val tempModel = NotePreviewModel(
+                            noteId = -1, // 无所谓，Mapper 会忽略
+                            title = "",
+                            summary = "",
+                            tagIds = tagModels, // 只有这个是有用的
+                            createdTime = 0, // 无所谓
+                            updatedTime = 0, // 无所谓
+                            pinnedTime = 0,
+                            isPinned = false
+                        )
+
+                        // 转换 (此时得到的 NoteWithTags 中 noteEntity 为 null)
+                        tempModel.toNoteWithTags()
+                    } else {
+                        // 【场景 B】：不带标签(withCurrentTags=false) 或 选中了全部(FilterAll)
+                        null
+                    }
+
+                // 3. 调用 Repository (逻辑不变)
+                // Repo 会根据传入的 noteWithTags 是否为 null 来决定是否建立标签关联
+                val newId = repository.createNewNote(noteWithTagsToCreate)
+
+                // 4. 发送跳转事件 (逻辑不变)
+                _uiEvent.send(HomeUiEvent.NavigateToDetail(newId))
+
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "创建笔记失败", e)
+            }
+        }
     }
+
     /**
      * 当用户点击“全部”标签时调用。
      */
@@ -347,11 +400,7 @@ class HomeViewModel(
             val newMode = HomeUiMode.Managing(newPinnedIds, newUnpinnedIds)
             // 如果所有笔记都取消选中了，自动退出管理模式//
             // TODO:所有笔记选中，底部功能栏置灰不让点击。而不是退出
-            if (newMode.isSelectionEmpty) {
-                exitManagementMode()
-            } else {
-                _uiMode.value = newMode
-            }
+            _uiMode.value = newMode
         }
     }
 
@@ -433,32 +482,5 @@ class HomeViewModel(
         _calendarState.value = CalendarState(selectedYear = year, selectedMonth = month)
     }
 
-    // 辅助方法：根据日历状态计算开始和结束时间戳
-    private fun getTimestampsForCalendarState(calendarState: CalendarState): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        val start: Long
-        val end: Long
-        if (calendarState.selectedDay != null) {
-            calendar.set(calendarState.selectedYear, calendarState.selectedMonth - 1, calendarState.selectedDay)
-            start = calendar.apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
-            end = calendar.apply { set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999) }.timeInMillis
-        } else {
-            return getMonthRange(calendarState.selectedYear, calendarState.selectedMonth)
-        }
-        return start to end
-    }
-    private fun getMonthRange(year: Int, month: Int): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        calendar.set(year, month - 1, 1)
-        val start = calendar.apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
 
-        calendar.add(Calendar.MONTH, 1)
-        calendar.add(Calendar.DAY_OF_YEAR, -1)
-        val end = calendar.apply {
-            set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999)
-        }.timeInMillis
-        return start to end
-    }
 }

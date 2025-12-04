@@ -1,5 +1,6 @@
 package com.easynote.home.ui.Adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,10 +13,8 @@ import com.easynote.R
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.ui.HomeUiMode
 import com.easynote.home.ui.SortOrder
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.easynote.util.DateUtils
+import com.google.android.material.card.MaterialCardView
 /**
  * 【公共的笔记预览ViewHolder，供首页和日历页复用】
  * 独立的 ViewHolder，负责持有 View 和绑定数据逻辑。
@@ -34,7 +33,13 @@ class NotePreviewViewHolder(
     private val timeTextView: TextView = itemView.findViewById(R.id.textView_note_time)
     private val pinnedImageView: ImageView = itemView.findViewById(R.id.imageView_pinned)
     private val selectionCheckbox: CheckBox = itemView.findViewById(R.id.checkbox_selection)
-
+    // 获取根布局 CardView
+    private val cardView: MaterialCardView = itemView as MaterialCardView
+    // 定义颜色
+    // 选中后的背景色：比背景色(#E0E0E0)稍深一点的灰色，例如 #D0D0D0
+    private val selectedColor = Color.parseColor("#D0D0D0")
+    // 默认背景色：白色
+    private val defaultColor = Color.WHITE
     // 当前绑定的数据项，用于点击事件
     private var currentNote: NotePreviewModel? = null
 
@@ -93,10 +98,17 @@ class NotePreviewViewHolder(
         when (mode) {
             is HomeUiMode.Browsing -> {
                 selectionCheckbox.visibility = View.GONE
+                cardView.setCardBackgroundColor(defaultColor)
             }
             is HomeUiMode.Managing -> {
+                val isSelected = note.noteId in mode.allSelectedIds
                 selectionCheckbox.visibility = View.VISIBLE
                 selectionCheckbox.isChecked = note.noteId in mode.allSelectedIds
+                if (isSelected) {
+                    cardView.setCardBackgroundColor(selectedColor)
+                } else {
+                    cardView.setCardBackgroundColor(defaultColor)
+                }
             }
         }
     }

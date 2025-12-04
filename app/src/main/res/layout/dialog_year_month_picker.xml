@@ -13,11 +13,13 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"/>
 
+    <!-- 【修改】增大了字体大小，加粗了文字 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="年"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textSize="22sp"
+        android:textStyle="bold"
         android:layout_marginEnd="24dp"/>
 
     <NumberPicker
@@ -26,10 +28,12 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"/>
 
+    <!-- 【修改】增大了字体大小，加粗了文字 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="月"
-        android:textAppearance="?attr/textAppearanceBodyLarge"/>
+        android:textSize="22sp"
+        android:textStyle="bold"/>
 
 </LinearLayout>

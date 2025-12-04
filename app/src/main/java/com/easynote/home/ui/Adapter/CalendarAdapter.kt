@@ -106,8 +106,7 @@ class CalendarAdapter(
             defaultTextColor = ContextCompat.getColor(context, typedValue.resourceId)
             context.theme.resolveAttribute(android.R.attr.textColorSecondary, typedValue, true)
             secondaryTextColor = ContextCompat.getColor(context, typedValue.resourceId)
-            context.theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
-            primaryColor = typedValue.data
+            primaryColor = ContextCompat.getColor(context, android.R.color.black)
         }
 
         fun bind(item: CalendarItem) {
@@ -168,10 +167,19 @@ class CalendarAdapter(
                     val isToday = DateUtils.isToday(year, month, item.dayOfMonth)
 
                     // 字体颜色逻辑
+                    // 因为选中状态背景现在是白色的，所以选中时的字体颜色改为 primaryColor (或者黑色)，
+                    // 而不是原来的白色，否则会看不清。
                     when {
-                        binding.root.isActivated -> binding.textViewDay.setTextColor(Color.WHITE)
-                        isToday -> binding.textViewDay.setTextColor(primaryColor)
-                        else -> binding.textViewDay.setTextColor(defaultTextColor)
+                        binding.root.isActivated -> binding.textViewDay.setTextColor(primaryColor) // 选中：主题色
+                        isToday -> binding.textViewDay.setTextColor(primaryColor) // 今天：主题色
+                        else -> binding.textViewDay.setTextColor(defaultTextColor) // 其他：默认黑/灰
+                    }
+
+                    // 选中时，可以加粗字体让其更显眼
+                    if (binding.root.isActivated || isToday) {
+                        binding.textViewDay.paint.isFakeBoldText = true
+                    } else {
+                        binding.textViewDay.paint.isFakeBoldText = false
                     }
 
                     // =========================================================
@@ -197,12 +205,6 @@ class CalendarAdapter(
                         binding.dotHasNotes.visibility = View.VISIBLE
                     }
 
-                    /*
-                    // 逻辑 B: 只要有笔记就显示红点 (如果你更喜欢这种)
-                    if (notes.isNotEmpty()) {
-                        binding.dotHasNotes.visibility = View.VISIBLE
-                    }
-                    */
 
                     // 点击事件
                     binding.root.setOnClickListener { onDateClick(item.dayOfMonth) }

@@ -1,8 +1,10 @@
 package com.easynote.home.ui.Adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R
@@ -18,18 +20,34 @@ class AllTagHeaderAdapter(
         }
 
     inner class AllTagViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val allTagButton: TextView = itemView.findViewById(R.id.textView_tag_name)
+        // 🟢 [新增] 获取 View 引用
+        private val rootLayout: LinearLayout = itemView.findViewById(R.id.root_layout)
+        private val colorDot: View = itemView.findViewById(R.id.view_tag_color)
+        private val allTagText: TextView = itemView.findViewById(R.id.textView_tag_name)
 
         fun bind() {
-            allTagButton.text = "全部"
-            // 根据isSelected状态来改变UI样式
-            // 例如，改变背景或文字颜色
+            allTagText.text = "全部"
+
+            // 🟢 [新增] "全部"按钮不需要圆点，隐藏它
+            colorDot.visibility = View.GONE
+
+            val background = rootLayout.background.mutate()
+
             if (isSelected) {
-                // 设置为选中样式
-                itemView.alpha = 1.0f
+                // === 选中状态 ===
+                // 🟢 [修改] 背景变白
+                background.setTint(Color.WHITE)
+                // 🟢 [新增] 阴影
+                rootLayout.elevation = 4f
+
+                allTagText.setTextColor(Color.parseColor("#333333"))
             } else {
-                // 设置为未选中样式
-                itemView.alpha = 0.5f // 举例：半透明
+                // === 未选中状态 ===
+                // 🟢 [修改] 背景变浅灰
+                background.setTint(Color.parseColor("#F5F5F5"))
+                rootLayout.elevation = 0f
+
+                allTagText.setTextColor(Color.parseColor("#666666"))
             }
         }
 

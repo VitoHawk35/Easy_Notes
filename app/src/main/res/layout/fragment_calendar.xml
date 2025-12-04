@@ -17,15 +17,46 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingBottom="16dp"> <!-- 【修改】减小 padding，留一点缝隙即可 -->
-        <TextView
-            android:id="@+id/text_view_year_month"
+
+
+        <!-- 🟢【新增】标题容器：水平排列的线性布局 -->
+        <!-- 作用：1. 包裹文字和图标 2. 整体居中 3. 提供更大的点击区域 -->
+        <LinearLayout
+            android:id="@+id/header_year_month_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:orientation="horizontal"
             android:padding="16dp"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:text="2025年 12月" />
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- 🟡【修改】原有 TextView -->
+            <!-- 改动：1. 宽度改为 wrap_content (紧贴文字) -->
+            <!-- 改动：2. 移除了 padding (移到父容器了) -->
+            <TextView
+                android:id="@+id/text_view_year_month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                tools:text="2025年 12月" />
+
+            <!-- 🟢【新增】下拉箭头图标 -->
+            <!-- 限制：宽高固定为 24dp，防止图片过大挤压日历 -->
+            <ImageView
+                android:id="@+id/iv_dropdown_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_arrow_drop_down"
+                app:tint="@android:color/black"
+                android:contentDescription="选择年月" />
+
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view_calendar"

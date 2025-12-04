@@ -128,11 +128,20 @@ class HomeActivity : AppCompatActivity() {
     private fun observeViewModelStates() {
         //观察更新浏览/管理模式ui
         viewModel.uiMode.onEach { mode ->
+            val isManaging = mode is HomeUiMode.Managing
             showManagementUI(mode is HomeUiMode.Managing)
+            if (isManaging) {
+                val managingState = mode as HomeUiMode.Managing
+                updateBottomManageButtons(!managingState.isSelectionEmpty)
+            }
         }.launchIn(lifecycleScope)
         //观察置顶按键ui
         viewModel.pinActionState.onEach { state ->
             updatePinActionItem(state)
+            val isManaging = viewModel.uiMode.value as? HomeUiMode.Managing
+            if (isManaging != null) {
+                updateBottomManageButtons(!isManaging.isSelectionEmpty)
+            }
         }.launchIn(lifecycleScope)
     }
     /**
@@ -186,22 +195,22 @@ class HomeActivity : AppCompatActivity() {
      */
     private fun setupBrowseBottomNavigation() {
         binding.bottomNavViewBrowse.setOnItemSelectedListener { menuItem ->
+            if (binding.bottomNavViewBrowse.selectedItemId == menuItem.itemId) {
+                return@setOnItemSelectedListener false
+            }
             when (menuItem.itemId) {
                 R.id.nav_home -> {
                     replaceFragment(HomeFragment())
-                    viewModel.setCurrentScreen(Screen.Home) // 通知 ViewModel 当前是主页
                     invalidateOptionsMenu()
                     true
                 }
                 R.id.nav_calendar -> {
                     replaceFragment(CalendarFragment()) // 假设你已经创建了 CalendarFragment
-                    viewModel.setCurrentScreen(Screen.Calendar) // 通知 ViewModel 当前是日历页
                     invalidateOptionsMenu()
                     true
                 }
                 R.id.nav_settings -> {
                     replaceFragment(SettingsFragment())
-                    viewModel.setCurrentScreen(Screen.Settings) // 通知 ViewModel 当前是设置页
                     true
                 }
                 else -> false
@@ -249,5 +258,18 @@ class HomeActivity : AppCompatActivity() {
             .replace(R.id.fragment_container_view, fragment)
             // 提交事务以使更改生效
             .commit()
+    }
+    /**
+     * 🟢 [新增] 控制底部管理菜单按钮的可用性和视觉状态
+     * @param enable true 表示有选中项（可用），false 表示无选中项（置灰）
+     */
+    private fun updateBottomManageButtons(enable: Boolean) {
+        val menu = binding.bottomNavViewManage.menu
+        for (i in 0 until menu.size()) {
+            val item = menu.getItem(i)
+            // 这一句代码就会触发 XML 中的 android:state_enabled 选择器
+            // 自动切换 图标 和 文字 的颜色
+            item.isEnabled = enable
+        }
     }
 }

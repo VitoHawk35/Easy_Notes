@@ -1,15 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 根容器不使用 ConstraintLayout，因为只有一个元素，TextView 本身就足够了 -->
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 🟡 [修改] 根布局改为 LinearLayout -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/textView_tag_name"
+    android:id="@+id/root_layout"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/bg_round_corner"
+    android:layout_height="36dp"
     android:layout_margin="4dp"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="8dp"
-    android:gravity="center"
-    android:textColor="@android:color/black"
-    android:textSize="14sp"
-    tools:text="示例标签" />
+    android:background="@drawable/bg_round_corner"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp">
+
+    <!-- 🟢 [新增] 颜色小圆点 -->
+    <View
+        android:id="@+id/view_tag_color"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/bg_circle_color" />
+
+    <!-- 🟡 [修改] 标签名 TextView -->
+    <!-- 去掉了 padding 和 background，因为这些都移到父布局 LinearLayout 了 -->
+    <TextView
+        android:id="@+id/textView_tag_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#333333"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        tools:text="工作" />
+
+</LinearLayout>

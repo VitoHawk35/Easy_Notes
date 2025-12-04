@@ -107,6 +107,8 @@ class HomeFragment : Fragment() {
         setupSearchListener() // 搜索框
         setupFab()//添加笔记
         observeViewModel()
+        observeUiEvents()//观察ui事件
+
     }
     /**
      * 【新增】一个专门负责跳转到笔记详情页的方法。
@@ -141,7 +143,7 @@ class HomeFragment : Fragment() {
      */
     private fun setupNotesRecyclerView() {
         binding.recyclerViewNotePreviews.adapter = notePreviewAdapter
-
+        binding.recyclerViewNotePreviews.itemAnimator = null
         // 1. 直接从 ViewModel 获取当前的布局模式值
         val initialMode = viewModel.layoutMode.value
         val initialSpanCount = when (initialMode) {
@@ -200,6 +202,20 @@ class HomeFragment : Fragment() {
             }
         }
     }
+    // 监听 ViewModel 发来的一次性事件
+    private fun observeUiEvents() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 注意：uiEvent 是 Channel 转换的 Flow，不需要 repeatOnLifecycle 也可以，
+            // 但为了安全起见，通常放在生命周期感知的作用域里
+            viewModel.uiEvent.collect { event ->
+                when (event) {
+                    is HomeUiEvent.NavigateToDetail -> {
+                        navigateToDetailScreen(event.noteId, "") // 标题为空
+                    }
+                }
+            }
+        }
+    }
 
     fun onSelectAllActionClicked() {
         val allNoteIds = notePreviewAdapter.snapshot().items.map { it.noteId }
@@ -228,9 +244,8 @@ class HomeFragment : Fragment() {
      */
     private fun setupFab() {
         binding.fabAddNote.setOnClickListener {
-            // 点击添加按钮，跳转到笔记详情页，但不传递任何笔记ID和标题（表示是新建笔记）
-            val intent = Intent(requireContext(), NoteDetailActivity::class.java)
-            startActivity(intent)
+            // 点击添加按钮，跳转到笔记详情页，但不传递任何笔记ID和标题（表示是新建笔记）,但是传递标签，如果有选中的话
+            viewModel.createNewNote(withCurrentTags = true)
         }
     }
 

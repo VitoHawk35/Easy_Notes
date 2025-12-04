@@ -13,3 +13,14 @@ fun TagEntity.toTagModel(): TagModel {
         color =this.color?:"#FFFFFF"
     )
 }
+/**
+ *反向映射：将 UI层的 TagModel 转换为 数据层的 TagEntity
+ *主要用于新建笔记时，将选中的标签传递给 Repo 层。
+ */
+fun TagModel.toTagEntity(): TagEntity {
+    return TagEntity(
+        id = this.tagId,
+        name = this.tagName,
+        color = this.color
+    )
+}

@@ -1,6 +1,7 @@
 package com.easynote.home.mapper
 
 // 从relation中获取NoteWithTags
+import com.easynote.data.entity.NoteEntity
 import com.easynote.data.relation.NoteWithTags
 import com.easynote.home.domain.model.NotePreviewModel
 
@@ -40,5 +41,22 @@ fun NoteWithTags.toNotePreviewModel(): NotePreviewModel {
 
         // 8. 【重要】isPinned 映射自 isFavorite。
         isPinned = note.isFavorite ?: false
+    )
+}
+/**
+ * 🟢 [新增] 反向映射：将 NotePreviewModel 转换为 NoteWithTags
+ *
+ * ⚠️ 警告：NotePreviewModel 不包含 content (正文)。
+ * 此方法生成的 NoteEntity 中 content 为空字符串。
+ * 仅适用于【新建笔记】场景，切勿用于更新已有笔记！
+ */
+fun NotePreviewModel.toNoteWithTags(): NoteWithTags {
+
+    val tagEntities = this.tagIds.map { it.toTagEntity() }
+
+    // 3. 返回数据层对象
+    return NoteWithTags(
+        null,
+        tags = tagEntities
     )
 }

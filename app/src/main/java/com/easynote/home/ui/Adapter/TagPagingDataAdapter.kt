@@ -1,8 +1,10 @@
 package com.easynote.home.ui.Adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -43,37 +45,61 @@ class TagPagingDataAdapter(
      * ViewHolder 负责持有并管理单个列表项的视图（item_tag_filter.xml）。
      */
     inner class TagViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // 从布局中找到 TextView
+        // 🟢 [新增] 获取新的 View 引用
+        private val rootLayout: LinearLayout = itemView.findViewById(R.id.root_layout)
+        private val colorDot: View = itemView.findViewById(R.id.view_tag_color)
         private val tagTextView: TextView = itemView.findViewById(R.id.textView_tag_name)
 
         init {
-            // 在 ViewHolder 创建时就设置好点击监听器，这是最高效的做法。
             itemView.setOnClickListener {
-                // getItem(bindingAdapterPosition) 是一个安全的方式来获取当前位置的数据。
-                // 如果位置有效，就调用外部传入的 onTagClick 回调函数。
                 getItem(bindingAdapterPosition)?.let { tag ->
                     onTagClick(tag)
                 }
             }
         }
 
-        /**
-         * 将一个 TagModel 数据绑定到视图上，并根据选中状态更新UI。
-         * @param tag 要显示的数据对象。
-         */
         fun bind(tag: TagModel?) {
             tag?.let {
-                // 设置标签名称
                 tagTextView.text = it.tagName
+                val isSelected = it.tagId in selectedTagIds
 
-                // 根据 tagId 是否在 selectedTagIds 集合中，来更新UI的选中样式
-                if (it.tagId in selectedTagIds) {
-                    // 设置为选中样式，例如，不透明
-                    itemView.alpha = 1.0f
-                } else {
-                    // 设置为未选中样式，例如，半透明
-                    itemView.alpha = 0.6f
+                // 1. 设置小圆点的颜色
+                val tagColor = try {
+                    Color.parseColor(it.color)
+                } catch (e: Exception) {
+                    Color.BLACK
                 }
+                // 🟢 [新增] 仅给小圆点染色
+                val dotBackground = colorDot.background.mutate()
+                dotBackground.setTint(Color.parseColor("#F5F5F5"))
+
+                // 2. 处理背景选中状态
+                // 🟡 [修改] 获取根布局背景
+                val rootBackground = rootLayout.background.mutate()
+
+                if (isSelected) {
+                    // === 选中状态 ===
+                    // 🟢 [修改] 背景变白
+                    rootBackground.setTint(Color.WHITE)
+                    // 🟢 [新增] 选中时给一个边框颜色(比如标签色)或者阴影，这里给一个淡淡的 Elevation 效果
+                    rootLayout.elevation = 4f
+                    dotBackground.setTint(tagColor)
+                    // 字体保持黑色/深灰
+                    tagTextView.setTextColor(Color.parseColor("#333333"))
+
+                } else {
+                    // === 未选中状态 ===
+                    // 🟢 [修改] 背景变浅灰
+                    rootBackground.setTint(Color.parseColor("#F5F5F5"))
+                    rootLayout.elevation = 0f
+                    //小圆点置灰消失
+                    dotBackground.setTint(Color.parseColor("#F5F5F5"))
+                    // 字体保持黑色/深灰
+                    tagTextView.setTextColor(Color.parseColor("#666666"))
+                }
+
+                // 确保圆点可见
+                colorDot.visibility = View.VISIBLE
             }
         }
     }

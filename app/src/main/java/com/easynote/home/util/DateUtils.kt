@@ -1,6 +1,7 @@
 package com.easynote.util
 
 import android.icu.text.SimpleDateFormat
+import com.easynote.home.ui.CalendarState
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -163,7 +164,7 @@ object DateUtils {
             isSameDay -> {
                 // 显示: 上午 10:30 (aa 代表上午/下午，HH:mm 代表 24小时制，hh:mm 代表 12小时制)
                 // 如果你想用中文的 "上午/下午"，Locale.getDefault() 会自动处理
-                val format = SimpleDateFormat("aa hh:mm", Locale.getDefault())
+                val format = SimpleDateFormat("aa h:mm", Locale.getDefault())
                 format.format(Date(timestamp))
             }
 
@@ -180,4 +181,22 @@ object DateUtils {
             }
         }
     }
+    /**
+     *  获取某年某月的时间范围 (月初到月末)
+     * @param month 1-based (1-12)
+     * @return Pair(开始时间戳, 结束时间戳)
+     */
+    fun getMonthRange(year: Int, month: Int): Pair<Long, Long> {
+        // 1. 获取该月第一天的开始时间 (00:00:00)
+        val start = getSpecificTimestamp(year, month, 1, true)
+
+        // 2. 获取该月有多少天
+        val daysInMonth = getDaysInMonth(year, month)
+
+        // 3. 获取该月最后一天的结束时间 (23:59:59)
+        val end = getSpecificTimestamp(year, month, daysInMonth, false)
+
+        return start to end
+    }
+
 }
