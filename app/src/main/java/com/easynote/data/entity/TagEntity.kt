@@ -10,8 +10,8 @@ data class TagEntity(
     var id: Long? = null,
 
     @ColumnInfo
-    var name: String? = "新建标签",
+    var name: String? = null,
 
     @ColumnInfo
-    var color: String? = "#FFFFFF"
+    var color: String? = null
 )
