@@ -138,6 +138,10 @@ class RepositoryImpl(application: Application) : Repository {
         return tagRepository.getPagingTagsFlow(pageSize)
     }
 
+    override fun getAllTagsListFlow(): Flow<List<TagEntity>> {
+        return tagRepository.getAllTagsFlow()
+    }
+
     override suspend fun getNoteWithTagsById(noteId: Long): NoteWithTags? {
         return noteRepository.getNoteById(noteId)
     }
@@ -166,4 +170,9 @@ class RepositoryImpl(application: Application) : Repository {
     ) {
         noteRepository.updateNoteFavor(noteIds, isFavour)
     }
+
+    override suspend fun updateTag(tagEntity: TagEntity) =
+        withContext(Dispatchers.IO) {
+            tagRepository.updateTag(tagEntity)
+        }
 }
