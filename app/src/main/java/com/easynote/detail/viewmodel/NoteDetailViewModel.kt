@@ -166,4 +166,35 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         })
     }
 
+    fun saveNote(noteId: Long, pages: List<NotePage>, tags: List<TagEntity>) {
+        viewModelScope.launch {
+            try {
+                val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
+
+                val firstPageHtml = pages.firstOrNull()?.content ?: ""
+                val summary = firstPageHtml.replace(Regex("<[^>]*>"), "").take(100)
+
+                repository.updateTitleOrSummary(noteId, titleToSave, summary)
+
+                repository.updateNoteTags(noteId, *tags.toTypedArray())
+
+                pages.forEach { page ->
+                    val plainText = page.content.replace(Regex("<[^>]*>"), "")
+                    repository.updateNoteContent(
+                        noteId = noteId,
+                        pageIndex = page.pageNumber,
+                        newContent = plainText,
+                        newHTMLContent = page.content
+                    )
+                }
+
+                Log.d("NoteDetailViewModel", "笔记(ID=$noteId) 已全部保存/更新")
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "保存失败: ${e.message}")
+            }
+        }
+    }
+
 }

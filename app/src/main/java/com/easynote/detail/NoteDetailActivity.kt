@@ -43,7 +43,7 @@ class NoteDetailActivity : AppCompatActivity() {
     private var isReadOnly = true
 
     private val viewModel: NoteDetailViewModel by viewModels()
-    private var currentNoteId: Long = -1L
+    private var currentNoteId: Long = 1L
     private var noteTitle: String = ""
     private lateinit var ivTag: ImageView
     private var currentTags = hashSetOf<TagEntity>()
@@ -53,8 +53,8 @@ class NoteDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
-        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
-        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
+//        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
+//        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
         initView()
         initData()
         initListeners()
@@ -245,7 +245,7 @@ class NoteDetailActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-//        saveData()
+        saveData()
     }
 
     private fun exportNoteText() {
@@ -337,8 +337,6 @@ class NoteDetailActivity : AppCompatActivity() {
             if (currentNoteId != -1L) {
                 viewModel.updateNoteTags(currentNoteId, currentTags.toList())
             } else {
-                // 如果是新建笔记（ID=-1），通常逻辑是： 此时还没生成 ID，暂时只保存在 currentTags 内存里。
-                // 等用户点“返回”或“保存”真正创建笔记记录时，再把 currentTags 一起存进去。
                 Log.d("NoteDetail", "新建笔记，标签暂时保存在内存中，尚未写入数据库")
             }
             dialog.dismiss()
@@ -387,5 +385,18 @@ class NoteDetailActivity : AppCompatActivity() {
         } else {
             pendingImageCallback = null
         }
+    }
+
+    private fun saveData() {
+        // 简单校验：如果 ID 无效则不存
+        if (currentNoteId == -1L) return
+
+        currentFocus?.clearFocus()
+
+        // 准备数据
+        val tagsToList = currentTags.toList()
+
+        // 调用 ViewModel 的纯更新方法
+        viewModel.saveNote(currentNoteId, pageList, tagsToList)
     }
 }
