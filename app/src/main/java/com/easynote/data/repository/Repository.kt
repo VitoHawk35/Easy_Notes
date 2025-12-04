@@ -37,6 +37,7 @@ interface Repository {
      * Delete multiple notes by their IDs.
      *
      * @param noteId The set of note IDs to delete.
+     * @return if the note ref th tag , return the number of the ref else 0.
      */
     suspend fun deleteNoteById(noteId: Set<Long>)
 
@@ -53,7 +54,7 @@ interface Repository {
      *
      * @param tagId The ID of the tag to delete.
      */
-    suspend fun deleteTagSafelyById(tagId: Long): Boolean
+    suspend fun deleteTagSafelyById(tagId: Long): Int
 
 
     /**

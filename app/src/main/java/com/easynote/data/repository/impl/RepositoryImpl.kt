@@ -59,13 +59,13 @@ class RepositoryImpl(application: Application) : Repository {
     }
 
     @Transaction
-    override suspend fun deleteTagSafelyById(tagId: Long): Boolean {
+    override suspend fun deleteTagSafelyById(tagId: Long): Int {
         val tagWithNotes: TagWithNotes = tagRepository.getTagWithNotesById(tagId)
         return if (tagWithNotes.notes.isNullOrEmpty()) {
             tagRepository.deleteTagById(tagId)
-            true
+            0
         } else {
-            false
+            tagWithNotes.notes.size
         }
     }
 
