@@ -7,20 +7,6 @@
     android:background="#F5F5F5"
     tools:context="com.easynote.home.ui.HomeFragment">
 
-    <!-- 1. 顶部标题栏 -->
-    <TextView
-        android:id="@+id/textView_main_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="笔记"
-        android:textColor="@android:color/black"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <!-- 3. 搜索框 -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/search_box_container"
@@ -29,12 +15,12 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_search_round_corner"
-    android:elevation="2dp"
+        android:elevation="2dp"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView_main_title">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/imageView_search_icon"
@@ -103,6 +89,8 @@
         android:contentDescription="Add Note"
         android:src="@drawable/ic_add"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:backgroundTint="#29B6F6"
+        app:tint="#FFFFFF"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

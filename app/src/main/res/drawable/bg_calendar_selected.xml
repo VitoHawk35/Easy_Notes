@@ -3,7 +3,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <!-- 填充白色 -->
-    <solid android:color="#FFFFFF" />
+    <solid android:color="#E0E0E0" />
     <!-- 圆角半径，根据你的格子大小微调，8dp-12dp 通常比较好看 -->
     <corners android:radius="12dp" />
     <!-- 可选：加一个淡淡的阴影或边框效果，让选中更明显 -->

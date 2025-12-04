@@ -1,135 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF"
+    android:fitsSystemWindows="true">
 
-    <!-- 1. 主标题 -->
     <TextView
-        android:id="@+id/title_date_filter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="按日期筛选"
-        android:textSize="22sp"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"/>
 
-    <!-- 2. 开始日期标签 -->
+    <!-- ==================== 开始日期 ==================== -->
     <TextView
-        android:id="@+id/label_start_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:text="开始日期"
-        android:textSize="12sp"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_date_filter" />
+        android:textColor="#666666"
+        android:textSize="14sp"/>
 
-    <!-- 3. 开始日期 Spinner 容器 -->
-    <Spinner
-        android:id="@+id/spinner_start_year"
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toStartOf="@id/spinner_start_month"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/label_start_date" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
 
-    <Spinner
-        android:id="@+id/spinner_start_month"
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toStartOf="@id/spinner_start_day"
-        app:layout_constraintStart_toEndOf="@id/spinner_start_year"
-        app:layout_constraintTop_toTopOf="@id/spinner_start_year" />
+        <!--
+           🟡 [修改] dropDownHeight="160dp" (约4个半item高度)，强制限制高度
+           🟡 [修改] dropDownWidth="100dp" (或80dp)，强制限制宽度
+        -->
+        <Spinner
+            android:id="@+id/spinner_start_year"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1.5"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="100dp"
+            android:overlapAnchor="false"/>
 
-    <Spinner
-        android:id="@+id/spinner_start_day"
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/spinner_start_month"
-        app:layout_constraintTop_toTopOf="@id/spinner_start_year" />
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
 
-    <!-- 4. 结束日期标签 -->
+        <Spinner
+            android:id="@+id/spinner_start_month"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_start_day"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+    </LinearLayout>
+
+    <!-- ==================== 结束日期 ==================== -->
     <TextView
-        android:id="@+id/label_end_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:dropDownHeight="200dp"
         android:text="结束日期"
-        android:textSize="12sp"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/spinner_start_year" />
+        android:textColor="#666666"
+        android:textSize="14sp"/>
 
-    <!-- 5. 结束日期 Spinner 容器 -->
-    <Spinner
-        android:id="@+id/spinner_end_year"
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toStartOf="@id/spinner_end_month"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/label_end_date" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="24dp">
 
-    <Spinner
-        android:id="@+id/spinner_end_month"
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:layout_width="wrap_content"
+        <Spinner
+            android:id="@+id/spinner_end_year"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1.5"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="100dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_end_month"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_end_day"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+    </LinearLayout>
+
+    <!-- ==================== 按钮区域 ==================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toStartOf="@id/spinner_end_day"
-        app:layout_constraintStart_toEndOf="@id/spinner_end_year"
-        app:layout_constraintTop_toTopOf="@id/spinner_end_year" />
+        android:orientation="horizontal"
+        android:gravity="end">
 
-    <Spinner
-        android:id="@+id/spinner_end_day"
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/spinner_end_month"
-        app:layout_constraintTop_toTopOf="@id/spinner_end_year" />
+        <!-- 🟡 [修改] 重置按钮：强制改为黑色/深灰字体 -->
+        <Button
+            android:id="@+id/button_clear_date_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重置"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="#666666"
+            android:layout_marginEnd="8dp"/>
 
-    <!-- 6. 按钮 -->
-    <Button
-        android:id="@+id/button_clear_date_filter"
-        style="?attr/materialButtonOutlinedStyle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="8dp"
-        android:text="清除筛选"
-        app:layout_constraintEnd_toStartOf="@id/button_apply_date_filter"
-        app:layout_constraintHorizontal_chainStyle="spread"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/spinner_end_year" />
+        <!-- 🟡 [修改] 应用按钮：背景改为黑色，字体改为白色 -->
+        <!-- 注意：Contained Button 改颜色建议用 app:backgroundTint -->
+        <Button
+            android:id="@+id/button_apply_date_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="应用筛选"
+            android:textColor="#ffffff"
+            app:backgroundTint="#333333" />
 
-    <Button
-        android:id="@+id/button_apply_date_filter"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="应用筛选"
-        app:layout_constraintBottom_toBottomOf="@id/button_clear_date_filter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/button_clear_date_filter" />
+    </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

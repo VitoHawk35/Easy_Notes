@@ -2,10 +2,12 @@ package com.easynote.home.ui.fragment
 
 import android.app.Dialog
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources // 🟢 [新增] 用于安全获取 Drawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import com.easynote.R
 import com.easynote.databinding.DialogYearMonthPickerBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder // 🟢 [新增] 导入 Material Builder
 import java.util.Calendar
 
 class YearMonthPickerDialogFragment : DialogFragment() {
@@ -46,20 +48,25 @@ class YearMonthPickerDialogFragment : DialogFragment() {
             value = initialMonth
         }
 
-        return AlertDialog.Builder(requireContext())
+        // 🟡 [修改] 使用 MaterialAlertDialogBuilder
+        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.Style_YearMonthPicker)
             .setTitle("选择年月")
             .setView(binding.root)
+            // 🟢 [核心修改] 直接设置背景为你的圆角 Drawable
+            .setBackground(AppCompatResources.getDrawable(requireContext(), R.drawable.bg_dialog_rounded))
             .setPositiveButton("确定") { _, _ ->
                 val selectedYear = binding.pickerYear.value
                 val selectedMonth = binding.pickerMonth.value
 
-                // 【核心修改】使用 setFragmentResult，它会自动找到正确的 FragmentManager (在这里是 childFragmentManager)
                 setFragmentResult(REQUEST_KEY, Bundle().apply {
                     putInt(RESULT_KEY_YEAR, selectedYear)
                     putInt(RESULT_KEY_MONTH, selectedMonth)
                 })
             }
             .setNegativeButton("取消", null)
-            .create()
+
+        // 🟡 [修改] 直接 create 并返回即可，不需要再操作 window 了
+        // MaterialBuilder 会自动处理好背景
+        return builder.create()
     }
 }

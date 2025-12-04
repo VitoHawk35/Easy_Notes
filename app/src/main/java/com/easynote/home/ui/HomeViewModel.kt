@@ -173,7 +173,7 @@ class HomeViewModel(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,//显示优化
             initialValue = emptyList()
         )
     // --- 私有的、可复用的数据获取逻辑 ---

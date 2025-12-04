@@ -35,5 +35,22 @@
         确保弹出菜单的背景是浅色的。
     -->
     <style name="Theme.EasyNotes.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Style.YearMonthPicker" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <!-- 指定确定和取消按钮的样式 -->
+        <item name="buttonBarPositiveButtonStyle">@style/Style.DialogButton.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Style.DialogButton.Negative</item>
+    </style>
+
+    <!-- 🟢 [新增] 2. 定义“确定”按钮的样式 (深灰色) -->
+    <style name="Style.DialogButton.Positive" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">#333333</item>
+        <!-- 可选：加粗 -->
+        <!-- <item name="android:textStyle">bold</item> -->
+    </style>
+
+    <!-- 🟢 [新增] 3. 定义“取消”按钮的样式 (中灰色) -->
+    <style name="Style.DialogButton.Negative" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">#666666</item>
+    </style>
 
 </resources>

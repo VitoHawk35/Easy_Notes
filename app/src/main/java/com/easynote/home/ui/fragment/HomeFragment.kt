@@ -2,6 +2,7 @@ package com.easynote.home.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -46,6 +47,7 @@ class HomeFragment : Fragment() {
                 is HomeUiMode.Browsing -> {
                     // TODO: 在浏览模式下，点击是进入详情页
                     navigateToDetailScreen(note.noteId, note.title)
+                    Log.d("HomeFragment", "跳转进noteId为: ${note.noteId}的名为：“${note.title}”笔记")
                     // 示例：val action = HomeFragmentDirections.actionHomeToDetail(note.noteId)
                     //       findNavController().navigate(action)
                 }
