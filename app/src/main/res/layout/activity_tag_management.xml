@@ -8,22 +8,24 @@
     android:background="@color/bg_light_gray"
     tools:context=".home.ui.TagManagementActivity">
 
+    <!-- 🟢 [修改] AppBarLayout 背景设为透明 -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:elevation="0dp">
+        app:elevation="0dp"
+        android:background="@android:color/transparent">
 
-        <!-- 修正后的 Toolbar -->
+        <!-- 🟢 [修改] Toolbar 背景也设为透明 -->
+        <!-- 这样它就会透出下面 CoordinatorLayout 的灰色背景 -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/white"
+            android:background="@android:color/transparent"
             app:title="标签管理"
             app:titleTextColor="@android:color/black"
             app:navigationIconTint="@android:color/black"
             app:theme="@style/ThemeOverlay.MaterialComponents.Light" />
-        <!-- ↑↑↑ 关键：使用 Light 主题，系统会自动把菜单图标变成黑色 -->
 
     </com.google.android.material.appbar.AppBarLayout>
 

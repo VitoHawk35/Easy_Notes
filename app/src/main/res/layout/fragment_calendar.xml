@@ -6,7 +6,7 @@
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E0E0E0"> <!-- 【修改1】底层背景改为稍深一点的灰色，突出层次感 -->
+    android:background="#FFFFFF"> <!-- 【修改1】底层背景改为稍深一点的灰色，突出层次感 -->
 
     <!-- ========================================= -->
     <!-- 第一层：底层 (Back Layer) - 放置日历 -->
@@ -126,5 +126,7 @@
         app:elevation="16dp"
         app:pressedTranslationZ="16dp"
         app:layout_anchor="@id/bottom_sheet"
-        app:layout_anchorGravity="top|end" />
+        app:layout_anchorGravity="top|end"
+        app:backgroundTint="#29B6F6"
+        app:tint="#FFFFFF"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

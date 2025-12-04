@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import com.easynote.R
 import com.easynote.databinding.DialogAddEditTagBinding
 import com.easynote.home.domain.model.TagModel
 
@@ -103,6 +104,7 @@ class TagDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        dialog?.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_rounded)
         // 设置弹窗宽度
         dialog?.window?.setLayout(
             (resources.displayMetrics.widthPixels * 0.85).toInt(),

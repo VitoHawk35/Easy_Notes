@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import com.easynote.util.DateUtils
 import android.util.Log
 import com.easynote.home.ui.HomeUiEvent
+import com.easynote.home.ui.HomeUiMode
 
 class CalendarFragment : Fragment() {
 
@@ -47,8 +48,7 @@ class CalendarFragment : Fragment() {
             navigateToDetailScreen(note.noteId,note.title)
         },
         onItemLongClick = {
-         /*   // 长按只在浏览模式下触发进入管理模式
-                note ->
+            /*
             if (viewModel.uiMode.value is HomeUiMode.Browsing) {
                 viewModel.enterManagementMode(note.noteId,note.isPinned)
                 true // 返回 true 表示事件已被我们消费
