@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.easynote.R
-import com.example.mydemo.ai.core.TaskType
+import com.easynote.ai.core.TaskType
 
 class AISelectionMenu @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
