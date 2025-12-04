@@ -17,6 +17,7 @@ import com.easynote.detail.adapter.NotePagerAdapter
 import com.easynote.detail.data.model.NotePage
 import com.easynote.detail.viewmodel.NoteDetailViewModel
 import android.content.Intent
+import android.util.Log
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.easynote.detail.adapter.NavAdapter
@@ -26,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.easynote.ai.core.TaskType
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import com.easynote.data.entity.TagEntity
 import androidx.core.widget.addTextChangedListener
 class NoteDetailActivity : AppCompatActivity() {
 
@@ -41,25 +43,18 @@ class NoteDetailActivity : AppCompatActivity() {
     private var isReadOnly = true
 
     private val viewModel: NoteDetailViewModel by viewModels()
-    private var currentNoteId: Long = -1L
+    private var currentNoteId: Long = 1L
     private var noteTitle: String = ""
     private lateinit var ivTag: ImageView
-    private var currentTags = hashSetOf("默认")
-    private val allTagList = listOf("默认", "工作", "个人", "学习", "旅行", "重要")
-    private val tagList = listOf("默认", "工作", "个人", "学习", "旅行", "重要")
-    private var currentTagName: String = "默认" // 当前选中的标签
+    private var currentTags = hashSetOf<TagEntity>()
 
-    // 1. 定义一个暂存回调的变量
     private var pendingImageCallback: ((Uri) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
-
-        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
-        //currentNoteId = 1L // 测试数据
-        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
-
+//        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
+//        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
         initView()
         initData()
         initListeners()
@@ -75,35 +70,29 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
     private fun initData() {
+        viewModel.notePages.observe(this) { pages ->
+            pageList.clear()
+            pageList.addAll(pages)
+            pagerAdapter.notifyDataSetChanged()
+        }
+
+        viewModel.noteTitle.observe(this) { title ->
+            etTitle.setText(title)
+        }
+
+        viewModel.noteTags.observe(this) { tags ->
+            currentTags.clear()
+            currentTags.addAll(tags)
+            val firstTagName = tags.firstOrNull()?.name ?: ""
+            updateTagIconColor(firstTagName)
+        }
+
         if (currentNoteId != -1L) {
-            viewModel.notePages.observe(this) { pages ->
-                pageList.clear()
-                pageList.addAll(pages)
-                pagerAdapter.notifyDataSetChanged()
-            }
-
             viewModel.loadNoteContent(currentNoteId)
-
         } else {
             pageList.add(NotePage(System.currentTimeMillis(), 1, ""))
             pagerAdapter.notifyDataSetChanged()
         }
-//        if (currentNoteId != -1) {
-//            viewModel.getNoteById(currentNoteId).observe(this) { entity ->
-//                if (entity != null) {
-//                    etTitle.setText(entity.title)
-//
-//                    val savedPages = viewModel.parsePagesFromJson(entity.content)
-//
-//                    pageList.clear()
-//                    pageList.addAll(savedPages)
-//                    pagerAdapter.notifyDataSetChanged()
-//                }
-//            }
-//        } else {
-//            pageList.add(NotePage(System.currentTimeMillis(), 1, ""))
-//            pagerAdapter.notifyDataSetChanged()
-//        }
     }
 
     private fun initView() {
@@ -254,23 +243,9 @@ class NoteDetailActivity : AppCompatActivity() {
 
     }
 
-//    private fun saveData() {
-//
-//        currentFocus?.clearFocus()
-//
-//        val title = etTitle.text.toString()
-//
-//        val isContentEmpty = pageList.all { it.content.isBlank() }
-//        if (title.isBlank() && isContentEmpty) {
-//            return
-//        }
-//
-//        viewModel.saveNote(currentNoteId, title, pageList)
-//    }
-
     override fun onPause() {
         super.onPause()
-//        saveData()
+        saveData()
     }
 
     private fun exportNoteText() {
@@ -356,11 +331,14 @@ class NoteDetailActivity : AppCompatActivity() {
             val msg = if (currentTags.isEmpty()) "未选择标签" else "已选: ${currentTags.joinToString(",")}"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
-            val firstTag = currentTags.firstOrNull() ?: "无"
-            updateTagIconColor(firstTag)
+            val firstTagName = currentTags.firstOrNull()?.name ?: ""
+            updateTagIconColor(firstTagName)
 
-            // viewModel.updateNoteTags(...) // 将来放这里
-
+            if (currentNoteId != -1L) {
+                viewModel.updateNoteTags(currentNoteId, currentTags.toList())
+            } else {
+                Log.d("NoteDetail", "新建笔记，标签暂时保存在内存中，尚未写入数据库")
+            }
             dialog.dismiss()
         }
 
@@ -369,14 +347,21 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
     private fun updateTagIconColor(tag: String) {
-        val colorHex = when (tag) {
-            "工作" -> "#2196F3" //蓝
-            "生活" -> "#FFC107" //黄
-            "学习" -> "#4CAF50" //绿
-            "重要" -> "#F44336" //红
-            else -> "#555555"  //灰
+        val targetEntity = currentTags.find { it.name == tag }
+
+        val colorStr = targetEntity?.color
+
+        val color = try {
+            if (!colorStr.isNullOrBlank()) {
+                android.graphics.Color.parseColor(colorStr)
+            } else {
+                android.graphics.Color.GRAY
+            }
+        } catch (e: Exception) {
+            android.graphics.Color.GRAY
         }
-        ivTag.setColorFilter(android.graphics.Color.parseColor(colorHex))
+
+        ivTag.setColorFilter(color)
     }
 
 
@@ -400,5 +385,18 @@ class NoteDetailActivity : AppCompatActivity() {
         } else {
             pendingImageCallback = null
         }
+    }
+
+    private fun saveData() {
+        // 简单校验：如果 ID 无效则不存
+        if (currentNoteId == -1L) return
+
+        currentFocus?.clearFocus()
+
+        // 准备数据
+        val tagsToList = currentTags.toList()
+
+        // 调用 ViewModel 的纯更新方法
+        viewModel.saveNote(currentNoteId, pageList, tagsToList)
     }
 }

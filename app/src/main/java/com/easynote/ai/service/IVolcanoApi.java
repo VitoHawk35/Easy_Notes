@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:app/src/main/java/com/easynote/ai/core/IVolcanoApi.java
+package com.easynote.ai.core;
+========
 package com.easynote.ai.service;
+>>>>>>>> origin/merge-test:app/src/main/java/com/easynote/ai/service/IVolcanoApi.java
 
 import com.easynote.ai.model.Request.ChatCompletionRequest;
 import com.easynote.ai.model.Response.ChatCompletionResponse;

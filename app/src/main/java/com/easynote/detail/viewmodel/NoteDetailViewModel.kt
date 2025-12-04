@@ -26,8 +26,9 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     private val repository = RepositoryImpl(application)
 
     val notePages = MutableLiveData<List<NotePage>>()
-    val saveResult = MutableLiveData<Boolean>()
     val isLoading = MutableLiveData<Boolean>()
+    val noteTags = MutableLiveData<List<TagEntity>>()
+    val noteTitle = MutableLiveData<String>()
     val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
 
 
@@ -36,8 +37,20 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true
         viewModelScope.launch {
+            val noteWithTags = repository.getNoteWithTagsById(noteId)
+
+            if (noteWithTags != null) {
+                val title = noteWithTags.noteEntity?.title
+                if (!title.isNullOrEmpty()) {
+                    noteTitle.value = title!!
+                }
+
+                noteWithTags.tags?.let { tagEntities ->
+                    noteTags.value = tagEntities
+                }
+            }
+
             val loadedPages = mutableListOf<NotePage>()
-            //修改为1
             var pageIndex = 1
 
             withContext(Dispatchers.IO) {
@@ -62,10 +75,19 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             isLoading.value = false
         }
     }
-//        fun getNoteById(id: Int): LiveData<NoteEntity> {
-//            return repository.getNoteByIdLive(id)
-//        }
 
+    fun updateNoteTags(noteId: Long, tags: List<TagEntity>) {
+        viewModelScope.launch {
+            try {
+                repository.updateNoteTags(noteId, *tags.toTypedArray())
+
+                Log.d("NoteDetailViewModel", "笔记 $noteId 的标签保存成功，共 ${tags.size} 个")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "保存标签失败: ${e.message}")
+            }
+        }
+    }
 
 
 
@@ -142,6 +164,37 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 onError("翻译请求失败: ${e.message}")
             }
         })
+    }
+
+    fun saveNote(noteId: Long, pages: List<NotePage>, tags: List<TagEntity>) {
+        viewModelScope.launch {
+            try {
+                val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
+
+                val firstPageHtml = pages.firstOrNull()?.content ?: ""
+                val summary = firstPageHtml.replace(Regex("<[^>]*>"), "").take(100)
+
+                repository.updateTitleOrSummary(noteId, titleToSave, summary)
+
+                repository.updateNoteTags(noteId, *tags.toTypedArray())
+
+                pages.forEach { page ->
+                    val plainText = page.content.replace(Regex("<[^>]*>"), "")
+                    repository.updateNoteContent(
+                        noteId = noteId,
+                        pageIndex = page.pageNumber,
+                        newContent = plainText,
+                        newHTMLContent = page.content
+                    )
+                }
+
+                Log.d("NoteDetailViewModel", "笔记(ID=$noteId) 已全部保存/更新")
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "保存失败: ${e.message}")
+            }
+        }
     }
 
 }
