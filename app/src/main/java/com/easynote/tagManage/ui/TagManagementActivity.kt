@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.easynote.R
-import com.easynote.data.repository.impl.TagRepositoryImpl
+import com.easynote.data.repository.impl.RepositoryImpl
 import com.easynote.databinding.ActivityTagManagementBinding
 import com.easynote.home.domain.model.TagModel
 // 🟢 [新增] 引入独立的 Adapter 类
@@ -29,7 +29,7 @@ class TagManagementActivity : AppCompatActivity() {
     private val viewModel: TagManagementViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repo = TagRepositoryImpl(application)
+                val repo = RepositoryImpl(application)
                 @Suppress("UNCHECKED_CAST")
                 return TagManagementViewModel(application, repo) as T
             }

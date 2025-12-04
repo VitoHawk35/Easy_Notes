@@ -30,7 +30,6 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     private val tagEntityDao: TagEntityDao
     private val fileRepository: FileRepository
     private val noteTagRefDao: NoteTagCrossRefDao
-
     private val noteFtsDao: NoteFtsDao
 
     init {

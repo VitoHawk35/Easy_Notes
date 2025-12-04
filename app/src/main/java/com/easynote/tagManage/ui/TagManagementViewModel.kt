@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope // 必须导入这个扩展属性
 import com.easynote.data.entity.TagEntity
-import com.easynote.data.repository.TagRepository
+import com.easynote.data.repository.Repository
 import com.easynote.home.domain.model.TagModel
 import com.easynote.home.mapper.toTagModel
 import kotlinx.coroutines.channels.Channel
@@ -20,12 +20,12 @@ sealed class TagUiEvent {
 
 class TagManagementViewModel(
     application: Application,
-    private val tagRepository: TagRepository
+    private val repository: Repository
 ) : AndroidViewModel(application) {
 
     // 1. 获取所有标签列表 (Entity -> Model)
     // 这里假设你的 Entity 字段是 tagId, tagName, color
-    val tags: Flow<List<TagModel>> = tagRepository.getAllTagsFlow().map { entities ->
+    val tags: Flow<List<TagModel>> = repository.getAllTagsListFlow().map { entities ->
         entities.map {
             entity -> entity.toTagModel()
         }
@@ -38,14 +38,14 @@ class TagManagementViewModel(
     // 3. 插入标签
     fun insertTag(name: String, color: String) {
         viewModelScope.launch {
-            tagRepository.insertTag(TagEntity(name = name, color = color))
+            repository.createNewTag(TagEntity(name = name, color = color))
         }
     }
 
     // 4. 更新标签
     fun updateTag(id: Long, name: String, color: String) {
         viewModelScope.launch {
-            tagRepository.updateTag(TagEntity(id = id, name = name, color = color))
+            repository.updateTag(TagEntity(id = id, name = name, color = color))
         }
     }
 
@@ -59,15 +59,15 @@ class TagManagementViewModel(
     fun deleteTag(tag: TagModel) {
         viewModelScope.launch {
             // 调用 Repo，Repo 内部逻辑应为：先 count，如果 count == 0 则 delete，最后 return count
-            val noteCount = tagRepository.deleteTagById(tag.tagId)
-            //  TODO等数据层修改删除返回数据，根据返回的标签下笔记大小弹吐司。
-/*            if (noteCount > 0) {
+            val noteCount = repository.deleteTagSafelyById(tag.tagId)
+            //  数据层修改删除返回数据，根据返回的标签下笔记大小弹吐司。
+            if (noteCount > 0) {
                 // 删除失败，提示用户
                 _uiEvent.send(TagUiEvent.ShowToast("“${tag.tagName}”下有 $noteCount 条笔记，不可删除"))
             } else {
                 // 删除成功，无需额外操作，Flow 会自动更新 UI
                 _uiEvent.send(TagUiEvent.ShowToast("标签已删除"))
-            }*/
+            }
         }
     }
 }

@@ -35,19 +35,7 @@ class HomeFragment : Fragment() {
 
     // 2. 【核心修改】使用 activityViewModels 来获取与宿主 Activity 共享的 ViewModel 实例。
     //    这确保了在多个 Fragment 之间切换时，ViewModel 的状态得以保留。
-    private val viewModel: HomeViewModel by activityViewModels {
-        // 这个 Factory 逻辑和之前在 Activity 中的完全一样。
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                // 使用 requireActivity().application 来安全地获取 Application 上下文
-                val application = requireActivity().application
-                val noteRepository = NoteRepositoryImpl(application)
-                val tagRepository = TagRepositoryImpl(application)
-                @Suppress("UNCHECKED_CAST")
-                return HomeViewModel(application, noteRepository, tagRepository) as T
-            }
-        }
-    }
+    private val viewModel: HomeViewModel by activityViewModels()
 
     // 3. 将 Adapter 声明为 Fragment 的属性
     private val notePreviewAdapter = NotePreviewPagingAdapter(

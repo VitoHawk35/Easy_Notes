@@ -31,17 +31,7 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
 
     // 2. 【核心】通过 activityViewModels 获取与 Activity 绑定的同一个 HomeViewModel 实例
-    private val viewModel: HomeViewModel by activityViewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val application = requireActivity().application
-                val noteRepository = NoteRepositoryImpl(application)
-                val tagRepository = TagRepositoryImpl(application)
-                @Suppress("UNCHECKED_CAST")
-                return HomeViewModel(application, noteRepository, tagRepository) as T
-            }
-        }
-    }
+    private val viewModel: HomeViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

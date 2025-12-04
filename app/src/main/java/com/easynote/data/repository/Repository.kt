@@ -37,6 +37,7 @@ interface Repository {
      * Delete multiple notes by their IDs.
      *
      * @param noteId The set of note IDs to delete.
+     * @return if the note ref th tag , return the number of the ref else 0.
      */
     suspend fun deleteNoteById(noteId: Set<Long>)
 
@@ -53,7 +54,7 @@ interface Repository {
      *
      * @param tagId The ID of the tag to delete.
      */
-    suspend fun deleteTagSafelyById(tagId: Long): Boolean
+    suspend fun deleteTagSafelyById(tagId: Long): Int
 
 
     /**
@@ -112,6 +113,13 @@ interface Repository {
     suspend fun updateNoteFavorite(noteIds: Set<Long>, isFavour: Boolean)
 
     /**
+     * Update a tag entity.
+     *
+     * @param tagEntity The tag entity to update.
+     */
+    suspend fun updateTag(tagEntity: TagEntity)
+
+    /**
      * Get all notes with their associated tags as a paging flow.
      *
      * @return A Flow emitting PagingData of NoteWithTags.
@@ -145,6 +153,13 @@ interface Repository {
      * @return A Flow emitting PagingData of TagEntity.
      */
     fun getAllTagsFlow(pageSize: Int): Flow<PagingData<TagEntity>>
+
+    /**
+     * Get all tags as a flow list.
+     *
+     * @return A Flow emitting a list of TagEntity.
+     */
+    fun getAllTagsListFlow(): Flow<List<TagEntity>>
 
     /**
      * Get the content of a specific page in a note by note ID and page index.

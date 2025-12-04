@@ -13,15 +13,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.easynote.R
-import com.easynote.data.repository.impl.NoteRepositoryImpl
-import com.easynote.data.repository.impl.TagRepositoryImpl
+import com.easynote.data.repository.impl.RepositoryImpl
+
 import com.easynote.home.ui.fragmentimport.SettingsFragment
 import com.easynote.databinding.ActivityHomeBinding
 import com.easynote.databinding.DrawerHeaderDateFilterBinding
 import com.easynote.home.ui.fragment.CalendarFragment
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import com.easynote.util.DateUtils
+
 /**
  * 应用的主 Activity，作为所有主页面 Fragment 的“宿主”或“外壳”。
  * 它的核心职责是管理底部导航栏和切换 Fragment。
@@ -38,14 +38,10 @@ class HomeActivity : AppCompatActivity() {
         object : ViewModelProvider.Factory {
             // 1. 获取由系统创建的、我们自定义的 Application 实例
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val noteRepository = NoteRepositoryImpl(application)
-                val tagRepository = TagRepositoryImpl(application)
+                val repository = RepositoryImpl(application)
+
                 @Suppress("UNCHECKED_CAST")
-                return HomeViewModel(
-                    application,
-                    noteRepository,
-                    tagRepository
-                ) as T
+                return HomeViewModel(application, repository) as T
             }
         }
     }

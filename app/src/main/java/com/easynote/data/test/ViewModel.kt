@@ -23,8 +23,9 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             pagingData.collectLatest { pagingData ->
                 Log.d("ViewModel", "收到一页 PagingData: $pagingData")
                 // 如果你的 item 有 toString，可这样粗略看一下：
-                 pagingData.toString()
+                pagingData.toString()
             }
+
         }
     }
 }

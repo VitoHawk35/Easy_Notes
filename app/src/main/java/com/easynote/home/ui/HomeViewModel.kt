@@ -7,10 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.easynote.data.repository.Repository
 import com.easynote.home.domain.model.NotePreviewModel
 import com.easynote.home.domain.model.TagModel
-import com.easynote.data.repository.NoteRepository
-import com.easynote.data.repository.TagRepository
 import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import com.easynote.home.mapper.toNotePreviewModel
@@ -84,8 +83,7 @@ sealed interface HomeUiEvent {
 }
 class HomeViewModel(
     application: Application,
-    private val noteRepository: NoteRepository,
-    private val tagRepository: TagRepository
+    private val repository: Repository
 ): AndroidViewModel(application){
     // --- 状态管理 ---
     // UI 事件通道，用于处理跳转等一次性动作
@@ -126,7 +124,7 @@ class HomeViewModel(
     )    // 管理日历页面的状态
     val calendarState: StateFlow<CalendarState> = _calendarState
     // 标签数据：用于首页预览有哪些标签可供筛选，分页加载所有标签，保持不变。UI可以用它来获取完整的TagModel对象。
-    val tags: Flow<PagingData<TagModel>> = tagRepository.getPagingTagsFlow(5).map<PagingData<TagEntity>, PagingData<TagModel>>{
+    val tags: Flow<PagingData<TagModel>> = repository.getAllTagsFlow(5).map<PagingData<TagEntity>, PagingData<TagModel>>{
         pagingData: PagingData<TagEntity> -> // 2. 使用 Flow 的 .map 操作符
         // 3. 对 PagingData 内部的每一项 TagEntity 进行转换
         pagingData.map { tagEntity ->
@@ -166,7 +164,7 @@ class HomeViewModel(
             // 调用 Repo 获取全量 List<NoteEntity>，并转换为 List<NotePreviewModel>
             // 注意：这里需要你去 Mapper 里给 NoteEntity 及其列表写一个转换方法，或者复用 NoteWithTags 的逻辑
             // 假设 Repo 返回的是 Flow<List<NoteWithTags>> (如果只返回 NoteEntity，你需要手动补全 tags)
-            noteRepository.getAllNoteFlow(null,null,start, end, "UPDATE_TIME_DESC").map { entities ->
+            repository.getAllNoteWithTagsFlow(null,null,start, end, "UPDATE_TIME_DESC").map { entities ->
                 // 将noteWithTags映射成NotePreview
                 entities.map { noteWithTags -> // 这是 pagingData.map
                     noteWithTags.toNotePreviewModel()
@@ -189,18 +187,18 @@ class HomeViewModel(
 
         // 【核心修改】第一步：先从 when 表达式中获取原始的 Flow<PagingData<NoteWithTags>>
         val sourceFlow: Flow<PagingData<NoteWithTags>> = when (val filterState = query.filterState) {
-            is FilterAll -> noteRepository.getAllNotePagingFlow(
+            is FilterAll -> repository.getAllNoteWithTagsPagingFlow(
                 10,
-                null,
                 query.searchQuery.ifEmpty { null },
+                null,
                 query.startDate,
                 query.endDate,
                 sortOrderString
             )
-            is FilterByTags -> noteRepository.getAllNotePagingFlow(
+            is FilterByTags -> repository.getAllNoteWithTagsPagingFlow(
                 10,
-                filterState.selectedTagIds,
                 query.searchQuery.ifEmpty { null },
+                filterState.selectedTagIds,
                 query.startDate,
                 query.endDate,
                 sortOrderString
@@ -413,7 +411,7 @@ class HomeViewModel(
             val idsToDelete = currentMode.allSelectedIds
             viewModelScope.launch {
                 // 调用删除接口，传入要删除笔记的id
-                noteRepository.deleteNoteById(idsToDelete)
+                repository.deleteNoteById(idsToDelete)
                 exitManagementMode()//退出管理模式
             }
         }
@@ -434,7 +432,7 @@ class HomeViewModel(
                         if (idsToPin.isNotEmpty()) {
                             Log.d("HomeViewModel", "Pinning notes: $idsToPin")
                             //调用置顶笔记接口
-                             noteRepository.updateNoteFavor(idsToPin, true)
+                             repository.updateNoteFavorite(idsToPin, true)
                         }
                     }
                     PinActionState.UNPIN -> {
@@ -443,7 +441,7 @@ class HomeViewModel(
                         if (idsToUnpin.isNotEmpty()) {
                             Log.d("HomeViewModel", "Unpinning notes: $idsToUnpin")
                             //调用取消置顶笔记接口
-                             noteRepository.updateNoteFavor(idsToUnpin,false)
+                             repository.updateNoteFavorite(idsToUnpin,false)
                         }
                     }
                 }
