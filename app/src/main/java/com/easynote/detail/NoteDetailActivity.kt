@@ -129,8 +129,6 @@ class NoteDetailActivity : AppCompatActivity() {
             },
 
             onAiRequest = { text, taskType, context, viewCallback ->
-                Toast.makeText(this, "AI 思考中...", Toast.LENGTH_SHORT).show()
-
                 if (taskType == TaskType.TRANSLATE && context != null) {
                     viewModel.performTranslateTask(
                         context = context,

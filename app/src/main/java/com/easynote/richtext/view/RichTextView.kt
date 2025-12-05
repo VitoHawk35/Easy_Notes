@@ -19,11 +19,14 @@ import androidx.lifecycle.lifecycleScope
 import com.easynote.R
 import android.text.method.ArrowKeyMovementMethod
 import android.text.method.LinkMovementMethod
+import android.view.View
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 
 import com.easynote.richtext.view.impl.RichTextController
 import com.easynote.richtext.utils.SelectionMenuManager
 import com.easynote.ai.core.TaskType
+import kotlinx.coroutines.Job
 
 /**
  * 富文本编辑器组件
@@ -47,6 +50,11 @@ class RichTextView @JvmOverloads constructor(
     private var btnRecover: ImageView
     private var btnAddPicture: ImageView
     private var btnSave: ImageView
+
+    // AI处理
+    private lateinit var aiLoadingCard: CardView
+    private lateinit var btnStopAi: View
+    private var aiJob: Job? = null // 用于存储协程任务，方便取消
 
     // 核心逻辑控制器 (延迟初始化)
     private var controller: RichTextController? = null
@@ -124,7 +132,8 @@ class RichTextView @JvmOverloads constructor(
         btnRecover = findViewById(R.id.btn_recover)
         btnAddPicture = findViewById(R.id.btn_add_image)
         btnSave = findViewById(R.id.btn_save)
-
+        aiLoadingCard = findViewById(R.id.cv_ai_loading)
+        btnStopAi = findViewById(R.id.btn_stop_ai)
         setupWindowInsets()
         setupClickListeners()
         initMenuManager()
@@ -136,7 +145,7 @@ class RichTextView @JvmOverloads constructor(
 
         // 绑定 AI 任务触发事件
         menuManager?.onAITaskTriggered = { taskType ->
-
+            showAiLoading()
 
             when(taskType){
                 TaskType.TRANSLATE -> {
@@ -149,9 +158,11 @@ class RichTextView @JvmOverloads constructor(
 
                         // 传入 context
                         listener?.onAIRequest(text, taskType, contextText) { resultText ->
+                            hideAiLoading()
                             showAIResultDialog(taskType, resultText, start, end)
                         }
                     } else {
+                        hideAiLoading()
                         Toast.makeText(context, "请先选择需要翻译的文本", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -159,6 +170,7 @@ class RichTextView @JvmOverloads constructor(
                     val text = etContent.text.toString()
                     // 委托给 AIService 处理
                     listener?.onAIRequest(text, taskType,null) { resultText ->
+                        hideAiLoading()
                         showAIResultDialog(taskType, resultText, -1,-1)
                     }
                 }
@@ -168,9 +180,11 @@ class RichTextView @JvmOverloads constructor(
                     if (start < end) {
                         val text = etContent.text.substring(start, end)
                         listener?.onAIRequest(text, taskType,null) { resultText ->
-
+                            hideAiLoading()
                             showAIResultDialog(taskType, resultText, start, end)
                         }
+                    }else{
+                        hideAiLoading()
                     }
                 }
             }
@@ -267,7 +281,34 @@ class RichTextView @JvmOverloads constructor(
             val currentHtml = controller?.exportHtml() ?: ""
             listener?.onSave(currentHtml)
         }
+        btnStopAi.setOnClickListener {
+            // 1. 取消具体的网络请求任务
+            aiJob?.cancel()
+            // 2. 隐藏 Loading
+            hideAiLoading()
+            //Toast.makeText(this, "已取消生成", Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    // 显示方法
+    private fun showAiLoading() {
+        // 使用简单的淡入动画
+        aiLoadingCard.alpha = 0f
+        aiLoadingCard.visibility = View.VISIBLE
+        aiLoadingCard.animate().alpha(1f).setDuration(200).start()
+
+        // 如果你想更高级，可以让 EditText 暂时不可编辑（只读），防止用户乱改导致插入错位
+        // etContent.isEnabled = false // 可选：看你的需求
+    }
+
+    // 隐藏方法
+    private fun hideAiLoading() {
+        aiLoadingCard.animate().alpha(0f).setDuration(200).withEndAction {
+            aiLoadingCard.visibility = View.GONE
+        }.start()
+
+        // 恢复编辑
+        // etContent.isEnabled = true
     }
 
     // 辅助方法：确保 Controller 存在且非只读时执行
@@ -299,7 +340,6 @@ class RichTextView @JvmOverloads constructor(
         val alpha = if (readOnly) 0.3f else 1.0f
         val buttons = listOf(btnBold, btnItalic, btnAddPicture, btnCancel, btnRecover)
         buttons.forEach { it.alpha = alpha }
-        // Save 按钮通常在只读模式下也允许点击（比如导出），或者你也可以禁掉
     }
 
     private fun setupWindowInsets() {
