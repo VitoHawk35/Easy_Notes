@@ -2,44 +2,56 @@ package com.easynote.detail.viewmodel
 
 import android.app.Application
 import android.net.Uri
+import android.text.Html
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.easynote.data.repository.Repository
 import com.easynote.data.repository.impl.RepositoryImpl
 import com.easynote.detail.data.model.NotePage
-import com.example.mydemo.ai.core.AIProvider
-import com.example.mydemo.ai.core.TaskType
-import com.example.mydemo.ai.model.Response.ChatCompletionResponse
-import com.easynote.data.entity.NoteEntity
+import com.easynote.ai.core.AIProvider
+import com.easynote.ai.core.TaskType
 import com.easynote.data.entity.TagEntity
-import com.easynote.data.repository.impl.NoteRepositoryImpl
-//import com.example.mydemo.data.repository.impl.NoteRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import androidx.lifecycle.asLiveData
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.easynote.ai.core.AIResultCallback
+import com.easynote.ai.exception.AIException
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = RepositoryImpl(application)
 
     val notePages = MutableLiveData<List<NotePage>>()
-    val saveResult = MutableLiveData<Boolean>()
     val isLoading = MutableLiveData<Boolean>()
-    val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
+    val noteTags = MutableLiveData<List<TagEntity>>()
+    val noteTitle = MutableLiveData<String>()
+    val allTagsFlow: Flow<PagingData<TagEntity>> =
+        repository.getAllTagsFlow(20).cachedIn(viewModelScope)
+
+
+    // 1. 用于暂存当前标题的变量
+    var currentTitle: String = ""
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true
         viewModelScope.launch {
+            val noteWithTags = repository.getNoteWithTagsById(noteId)
+
+            if (noteWithTags != null) {
+                val title = noteWithTags.noteEntity?.title
+                if (!title.isNullOrEmpty()) {
+                    noteTitle.value = title!!
+                }
+
+                noteWithTags.tags?.let { tagEntities ->
+                    noteTags.value = tagEntities
+                }
+            }
+
             val loadedPages = mutableListOf<NotePage>()
             var pageIndex = 1
 
@@ -49,7 +61,13 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
 
                     if (content != null) {
 
-                        loadedPages.add(NotePage(System.currentTimeMillis() + pageIndex, pageIndex, content))
+                        loadedPages.add(
+                            NotePage(
+                                System.currentTimeMillis() + pageIndex,
+                                pageIndex,
+                                content
+                            )
+                        )
                         pageIndex++
                     } else {
                         break
@@ -65,29 +83,40 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             isLoading.value = false
         }
     }
-//        fun getNoteById(id: Int): LiveData<NoteEntity> {
-//            return repository.getNoteByIdLive(id)
-//        }
 
+    fun updateNoteTags(noteId: Long, tags: List<TagEntity>) {
+        viewModelScope.launch {
+            try {
+                repository.updateNoteTags(noteId, *tags.toTypedArray())
 
-    private val repository2: Repository = RepositoryImpl(application)
+                Log.d("NoteDetailViewModel", "笔记 $noteId 的标签保存成功，共 ${tags.size} 个")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "保存标签失败: ${e.message}")
+            }
+        }
+    }
+
 
     fun saveNotePage(noteId: Long, pageIndex: Int, htmlContent: String) {
         viewModelScope.launch {
             try {
                 // 提取纯文本用于搜索预览（可选，简单正则去标签）
-                val plainText = htmlContent.replace(Regex("<[^>]*>"), "")
+
+                val plainText = Html.fromHtml(htmlContent, Html.FROM_HTML_MODE_LEGACY).toString()
+
+                Log.d("NoteDetailViewModel", "准备保存第 $pageIndex 页内容: $plainText")
 
                 // 调用 Repository 保存
-                repository2.updateNoteContent(
+                repository.updateNoteContent(
                     noteId = noteId,
                     pageIndex = pageIndex,
                     newContent = plainText,
                     newHTMLContent = htmlContent
                 )
+                repository.updateTitleOrSummary(noteId, currentTitle, null)
+                Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功,标题已更新: $currentTitle")
 
-                Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功")
-                // 这里可以通过 LiveData/Flow 通知 Activity "保存成功" (可选)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -96,37 +125,98 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // 3. 之前讨论的图片保存也可以搬到这里
+    // 图片保存
     fun saveImage(noteId: Long, pageIndex: Int, sourceUri: Uri, onResult: (Uri) -> Unit) {
         viewModelScope.launch {
             try {
-                val localPath = repository2.saveImage(noteId, pageIndex, sourceUri)
-                onResult(localPath.toUri())
+                val localPath = repository.saveImage(noteId, pageIndex, sourceUri)
+                onResult(Uri.fromFile(File(localPath)))
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
+    // 更新笔记摘要
+    fun updateAbstract(noteId: Long, abstract: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateTitleOrSummary(noteId, null, abstract)
+                Log.d("NoteDetailViewModel", "摘要更新成功")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "摘要更新失败: ${e.message}")
+            }
+        }
+    }
+
     // 处理 AI 任务
-    fun performAiTask(text: String, taskType: TaskType, onResult: (String) -> Unit, onError: (String) -> Unit) {
-        // 这里调用 AIProvider
-        // 注意：AIProvider 最好也注入进来，或者单例调用
-        AIProvider.getInstance().process(text, taskType, object : Callback<ChatCompletionResponse> {
-            override fun onResponse(call: Call<ChatCompletionResponse>, response: Response<ChatCompletionResponse>) {
-                val result = response.body()?.choices?.firstOrNull()?.message?.content
-                if (result != null) {
-                    onResult(result) // 成功，回调结果
-                } else {
-                    onError("AI返回内容为空")
-                }
+    fun performAiTask(
+        text: String,
+        taskType: TaskType,
+        onResult: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        AIProvider.getInstance().process(text, taskType, object : AIResultCallback {
+            override fun onSuccess(aiReply: String) {
+                onResult(aiReply)
             }
 
-            override fun onFailure(call: Call<ChatCompletionResponse>?, t: Throwable) {
-                onError("网络错误: ${t.message}")
+            override fun onFailure(e: AIException) {
+                onError("AI请求失败: ${e.message}")
             }
         })
     }
 
+    // 翻译
+    fun performTranslateTask(
+        context: String,
+        text: String,
+        onResult: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        AIProvider.getInstance().processTranslate(context, text, object : AIResultCallback {
+            override fun onSuccess(aiReply: String) {
+                onResult(aiReply)
+            }
+
+            override fun onFailure(e: AIException) {
+                onError("翻译请求失败: ${e.message}")
+            }
+        })
+    }
+
+    fun saveNote(noteId: Long, pages: List<NotePage>, tags: List<TagEntity>) {
+        viewModelScope.launch {
+            try {
+                val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
+
+                val firstPageHtml = pages.firstOrNull()?.content ?: ""
+                val summary =
+                    Html.fromHtml(firstPageHtml, Html.FROM_HTML_MODE_LEGACY).toString().take(100)
+
+                repository.updateTitleOrSummary(noteId, titleToSave, summary)
+
+                repository.updateNoteTags(noteId, *tags.toTypedArray())
+
+                pages.forEach { page ->
+                    val plainText =
+                        Html.fromHtml(page.content, Html.FROM_HTML_MODE_LEGACY).toString()
+                    repository.updateNoteContent(
+                        noteId = noteId,
+                        pageIndex = page.pageNumber,
+                        newContent = plainText,
+                        newHTMLContent = page.content
+                    )
+                }
+
+                Log.d("NoteDetailViewModel", "笔记(ID=$noteId) 已全部保存/更新")
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NoteDetailViewModel", "保存失败: ${e.message}")
+            }
+        }
+    }
 
 }

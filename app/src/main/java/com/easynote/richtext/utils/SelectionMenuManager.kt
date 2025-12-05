@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import com.easynote.richtext.view.menu.AISelectionMenu
 import com.easynote.richtext.view.menu.SelectionToolbar
-import com.example.mydemo.ai.core.TaskType
+import com.easynote.ai.core.TaskType
 
 /**
  * 负责管理文本选区的悬浮菜单 (UI 逻辑)

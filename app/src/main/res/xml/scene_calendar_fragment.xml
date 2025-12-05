@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 定义一个过渡动画 -->
+    <Transition
+        app:constraintSetStart="@+id/start"
+        app:constraintSetEnd="@+id/end"
+        app:duration="300">
+        <!-- 向上滑动时触发从 start -> end 的过渡 -->
+        <OnSwipe
+            app:touchAnchorId="@id/recycler_view_note_previews"
+            app:dragDirection="dragUp"
+            app:touchAnchorSide="top" />
+    </Transition>
+
+    <!-- 初始状态 (日历展开) -->
+    <ConstraintSet android:id="@+id/start">
+        <!-- 在这个状态下，日历视图的高度是自适应的 -->
+        <Constraint
+            android:id="@id/recycler_view_calendar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/text_view_year_month"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </ConstraintSet>
+
+    <!-- 结束状态 (日历折叠) -->
+    <ConstraintSet android:id="@+id/end">
+        <!-- 在这个状态下，我们给日历一个固定的、较小的高度（比如一周的高度） -->
+        <Constraint
+            android:id="@id/recycler_view_calendar"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+        app:layout_constraintTop_toBottomOf="@id/text_view_year_month"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    </ConstraintSet>
+
+</MotionScene>

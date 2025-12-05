@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"> <!-- 【修改1】底层背景改为稍深一点的灰色，突出层次感 -->
+
+    <!-- ========================================= -->
+    <!-- 第一层：底层 (Back Layer) - 放置日历 -->
+    <!-- ========================================= -->
+    <LinearLayout
+        android:id="@+id/calendar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="16dp"> <!-- 【修改】减小 padding，留一点缝隙即可 -->
+
+
+        <!-- 🟢【新增】标题容器：水平排列的线性布局 -->
+        <!-- 作用：1. 包裹文字和图标 2. 整体居中 3. 提供更大的点击区域 -->
+        <LinearLayout
+            android:id="@+id/header_year_month_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- 🟡【修改】原有 TextView -->
+            <!-- 改动：1. 宽度改为 wrap_content (紧贴文字) -->
+            <!-- 改动：2. 移除了 padding (移到父容器了) -->
+            <TextView
+                android:id="@+id/text_view_year_month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                tools:text="2025年 12月" />
+
+            <!-- 🟢【新增】下拉箭头图标 -->
+            <!-- 限制：宽高固定为 24dp，防止图片过大挤压日历 -->
+            <ImageView
+                android:id="@+id/iv_dropdown_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_arrow_drop_down"
+                app:tint="@android:color/black"
+                android:contentDescription="选择年月" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_calendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            tools:layoutManager="GridLayoutManager"
+            tools:spanCount="7"
+            tools:itemCount="35" />
+    </LinearLayout>
+
+    <!-- ========================================= -->
+    <!-- 第二层：顶层 (Front Layer) - 底部抽屉 -->
+    <!-- ========================================= -->
+    <LinearLayout
+        android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/bg_bottom_sheet_rounded"
+        android:backgroundTint="#F5F5F5"
+        android:elevation="8dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        <!--
+           【修改2】添加了 android:backgroundTint="#F5F5F5"
+            这会将原本白色的圆角背景(@drawable/bg_bottom_sheet_rounded)
+            渲染成浅灰色，同时保留圆角形状。
+        -->
+
+        <!-- 拖动把手 (Drag Handle) -->
+        <FrameLayout
+            android:id="@+id/drag_handle_area"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:background="@android:color/transparent">
+
+            <!-- 那个灰色的小横条 -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_drag_handle_pill" />
+        </FrameLayout>
+
+        <!-- 笔记列表 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_note_previews"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            tools:listitem="@layout/item_note_preview" />
+
+    </LinearLayout>
+    <!-- 【新增】浮动添加按钮 (FAB) -->
+    <!-- app:layout_anchor="@id/bottom_sheet" 让按钮吸附在笔记列表顶部 -->
+    <!-- 默认 visibility="gone"，由代码控制显示 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_note_today"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:contentDescription="Add Note Today"
+        android:src="@drawable/ic_add"
+        android:visibility="gone"
+        app:elevation="16dp"
+        app:pressedTranslationZ="16dp"
+        app:layout_anchor="@id/bottom_sheet"
+        app:layout_anchorGravity="top|end"
+        app:backgroundTint="#29B6F6"
+        app:tint="#FFFFFF"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

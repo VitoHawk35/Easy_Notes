@@ -3,6 +3,7 @@ package com.easynote.data.repository.impl
 import android.app.Application
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.paging.PagingData
 import androidx.room.Transaction
 import com.easynote.data.entity.TagEntity
@@ -85,7 +86,11 @@ class RepositoryImpl(application: Application) : Repository {
         newHTMLContent: String
     ) {
         fileRepository.updateFile(noteId, pageIndex, newContent, newHTMLContent)
-        noteRepository.updateSearchTable(noteId, pageIndex, content = newContent.take(500))
+        Log.d(
+            "RepositoryImpl",
+            "更新笔记内容: noteId=$noteId, pageIndex=$pageIndex,newContent=$newContent"
+        )
+        noteRepository.updateSearchTable(noteId, pageIndex, content = newContent)
     }
 
     override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) {

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 🟢 [新增] 根布局改为 MaterialCardView -->
+<!-- 负责统一的圆角、阴影和背景色 -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="6dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <!-- 🟡 [修改] SwipeLayout 现在只是内容容器 -->
+    <!-- 移除了 margin、background、elevation，因为交给外层 CardView 了 -->
+    <com.easynote.widget.SwipeLayout
+        android:id="@+id/swipe_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- 内容区域 -->
+            <!-- 🟡 [修改] background 改为透明或去掉，因为外层 CardView 已经是白色了 -->
+            <!-- 加上 ?attr/selectableItemBackground 实现点击水波纹 -->
+            <LinearLayout
+                android:id="@+id/content_layout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <View
+                    android:id="@+id/view_tag_color"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/bg_circle_color"
+                    android:layout_marginEnd="16dp"/>
+
+                <TextView
+                    android:id="@+id/text_view_tag_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    tools:text="工作" />
+            </LinearLayout>
+
+            <!-- 🟡 [修改] 删除按钮 -->
+            <!-- 这里的 background 直接设为红色颜色值即可！ -->
+            <!-- 只要它是矩形，CardView 就会自动把它右边的角切成圆的 -->
+            <TextView
+                android:id="@+id/btn_delete"
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:background="#FF5252"
+                android:gravity="center"
+                android:text="删除"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </com.easynote.widget.SwipeLayout>
+
+</com.google.android.material.card.MaterialCardView>

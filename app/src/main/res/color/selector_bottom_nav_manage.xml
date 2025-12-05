@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 状态：不可用 (isEnabled = false) -> 显示浅灰色 -->
+    <item android:color="#9E9E9E" android:state_enabled="false" />
+
+    <!-- 状态：默认 (可用) -> 显示黑色 (或者你的主题色) -->
+    <item android:color="#000000" />
+</selector>

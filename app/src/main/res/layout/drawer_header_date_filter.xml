@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF"
+    android:fitsSystemWindows="true">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="按日期筛选"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- ==================== 开始日期 ==================== -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="开始日期"
+        android:textColor="#666666"
+        android:textSize="14sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <!--
+           🟡 [修改] dropDownHeight="160dp" (约4个半item高度)，强制限制高度
+           🟡 [修改] dropDownWidth="100dp" (或80dp)，强制限制宽度
+        -->
+        <Spinner
+            android:id="@+id/spinner_start_year"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1.5"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="100dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_start_month"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_start_day"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+    </LinearLayout>
+
+    <!-- ==================== 结束日期 ==================== -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="结束日期"
+        android:textColor="#666666"
+        android:textSize="14sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="24dp">
+
+        <Spinner
+            android:id="@+id/spinner_end_year"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1.5"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="100dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_end_month"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/spinner_end_day"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_spinner_custom"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:spinnerMode="dropdown"
+            android:dropDownHeight="160dp"
+            android:dropDownWidth="80dp"
+            android:overlapAnchor="false"/>
+    </LinearLayout>
+
+    <!-- ==================== 按钮区域 ==================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <!-- 🟡 [修改] 重置按钮：强制改为黑色/深灰字体 -->
+        <Button
+            android:id="@+id/button_clear_date_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重置"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="#666666"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- 🟡 [修改] 应用按钮：背景改为黑色，字体改为白色 -->
+        <!-- 注意：Contained Button 改颜色建议用 app:backgroundTint -->
+        <Button
+            android:id="@+id/button_apply_date_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="应用筛选"
+            android:textColor="#ffffff"
+            app:backgroundTint="#333333" />
+
+    </LinearLayout>
+
+</LinearLayout>

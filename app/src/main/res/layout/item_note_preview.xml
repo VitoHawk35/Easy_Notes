@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <!--
+         修改说明：
+         1. 根布局换成了 MaterialCardView。
+         2. android:layout_margin="6dp"：这是关键！
+            当两列并排时，左边的右margin和右边的左margin相加，中间会有 12dp 的间距。
+            同时上下也会有间距，保证卡片互不重叠。
+         3. 移除了 ConstraintLayout 的 background，改用 CardView 的 cardBackgroundColor 和 cardCornerRadius。
+    -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"> <!-- 保持内边距，让文字不贴边 -->
+
+        <!-- 1. 标题 (TextView) -->
+        <!-- 这里的 marginTop 改为 0 或者适当调整，因为去掉了上面可能的干扰 -->
+        <TextView
+            android:id="@+id/textView_note_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="这是笔记的标题" />
+
+        <!-- 2. 摘要 (TextView) -->
+        <TextView
+            android:id="@+id/textView_note_summary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:maxLines="3"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textView_note_title"
+            tools:text="这是笔记的摘要内容，可能会比较长所以限制了行数..." />
+
+        <!-- 3. 时间 (TextView) -->
+        <TextView
+            android:id="@+id/textView_note_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@android:color/holo_blue_dark"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textView_note_summary"
+            tools:text="2025年11月27日" />
+
+        <!-- 4. 置顶图标 (ImageView) -->
+        <ImageView
+            android:id="@+id/imageView_pinned"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="置顶"
+            android:src="@drawable/ic_pinned"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/textView_note_time"
+            app:layout_constraintStart_toEndOf="@id/textView_note_time"
+            app:layout_constraintTop_toTopOf="@id/textView_note_time"
+            tools:visibility="visible" />
+
+        <!-- 5. 用于选择的 CheckBox -->
+        <CheckBox
+            android:id="@+id/checkbox_selection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

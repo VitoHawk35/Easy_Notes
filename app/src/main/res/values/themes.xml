@@ -1,9 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MyDemo" parent="android:Theme.Material.Light.NoActionBar" />
-    <!-- 自定义主题 -->
-    <style name="MyCustomTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- 自定义属性（如标题栏颜色、文字颜色等） -->
+    <!--
+        1. 基础应用主题 (Base Application Theme)
+        这是你整个应用的根主题，应该在 AndroidManifest.xml 中引用。
+        它继承自 Material 3 的 DayNight 主题，并移除了默认的 ActionBar，
+        因为我们使用的是自定义的 Toolbar。
+    -->
+    <style name="Theme.EasyNotes" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- 在这里定义你的主要品牌颜色 -->
+        <!-- 你需要确保在 /res/values/colors.xml 中定义了这些颜色 -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        
+        <!-- 定义次要品牌颜色 -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@android:color/black</item>
+        
+        <!-- 状态栏颜色 -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
+
+    <!-- 
+        2. 【修复问题的关键】为 AppBarLayout 定义的叠加主题。
+        这个主题会应用在 AppBarLayout 内部，确保当 AppBar 背景是亮色时，
+        上面的标题和图标是深色的，反之亦然，以保证可见性。
+    -->
+    <style name="Theme.EasyNotes.AppBarOverlay" parent="ThemeOverlay.AppCompat.ActionBar" />
+
+    <!-- 
+        3. 【推荐添加】为 Toolbar 的弹出菜单（例如，三个点的菜单）定义的主题。
+        确保弹出菜单的背景是浅色的。
+    -->
+    <style name="Theme.EasyNotes.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Style.YearMonthPicker" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <!-- 指定确定和取消按钮的样式 -->
+        <item name="buttonBarPositiveButtonStyle">@style/Style.DialogButton.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Style.DialogButton.Negative</item>
+    </style>
+
+    <!-- 🟢 [新增] 2. 定义“确定”按钮的样式 (深灰色) -->
+    <style name="Style.DialogButton.Positive" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">#333333</item>
+        <!-- 可选：加粗 -->
+        <!-- <item name="android:textStyle">bold</item> -->
+    </style>
+
+    <!-- 🟢 [新增] 3. 定义“取消”按钮的样式 (中灰色) -->
+    <style name="Style.DialogButton.Negative" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">#666666</item>
+    </style>
+
 </resources>
