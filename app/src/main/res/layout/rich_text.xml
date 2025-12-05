@@ -71,12 +71,12 @@
             android:layout_marginEnd="0dp"
             android:src="@drawable/ic_save"
             android:contentDescription="保存" />
-        <ImageView
-            android:id="@+id/btn_load"
-            style="@style/EditorIconStyle"
-            android:layout_marginEnd="0dp"
-            android:src="@drawable/ic_load"
-            android:contentDescription="加载" />
+<!--        <ImageView-->
+<!--            android:id="@+id/btn_load"-->
+<!--            style="@style/EditorIconStyle"-->
+<!--            android:layout_marginEnd="0dp"-->
+<!--            android:src="@drawable/ic_load"-->
+<!--            android:contentDescription="加载" />-->
 
     </LinearLayout>
 
