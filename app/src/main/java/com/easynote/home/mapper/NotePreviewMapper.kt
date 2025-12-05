@@ -52,11 +52,21 @@ fun NoteWithTags.toNotePreviewModel(): NotePreviewModel {
  */
 fun NotePreviewModel.toNoteWithTags(): NoteWithTags {
 
-    val tagEntities = this.tagIds.map { it.toTagEntity() }
+    val tagEntities = this.tagIds?.map { it.toTagEntity() }
+    val defaultNote = NoteEntity(
+        id = null, // ID 传 null，让 Room 自动生成主键
+        title = "未命名笔记", // 🟢 指定默认标题
+        summary = null, // 摘要为空
+        createTime = null,
+        updateTime = null,
+        favoriteTime =null,
+        isFavorite = false,
+    )
 
-    // 3. 返回数据层对象
+    // 3. 返回完整的对象
     return NoteWithTags(
-        null,
+        noteEntity = defaultNote,
         tags = tagEntities
     )
+
 }

@@ -140,7 +140,7 @@ class HomeViewModel(
             _filterState, _sortOrder, _searchQuery, _dateRange) { filter, sort, query, dateRange ->
             NoteQuery(filter, sort, query, dateRange.first, dateRange.second)
 
-        }.debounce(300L) //使用 debounce 来防止用户输入过快导致频繁查询数据库只有当用户停止输入300毫秒后，才执行后面的操作
+        }.debounce(150L) //使用 debounce 来防止用户输入过快导致频繁查询数据库只有当用户停止输入300毫秒后，才执行后面的操作
         .flatMapLatest {
             query ->
             Log.d("HomeViewModel", "首页触发一次查询, query: $query")
@@ -228,7 +228,7 @@ class HomeViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /**
-     * 🟢 [修改] 创建新笔记
+     *  创建新笔记
      * @param withCurrentTags 是否携带当前选中的标签。
      *                        - HomeFragment 调用时，通常传 true。
      *                        - CalendarFragment 调用时，通常传 false。
@@ -253,9 +253,9 @@ class HomeViewModel(
                         // 构造一个“傀儡” Model，只为了运送 tagModels
                         val tempModel = NotePreviewModel(
                             noteId = -1, // 无所谓，Mapper 会忽略
-                            title = "",
+                            title = "未命名笔记",
                             summary = "",
-                            tagIds = tagModels, // 只有这个是有用的
+                            tagIds =tagModels, // 只有这个是有用的
                             createdTime = 0, // 无所谓
                             updatedTime = 0, // 无所谓
                             pinnedTime = 0,
@@ -265,8 +265,19 @@ class HomeViewModel(
                         // 转换 (此时得到的 NoteWithTags 中 noteEntity 为 null)
                         tempModel.toNoteWithTags()
                     } else {
-                        // 【场景 B】：不带标签(withCurrentTags=false) 或 选中了全部(FilterAll)
-                        null
+                        val tempModel = NotePreviewModel(
+                            noteId = -1, // 无所谓，Mapper 会忽略
+                            title = "未命名笔记",
+                            summary = "",
+                            tagIds = null, // 只有这个是有用的
+                            createdTime = 0, // 无所谓
+                            updatedTime = 0, // 无所谓
+                            pinnedTime = 0,
+                            isPinned = false
+                        )
+
+                        // 转换 (此时得到的 NoteWithTags 中 noteEntity 为 null)
+                        tempModel.toNoteWithTags()
                     }
 
                 // 3. 调用 Repository (逻辑不变)
@@ -450,23 +461,6 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * 全选/取消全选
-     * @param allNoteIds 当前列表中的所有笔记ID
-     */
-    fun toggleSelectAll(allNoteIds: List<Long>) {
-        val currentMode = _uiMode.value
-        if (currentMode is HomeUiMode.Managing) {
-            val allSelected = currentMode.allSelectedIds.containsAll(allNoteIds)
-            if (allSelected) {
-                // 如果已全选，则全部取消
-                exitManagementMode()
-            } else {
-                // 如果未全选，则选中全部
-                _uiMode.value = HomeUiMode.Managing(allNoteIds.toSet())
-            }
-        }
-    }
 
     // --- 新增的日历事件处理方法 ---
 

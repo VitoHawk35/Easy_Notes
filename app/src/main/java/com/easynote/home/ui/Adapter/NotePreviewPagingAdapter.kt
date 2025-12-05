@@ -14,6 +14,7 @@ class NotePreviewPagingAdapter(
     private val onItemLongClick: (NotePreviewModel) -> Boolean
 ) : PagingDataAdapter<NotePreviewModel, NotePreviewViewHolder>(NotePreviewDiffCallback) {
 
+
     // 当前 UI 模式
     var currentUiMode: HomeUiMode = HomeUiMode.Browsing
         set(value) {

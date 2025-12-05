@@ -83,7 +83,8 @@ dependencies {
     implementation libs.squareup.okhttp
     implementation libs.squareup.logging.interceptor
     implementation libs.google.gson
-
+    implementation 'com.github.promeg:tinypinyin:2.0.3'
+    implementation 'com.github.promeg:tinypinyin-lexicons-android-cncity:2.0.3'
     // 单元测试
     testImplementation libs.junit
 

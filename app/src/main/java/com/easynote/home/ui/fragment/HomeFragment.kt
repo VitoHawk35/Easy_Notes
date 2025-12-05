@@ -104,6 +104,8 @@ class HomeFragment : Fragment() {
         super.onResume()
         // 这将确保 UI 与最新的数据库状态完全同步，从而修复“新旧共存”的 bug。
         notePreviewAdapter.refresh()
+        (binding.recyclerViewNotePreviews.layoutManager as? StaggeredGridLayoutManager)
+            ?.invalidateSpanAssignments()
     }
 
     /**
@@ -139,15 +141,30 @@ class HomeFragment : Fragment() {
      */
     private fun setupNotesRecyclerView() {
         binding.recyclerViewNotePreviews.adapter = notePreviewAdapter
+        // 1. 保持禁用动画 (防止闪烁)
         binding.recyclerViewNotePreviews.itemAnimator = null
-        // 1. 直接从 ViewModel 获取当前的布局模式值
+
         val initialMode = viewModel.layoutMode.value
         val initialSpanCount = when (initialMode) {
             LayoutMode.LIST -> 1
             LayoutMode.GRID -> 2
         }
-        binding.recyclerViewNotePreviews.layoutManager =
-            StaggeredGridLayoutManager(initialSpanCount, StaggeredGridLayoutManager.VERTICAL)
+
+        // 2. 创建布局管理器
+        val staggeredManager = StaggeredGridLayoutManager(initialSpanCount, StaggeredGridLayoutManager.VERTICAL)
+
+        binding.recyclerViewNotePreviews.layoutManager = staggeredManager
+
+        // 🟢 [新增] 监听数据加载状态
+        // 这是解决“布局错乱/重影/留白”的终极方案
+        notePreviewAdapter.addLoadStateListener { loadState ->
+            // 当刷新(Refresh)结束，且不再加载(NotLoading)时
+            if (loadState.refresh is androidx.paging.LoadState.NotLoading) {
+                // 强制瀑布流重新计算 Item 位置
+                // 这会消除因复用导致的错位，同时因为恢复了默认 Gap 策略，也不会留白
+                staggeredManager.invalidateSpanAssignments()
+            }
+        }
     }
 
     /**
@@ -197,6 +214,20 @@ class HomeFragment : Fragment() {
                 notePreviewAdapter.currentSortOrder = order
             }
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.filterState.collect {
+                // 切换标签了，直接归零，简单粗暴且有效
+                binding.recyclerViewNotePreviews.scrollToPosition(0)
+            }
+        }
+
+        // 监听搜索变化同理
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.searchQuery.collect {
+                binding.recyclerViewNotePreviews.scrollToPosition(0)
+            }
+        }
+
     }
     // 监听 ViewModel 发来的一次性事件
     private fun observeUiEvents() {
@@ -213,15 +244,10 @@ class HomeFragment : Fragment() {
         }
     }
 
-    fun onSelectAllActionClicked() {
-        val allNoteIds = notePreviewAdapter.snapshot().items.map { it.noteId }
-        viewModel.toggleSelectAll(allNoteIds)
-    }
 
     fun onPinActionClicked() {
-        //！！！！！！！！！！！！！！！！！！后期需修改，现在是置顶选中的所有笔记
-        val currentNotes = notePreviewAdapter.snapshot().items
         viewModel.pinSelectedNotes()
+
     }
 
     fun onDeleteActionClicked() {

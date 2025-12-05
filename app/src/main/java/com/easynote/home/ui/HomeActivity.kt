@@ -72,7 +72,7 @@ class HomeActivity : AppCompatActivity() {
 
             insets
         }
-        // 🟢 [新增] 2. 单独处理侧边栏 (Drawer) 的 Edge-to-Edge
+        //  2. 单独处理侧边栏 (Drawer) 的 Edge-to-Edge
         // 这样“按日期筛选”几个字就会被 Padding 顶下来，不会和状态栏重叠
         ViewCompat.setOnApplyWindowInsetsListener(drawerBinding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -132,14 +132,7 @@ class HomeActivity : AppCompatActivity() {
                 binding.drawerLayout.openDrawer(GravityCompat.END)
                 true // 返回 true 表示事件已处理
             }
-            // 处理管理模式下的“全选”按钮点击
-            R.id.action_select_all -> {
-                val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
-                if (currentFragment is HomeFragment) {
-                    currentFragment.onSelectAllActionClicked()
-                }
-                true
-            }
+
             // 处理“退出管理模式”的叉号按钮点击
             android.R.id.home -> {
                 if (viewModel.uiMode.value is HomeUiMode.Managing) {
