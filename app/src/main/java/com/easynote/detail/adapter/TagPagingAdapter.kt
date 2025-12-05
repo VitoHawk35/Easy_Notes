@@ -91,11 +91,11 @@ class TagPagingAdapter(
     companion object {
         private val TAG_COMPARATOR = object : DiffUtil.ItemCallback<TagEntity>() {
             override fun areItemsTheSame(oldItem: TagEntity, newItem: TagEntity): Boolean {
-                return oldItem.id == newItem.id // 比较主键 ID
+                return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(oldItem: TagEntity, newItem: TagEntity): Boolean {
-                return oldItem == newItem // 比较内容
+                return oldItem == newItem
             }
         }
     }

@@ -32,7 +32,6 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
 
 
-    // 1. 用于暂存当前标题的变量
     var currentTitle: String = ""
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true

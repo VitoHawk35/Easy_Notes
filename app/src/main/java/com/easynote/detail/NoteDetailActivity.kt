@@ -53,8 +53,8 @@ class NoteDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
-//        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
-//        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
+        currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
+        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
         initView()
         initData()
         initListeners()
@@ -106,10 +106,8 @@ class NoteDetailActivity : AppCompatActivity() {
         btnShare = findViewById(R.id.btmShare)
         ivTag = findViewById(R.id.ivTag)
 
-        // 1. 初始化 ViewModel 中的标题状态
         viewModel.currentTitle = noteTitle
 
-        // 2. 监听输入框，实时同步标题给 ViewModel
         etTitle.addTextChangedListener { text ->
             viewModel.currentTitle = text.toString()
         }
@@ -117,19 +115,13 @@ class NoteDetailActivity : AppCompatActivity() {
         pagerAdapter = NotePagerAdapter(
             pages = pageList,
 
-            // 1. 处理“插入图片”请求
             addImage = { callback ->
-                // 保存 View 层传来的回调
                 this.pendingImageCallback = callback
-                // 打开相册
                 pickImageLauncher.launch("image/*")
             },
 
-            // 2. 处理“保存”请求
             save = { position, html ->
-                // 假设当前 Note ID 为 1 (实际应从 Intent 获取)
-                //val currentNoteId = 1L
-                val currentPageIndex = pageList[position].pageNumber // 或者直接用 position + 1
+                val currentPageIndex = pageList[position].pageNumber
 
                 viewModel.saveNotePage(currentNoteId, currentPageIndex, html)
 
@@ -139,7 +131,6 @@ class NoteDetailActivity : AppCompatActivity() {
             onAiRequest = { text, taskType, context, viewCallback ->
                 Toast.makeText(this, "AI 思考中...", Toast.LENGTH_SHORT).show()
 
-                // 根据任务类型决定调用哪个接口
                 if (taskType == TaskType.TRANSLATE && context != null) {
                     viewModel.performTranslateTask(
                         context = context,
@@ -162,7 +153,6 @@ class NoteDetailActivity : AppCompatActivity() {
             },
 
             onUpdateAbstract = { abstractText ->
-                // 调用 ViewModel 更新数据库
                 viewModel.updateAbstract(currentNoteId, abstractText)
 
                 Toast.makeText(this, "摘要已更新", Toast.LENGTH_SHORT).show()
@@ -388,15 +378,12 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
     private fun saveData() {
-        // 简单校验：如果 ID 无效则不存
         if (currentNoteId == -1L) return
 
         currentFocus?.clearFocus()
 
-        // 准备数据
         val tagsToList = currentTags.toList()
 
-        // 调用 ViewModel 的纯更新方法
         viewModel.saveNote(currentNoteId, pageList, tagsToList)
     }
 }
