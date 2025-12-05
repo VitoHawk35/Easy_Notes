@@ -35,22 +35,16 @@ class NotePagerAdapter(
 
     override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
         val page = pages[position]
-        // 获取内容
         holder.richEditor.html = page.content
 
-        // 2. 设置只读状态
         holder.richEditor.setReadOnly(isReadOnly)
 
-        // 3. 设置统一监听器 (连接 View 和 Activity)
         holder.richEditor.setOnRichTextListener(object : RichTextView.OnRichTextListener {
 
             override fun onSave(html: String) {
-                //修复：获取当前实时的位置，而不是使用过时的 position 参数
                 val currentPos = holder.bindingAdapterPosition
 
-                // 必须检查是否有效（防止极少数情况下 View 已经被移除但还在执行动画时点击）
                 if (currentPos != RecyclerView.NO_POSITION) {
-                    // 将保存事件转发给 Activity，并附带当前页码位置
                     save(currentPos, html)
                 }
 
@@ -64,7 +58,6 @@ class NotePagerAdapter(
             }
 
             override fun onContentChanged(html: String) {
-                // 实时更新数据模型，防止划走后数据丢失
                 page.content = html
             }
 

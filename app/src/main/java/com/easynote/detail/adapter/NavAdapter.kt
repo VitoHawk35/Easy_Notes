@@ -18,7 +18,7 @@ class NavAdapter(
         val tvContent: TextView = view.findViewById(R.id.tvNavContent)
 
         init {
-            // 点击整行触发跳转
+            //点击整行触发跳转
             view.setOnClickListener {
                 onItemClick(adapterPosition)
             }
