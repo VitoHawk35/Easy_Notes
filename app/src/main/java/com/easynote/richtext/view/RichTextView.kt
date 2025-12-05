@@ -27,7 +27,7 @@ import com.easynote.richtext.view.impl.RichTextController
 import com.easynote.richtext.utils.SelectionMenuManager
 import com.easynote.ai.core.TaskType
 import kotlinx.coroutines.Job
-
+import android.app.Activity
 /**
  * 富文本编辑器组件
  * * 使用说明：
@@ -179,7 +179,10 @@ class RichTextView @JvmOverloads constructor(
                     val end = etContent.selectionEnd
                     if (start < end) {
                         val text = etContent.text.substring(start, end)
-                        listener?.onAIRequest(text, taskType,null) { resultText ->
+                        listener?.onAIRequest(text, taskType, null) { resultText ->
+                            // 如果 View 已经不在窗口上了，就不处理回调了
+                            if (!isAttachedToWindow) return@onAIRequest
+
                             hideAiLoading()
                             showAIResultDialog(taskType, resultText, start, end)
                         }
@@ -192,6 +195,11 @@ class RichTextView @JvmOverloads constructor(
     }
 
     private fun showAIResultDialog(taskType: TaskType, result: String, start: Int, end: Int) {
+        val activity = context as? Activity
+        if (activity == null || activity.isFinishing || activity.isDestroyed) {
+            // 如果 Activity 正在销毁或已销毁，直接停止，不弹窗
+            return
+        }
         val title = when (taskType) {
             TaskType.CORRECT -> "纠错建议"
             TaskType.POLISH -> "润色结果"

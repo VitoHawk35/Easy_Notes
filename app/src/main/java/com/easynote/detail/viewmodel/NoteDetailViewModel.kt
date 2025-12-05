@@ -191,20 +191,22 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
 
                 val firstPageHtml = pages.firstOrNull()?.content ?: ""
-                val summary = firstPageHtml.replace(Regex("<[^>]*>"), "").take(100)
+                val summary = firstPageHtml.parseAsHtml().toString().trim()
 
                 repository.updateTitleOrSummary(noteId, titleToSave, summary)
 
                 repository.updateNoteTags(noteId, *tags.toTypedArray())
 
                 pages.forEach { page ->
-                    val plainText = page.content.replace(Regex("<[^>]*>"), "")
+                    val plainText = page.content.parseAsHtml().toString().trim()
                     repository.updateNoteContent(
                         noteId = noteId,
                         pageIndex = page.pageNumber,
                         newContent = plainText,
                         newHTMLContent = page.content
                     )
+                    //
+                    generateSummaryAuto(noteId, plainText)
                 }
 
                 Log.d("NoteDetailViewModel", "笔记(ID=$noteId) 已全部保存/更新")
