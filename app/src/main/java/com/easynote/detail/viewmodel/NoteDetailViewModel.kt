@@ -175,7 +175,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             override fun onSuccess(aiReply: String) {
                 // AI 成功返回后，调用 updateAbstract 更新到数据库
                 updateAbstract(noteId, aiReply)
-                Log.d("NoteDetailViewModel", "AI 自动摘要已更新: $aiReply")
+                //Log.d("NoteDetailViewModel", "AI 自动摘要已更新: $aiReply")
             }
 
             override fun onFailure(e: AIException) {
@@ -190,10 +190,10 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
             try {
                 val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
 
-                val firstPageHtml = pages.firstOrNull()?.content ?: ""
-                val summary = firstPageHtml.parseAsHtml().toString().trim()
+//                val firstPageHtml = pages.firstOrNull()?.content ?: ""
+//                val summary = firstPageHtml.parseAsHtml().toString().trim()
 
-                repository.updateTitleOrSummary(noteId, titleToSave, summary)
+                repository.updateTitleOrSummary(noteId, titleToSave, null)
 
                 repository.updateNoteTags(noteId, *tags.toTypedArray())
 
@@ -205,8 +205,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                         newContent = plainText,
                         newHTMLContent = page.content
                     )
-                    //
-                    generateSummaryAuto(noteId, plainText)
+
                 }
 
                 Log.d("NoteDetailViewModel", "笔记(ID=$noteId) 已全部保存/更新")
