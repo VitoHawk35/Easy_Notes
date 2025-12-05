@@ -66,6 +66,10 @@ dependencies {
     implementation libs.androidx.room.paging
     ksp libs.androidx.room.compiler
 
+//    implementation 'io.github.promeg:tinypinyin:2.0.3'
+    implementation 'com.github.promeg:tinypinyin:2.0.3'
+    implementation 'com.github.promeg:tinypinyin-lexicons-android-cncity:2.0.3'
+
     // Jetpack Compose (BOM 管理版本)
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.ui

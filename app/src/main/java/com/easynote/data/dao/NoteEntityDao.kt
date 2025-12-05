@@ -169,12 +169,10 @@ interface NoteEntityDao {
             :query IS NULL
             OR :query = ''
             OR n.id IN (
-                SELECT rowid
+                SELECT id
                 FROM note_fts
-                WHERE content MATCH :query
+                WHERE note_fts MATCH :query
             )
-            OR n.title LIKE '%' || :query || '%'
-            OR n.summary LIKE '%' || :query || '%'
         )
         AND
         (:startTime IS NULL OR n.update_time >= :startTime)

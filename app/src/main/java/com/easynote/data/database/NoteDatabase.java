@@ -23,6 +23,13 @@ public abstract class NoteDatabase extends RoomDatabase {
         if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(), NoteDatabase.class, "note_database")
                     .createFromAsset("note_database.db")
+                    .addCallback(new RoomDatabase.Callback(){
+                        @Override
+                        public void onCreate(androidx.sqlite.db.SupportSQLiteDatabase db) {
+                            super.onCreate(db);
+                            db.execSQL("INSERT INTO note_fts(id) select id from note");
+                        }
+                    })
                     .build();
         }
         return instance;
