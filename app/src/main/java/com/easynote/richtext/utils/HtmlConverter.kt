@@ -6,6 +6,9 @@ import android.net.Uri
 import android.text.Html
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
+import androidx.core.text.parseAsHtml
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.net.toUri
 
 object HtmlConverter {
 
@@ -26,7 +29,7 @@ object HtmlConverter {
         val imageGetter = Html.ImageGetter { source ->
             try {
                 // 1. source 就是我们保存时的 uriString
-                val uri = Uri.parse(source)
+                val uri = source.toUri()
 
                 // 2. 计算最大高度限制 (屏幕一半)
                 val displayMetrics = context.resources.displayMetrics
@@ -39,7 +42,7 @@ object HtmlConverter {
                 val bitmap = ImageUtils.loadScaledBitmap(context, uri, reqWidth, maxHeight)
 
                 if (bitmap != null) {
-                    val drawable = BitmapDrawable(context.resources, bitmap)
+                    val drawable = bitmap.toDrawable(context.resources)
                     // 🔥 必须设置 setBounds，否则图片宽高为0，看不见
                     drawable.setBounds(0, 0, bitmap.width, bitmap.height)
                     return@ImageGetter drawable
@@ -51,12 +54,7 @@ object HtmlConverter {
             null
         }
 
-        // 开始转换
-        return HtmlCompat.fromHtml(
-            html,
-            HtmlCompat.FROM_HTML_MODE_LEGACY,
-            imageGetter, // 传入我们的图片加载器
-            null         // tagHandler (处理自定义标签，暂时不用)
-        )
+        // 转换
+        return html.parseAsHtml(HtmlCompat.FROM_HTML_MODE_LEGACY, imageGetter)
     }
 }

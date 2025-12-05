@@ -97,52 +97,79 @@ class SelectionMenuManager(
 
         menuView.visibility = View.VISIBLE
         menuView.post {
-            // ... (此处粘贴之前优化过的 calculatePosition 逻辑) ...
-            // 为了篇幅简洁，这里省略具体数学计算代码，直接复用你现在的逻辑
             calculateAndSetPosition(menuView, start, end)
         }
     }
 
     private fun calculateAndSetPosition(menuView: View, start: Int, end: Int) {
-        // ... 把 RichTextView 里那个复杂的 post 代码块搬过来 ...
-        // 注意：原代码中的 `this.width` 需改为 `container.width`
-        // 原代码中的 `this.getLocationInWindow` 需改为 `container.getLocationInWindow`
-        menuView.post {
-            val layout = etContent.layout ?: return@post
-            val toolbarWidth = menuView.width
-            val toolbarHeight = menuView.height
-            val parentWidth = container.width
+        val layout = etContent.layout ?: return
 
-            // 计算选区中心
-            val startX = layout.getPrimaryHorizontal(start)
-            val endX = layout.getPrimaryHorizontal(end)
-            val centerX = (startX + endX) / 2
+        // 1. 垂直方向逻辑
+        val line = layout.getLineForOffset(start)
+        val lineTop = layout.getLineTop(line)
+        val lineBottom = layout.getLineBottom(line)
 
-            val coords = IntArray(2)
-            etContent.getLocationInWindow(coords)
-            val parentCoords = IntArray(2)
-            container.getLocationInWindow(parentCoords)
+        val location = IntArray(2)
+        etContent.getLocationOnScreen(location)
+        val editTextScreenY = location[1]
+        val editTextScreenX = location[0] // 获取 EditText 的左边缘 X
 
-            val rawX = (coords[0] + centerX) - parentCoords[0] - (toolbarWidth / 2)
+        // 预留间距 (px)
+        val padding = 20
 
-            // 安全边界逻辑
-            val margin = 20f
-            val maxRight = (parentWidth - toolbarWidth).toFloat() - margin
-            val safeMaxX = kotlin.math.max(margin, maxRight)
-            val finalX = rawX.coerceIn(margin, safeMaxX)
+        // 垂直计算 (默认上方)
+        var menuY = editTextScreenY + lineTop - menuView.height - padding
 
-            // 上下翻转逻辑
-            val line = layout.getLineForOffset(start)
-            val lineTop = layout.getLineTop(line)
-            val lineBottom = layout.getLineBottom(line)
-
-            var finalY = (coords[1] + lineTop) - parentCoords[1] - toolbarHeight - 20f
-            if (finalY < 0) {
-                finalY = (coords[1] + lineBottom) - parentCoords[1] + 10f
-            }
-
-            menuView.x = finalX
-            menuView.y = finalY
+        // 垂直边界检测 (触顶反弹)
+        val statusBarHeight = getStatusBarHeight()
+        val minTopLimit = statusBarHeight + padding
+        if (menuY < minTopLimit) {
+            menuY = editTextScreenY + lineBottom + padding
         }
+
+        // 2. 水平方向逻辑
+
+        // 2.1 计算理想的中心点 X
+        val startX = layout.getPrimaryHorizontal(start)
+        val endX = layout.getPrimaryHorizontal(end)
+        val selectionCenterX = (startX + endX) / 2
+
+        // 2.2 计算理想的左上角 menuX
+        var menuX = editTextScreenX + selectionCenterX + etContent.paddingLeft - (menuView.width / 2)
+
+        // 2.3 获取屏幕宽度
+        val displayMetrics = etContent.resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+
+        // 2.4 左侧边界检测 (不能小于 padding)
+        if (menuX < padding) {
+            menuX = padding.toFloat()
+        }
+
+        // 2.5 右侧边界检测 (menuX + menuWidth 不能超过 screenWidth - padding)
+        val maxMenuX = screenWidth - menuView.width - padding
+        if (menuX > maxMenuX) {
+            menuX = maxMenuX.toFloat()
+        }
+
+        // 3. 应用坐标
+        menuView.x = menuX
+        menuView.y = menuY.toFloat()
+
+        if (menuView.visibility != View.VISIBLE) {
+            menuView.visibility = View.VISIBLE
+        }
+    }
+
+    // 辅助方法：获取状态栏高度
+    private fun getStatusBarHeight(): Int {
+        var result = 0
+        val res = etContent.resources
+
+        val resourceId = res.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            result = res.getDimensionPixelSize(resourceId)
+        }
+        return result
     }
 }

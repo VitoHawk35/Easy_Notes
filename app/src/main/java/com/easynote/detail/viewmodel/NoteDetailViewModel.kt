@@ -2,7 +2,6 @@ package com.easynote.detail.viewmodel
 
 import android.app.Application
 import android.net.Uri
-import android.text.Html
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -21,6 +20,7 @@ import com.easynote.ai.core.AIResultCallback
 import com.easynote.ai.exception.AIException
 import kotlinx.coroutines.flow.Flow
 import java.io.File
+import androidx.core.text.parseAsHtml
 
 class NoteDetailViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -94,8 +94,8 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun saveNotePage(noteId: Long, pageIndex: Int, htmlContent: String) {
         viewModelScope.launch {
             try {
-                // 提取纯文本用于搜索预览（可选，简单正则去标签）
-                val plainText = Html.fromHtml(htmlContent,Html.FROM_HTML_MODE_LEGACY).toString()
+                // 提取纯文本用于搜索预览
+                val plainText = htmlContent.parseAsHtml().toString().trim()
 
                 // 调用 Repository 保存
                 repository.updateNoteContent(
@@ -106,8 +106,8 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 )
                 repository.updateTitleOrSummary(noteId, currentTitle, null)
                 Log.d("NoteDetailViewModel", "第 $pageIndex 页保存成功,标题已更新: $currentTitle")
-
-
+                //自动生成摘要
+                generateSummaryAuto(noteId, plainText)
             } catch (e: Exception) {
                 e.printStackTrace()
                 // 通知 Activity "保存失败"
@@ -166,26 +166,46 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         })
     }
 
+    /**
+     * 后台静默调用 AI 生成摘要
+     */
+    private fun generateSummaryAuto(noteId: Long, content: String) {
+        // 调用 AIProvider 发起摘要任务
+        AIProvider.getInstance().process(content, TaskType.SUMMARY, object : AIResultCallback {
+            override fun onSuccess(aiReply: String) {
+                // AI 成功返回后，调用 updateAbstract 更新到数据库
+                updateAbstract(noteId, aiReply)
+                //Log.d("NoteDetailViewModel", "AI 自动摘要已更新: $aiReply")
+            }
+
+            override fun onFailure(e: AIException) {
+                // AI 失败仅记录日志
+                Log.e("NoteDetailViewModel", "AI 自动摘要生成失败: ${e.message}")
+            }
+        })
+    }
+
     fun saveNote(noteId: Long, pages: List<NotePage>, tags: List<TagEntity>) {
         viewModelScope.launch {
             try {
                 val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
 
-                val firstPageHtml = pages.firstOrNull()?.content ?: ""
-                val summary = Html.fromHtml(firstPageHtml,Html.FROM_HTML_MODE_LEGACY).toString().take(100)
+//                val firstPageHtml = pages.firstOrNull()?.content ?: ""
+//                val summary = firstPageHtml.parseAsHtml().toString().trim()
 
-                repository.updateTitleOrSummary(noteId, titleToSave, summary)
+                repository.updateTitleOrSummary(noteId, titleToSave, null)
 
                 repository.updateNoteTags(noteId, *tags.toTypedArray())
 
                 pages.forEach { page ->
-                    val plainText = Html.fromHtml(page.content,Html.FROM_HTML_MODE_LEGACY).toString()
+                    val plainText = page.content.parseAsHtml().toString().trim()
                     repository.updateNoteContent(
                         noteId = noteId,
                         pageIndex = page.pageNumber,
                         newContent = plainText,
                         newHTMLContent = page.content
                     )
+
                 }
 
                 Log.d("NoteDetailViewModel", "笔记(ID=$noteId) 已全部保存/更新")
