@@ -48,6 +48,8 @@ class NoteDetailActivity : AppCompatActivity() {
     private lateinit var ivTag: ImageView
     private var currentTags = hashSetOf<TagEntity>()
 
+    private var isDataChanged = false
+
     private var pendingImageCallback: ((Uri) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +111,9 @@ class NoteDetailActivity : AppCompatActivity() {
         viewModel.currentTitle = noteTitle
 
         etTitle.addTextChangedListener { text ->
+            if (!isDataChanged && text.toString() != noteTitle) {
+                isDataChanged = true
+            }
             viewModel.currentTitle = text.toString()
         }
 
@@ -379,6 +384,11 @@ class NoteDetailActivity : AppCompatActivity() {
 
     private fun saveData() {
         if (currentNoteId == -1L) return
+
+        if (!isDataChanged) {
+            Log.d("NoteDetailActivity", "数据未修改，跳过保存")
+            return
+        }
 
         currentFocus?.clearFocus()
 
