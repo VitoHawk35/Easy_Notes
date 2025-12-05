@@ -47,7 +47,6 @@ class RichTextView @JvmOverloads constructor(
     private var btnRecover: ImageView
     private var btnAddPicture: ImageView
     private var btnSave: ImageView
-    private var btnLoad: ImageView
 
     // 核心逻辑控制器 (延迟初始化)
     private var controller: RichTextController? = null
@@ -125,7 +124,6 @@ class RichTextView @JvmOverloads constructor(
         btnRecover = findViewById(R.id.btn_recover)
         btnAddPicture = findViewById(R.id.btn_add_image)
         btnSave = findViewById(R.id.btn_save)
-        btnLoad = findViewById(R.id.btn_load) // 如果设计稿不要这个按钮，可以隐藏
 
         setupWindowInsets()
         setupClickListeners()
@@ -270,10 +268,6 @@ class RichTextView @JvmOverloads constructor(
             listener?.onSave(currentHtml)
         }
 
-        // 加载按钮通常在自动保存模式下不需要，保留作为重置功能或移除
-        btnLoad.setOnClickListener {
-            // 可选：实现重新加载逻辑
-        }
     }
 
     // 辅助方法：确保 Controller 存在且非只读时执行
@@ -303,7 +297,7 @@ class RichTextView @JvmOverloads constructor(
 
         // 2. 更新按钮视觉状态
         val alpha = if (readOnly) 0.3f else 1.0f
-        val buttons = listOf(btnBold, btnItalic, btnAddPicture, btnCancel, btnRecover, btnLoad)
+        val buttons = listOf(btnBold, btnItalic, btnAddPicture, btnCancel, btnRecover)
         buttons.forEach { it.alpha = alpha }
         // Save 按钮通常在只读模式下也允许点击（比如导出），或者你也可以禁掉
     }
