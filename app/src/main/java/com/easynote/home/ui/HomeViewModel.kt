@@ -17,6 +17,7 @@ import com.easynote.home.mapper.toNoteWithTags
 import com.easynote.home.mapper.toTagModel
 import com.easynote.util.DateUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -110,10 +111,9 @@ class HomeViewModel(
 
     private val _sortOrder = MutableStateFlow(SortOrder.BY_UPDATE_TIME_DESC) // 设置中排序项状态 默认按更新时间
     val sortOrder: StateFlow<SortOrder> = _sortOrder
-    private val _layoutMode = MutableStateFlow(LayoutMode.GRID) //设置中布局状态， 默认是宫格模式
+    private val _layoutMode = MutableStateFlow(LayoutMode.LIST) //设置中布局状态， 默认是宫格模式
     val layoutMode: StateFlow<LayoutMode> = _layoutMode
     private val _dateRange = MutableStateFlow<Pair<Long?, Long?>>(null to null) // 监听笔记日期范围状态
-    val dateRange: StateFlow<Pair<Long?, Long?>> = _dateRange;
     private val _calendarState = MutableStateFlow(
         Calendar.getInstance().let {
             CalendarState(
@@ -133,7 +133,7 @@ class HomeViewModel(
     }.cachedIn(viewModelScope) // 5. 缓存最终转换好的 Flow
     // Home的笔记预览数据，根据筛选状态（_filterState）的变化和排序方式，动态切换笔记数据源。
     // 通过flatMapLates来使得用户多次点击标签后，快速得到最后一次筛选状态的数据
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val homeNotePreviews: Flow<PagingData<NotePreviewModel>> =
         // 2. combine监听三个流：筛选、排序和搜索
         combine(

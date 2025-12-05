@@ -8,12 +8,8 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.easynote.R
-import com.easynote.data.repository.impl.NoteRepositoryImpl
-import com.easynote.data.repository.impl.TagRepositoryImpl
 import com.easynote.databinding.FragmentSettingsBinding // 【重要】导入 ViewBinding 类
 import com.easynote.home.ui.HomeViewModel
 import com.easynote.home.ui.LayoutMode
@@ -87,10 +83,10 @@ class SettingsFragment : Fragment() {
         // 观察排序方式
         viewModel.sortOrder.onEach { sortOrder ->
             val position = when (sortOrder) {
-                SortOrder.BY_UPDATE_TIME_ASC -> 0
-                SortOrder.BY_UPDATE_TIME_DESC -> 1
-                SortOrder.BY_CREATION_TIME_ASC -> 2
-                SortOrder.BY_CREATION_TIME_DESC -> 3
+                SortOrder.BY_UPDATE_TIME_DESC -> 0
+                SortOrder.BY_UPDATE_TIME_ASC -> 1
+                SortOrder.BY_CREATION_TIME_DESC -> 2
+                SortOrder.BY_CREATION_TIME_ASC -> 3
             }
             // 防止重复设置触发监听器
             if (binding.spinnerSortOrder.selectedItemPosition != position) {
@@ -101,8 +97,8 @@ class SettingsFragment : Fragment() {
         // 观察布局方式
         viewModel.layoutMode.onEach { layoutMode ->
             val position = when (layoutMode) {
-                LayoutMode.GRID -> 0
-                LayoutMode.LIST -> 1
+                LayoutMode.LIST -> 0
+                LayoutMode.GRID -> 1
             }
             if (binding.spinnerLayoutMode.selectedItemPosition != position) {
                 binding.spinnerLayoutMode.setSelection(position)
@@ -118,10 +114,10 @@ class SettingsFragment : Fragment() {
         binding.spinnerSortOrder.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val newSortOrder = when (position) {
-                    0-> SortOrder.BY_UPDATE_TIME_ASC
-                    1-> SortOrder.BY_UPDATE_TIME_DESC
-                    2 -> SortOrder.BY_CREATION_TIME_ASC
-                    3 -> SortOrder.BY_CREATION_TIME_DESC
+                    0-> SortOrder.BY_UPDATE_TIME_DESC
+                    1-> SortOrder.BY_UPDATE_TIME_ASC
+                    2 -> SortOrder.BY_CREATION_TIME_DESC
+                    3 -> SortOrder.BY_CREATION_TIME_ASC
                     else -> {SortOrder.BY_UPDATE_TIME_DESC}
                 }
                 // 只有在新选择的值和 ViewModel 中当前的值不同时才更新，防止重复调用
@@ -140,7 +136,7 @@ class SettingsFragment : Fragment() {
         binding.spinnerLayoutMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val newLayoutMode = when (position) {
-                    1 -> LayoutMode.LIST
+                    0 -> LayoutMode.LIST
                     else -> LayoutMode.GRID
                 }
                 if (viewModel.layoutMode.value != newLayoutMode) {

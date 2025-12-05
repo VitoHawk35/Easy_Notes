@@ -7,15 +7,15 @@
 
     <!-- 排序方式的选项 -->
     <string-array name="sort_order_options">
-        <item>按更新时间升序</item>
         <item>按更新时间降序</item>
-        <item>按创建时间升序</item>
+        <item>按更新时间升序</item>
         <item>按创建时间降序</item>
+        <item>按创建时间升序</item>
     </string-array>
 
     <!-- 布局方式的选项 -->
     <string-array name="layout_mode_options">
-        <item>宫格模式 (两列)</item>
         <item>列表模式 (单列)</item>
+        <item>宫格模式 (两列)</item>
     </string-array>
 </resources>
