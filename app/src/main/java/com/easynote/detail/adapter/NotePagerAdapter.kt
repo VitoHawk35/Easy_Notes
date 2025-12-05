@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R
-import com.easynote.detail.data.model.NotePage // 引用刚才建的数据模型
+import com.easynote.detail.data.model.NotePage
 
 
 import com.easynote.richtext.view.RichTextView

@@ -8,6 +8,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.easynote.data.annotation.CREATE_TIME_DESC
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.UPDATE_TIME_DESC
 import com.easynote.data.entity.NoteEntity
@@ -248,6 +249,11 @@ interface NoteEntityDao {
             (:startTime IS NULL OR n.create_time >= :startTime)
         AND
             (:endTime IS NULL OR n.create_time <= :endTime)
+        ORDER BY
+        CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END ASC,
+        CASE WHEN is_favorite = 1 THEN n.favorite_time END DESC,
+        CASE WHEN :orderWay = 'CREATE_TIME_DESC' THEN n.create_time END DESC,
+        CASE WHEN :orderWay = 'CREATE_TIME_ASC' THEN n.create_time END ASC
     """
     )
     fun getAllWithTags(
@@ -255,6 +261,7 @@ interface NoteEntityDao {
         tagIds: Set<Long>?,
         startTime: Long?,
         endTime: Long?,
-        tagSize: Int? = tagIds?.size ?: 0
+        tagSize: Int? = tagIds?.size ?: 0,
+        orderWay: String? = CREATE_TIME_DESC
     ): Flow<List<NoteWithTags>>
 }
