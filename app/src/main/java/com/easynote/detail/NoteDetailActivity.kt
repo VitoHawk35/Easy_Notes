@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import com.easynote.data.entity.TagEntity
 import androidx.core.widget.addTextChangedListener
-
 class NoteDetailActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager2
@@ -49,6 +48,8 @@ class NoteDetailActivity : AppCompatActivity() {
     private lateinit var ivTag: ImageView
     private var currentTags = hashSetOf<TagEntity>()
 
+    private var isDataChanged = false
+
     private var pendingImageCallback: ((Uri) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +63,7 @@ class NoteDetailActivity : AppCompatActivity() {
         initAi()
     }
 
-    private fun initAi() {
+    private fun initAi(){
         try {
             AIConfig.init(this)
         } catch (e: Exception) {
@@ -107,46 +108,34 @@ class NoteDetailActivity : AppCompatActivity() {
         btnShare = findViewById(R.id.btmShare)
         ivTag = findViewById(R.id.ivTag)
 
-        // 1. 初始化 ViewModel 中的标题状态
         viewModel.currentTitle = noteTitle
 
-        // 2. 监听输入框，实时同步标题给 ViewModel
         etTitle.addTextChangedListener { text ->
+            if (!isDataChanged && text.toString() != noteTitle) {
+                isDataChanged = true
+            }
             viewModel.currentTitle = text.toString()
         }
 
         pagerAdapter = NotePagerAdapter(
             pages = pageList,
 
-            // 1. 处理“插入图片”请求
             addImage = { callback ->
-                // 保存 View 层传来的回调
                 this.pendingImageCallback = callback
-                // 打开相册
                 pickImageLauncher.launch("image/*")
             },
 
-            // 2. 处理“保存”请求
             save = { position, html ->
-                // 假设当前 Note ID 为 1 (实际应从 Intent 获取)
-                //val currentNoteId = 1L
+                val currentPageIndex = pageList[position].pageNumber
+
+                viewModel.saveNotePage(currentNoteId, currentPageIndex, html)
+
                 Toast.makeText(this, "第 ${position + 1} 页正在保存...", Toast.LENGTH_SHORT).show()
-                try {
-
-                    val currentPageIndex = pageList[position].pageNumber // 或者直接用 position + 1
-
-                    viewModel.saveNotePage(currentNoteId, currentPageIndex, html)
-
-                    Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(this, "保存失败", Toast.LENGTH_SHORT).show()
-                }
             },
 
             onAiRequest = { text, taskType, context, viewCallback ->
                 Toast.makeText(this, "AI 思考中...", Toast.LENGTH_SHORT).show()
 
-                // 根据任务类型决定调用哪个接口
                 if (taskType == TaskType.TRANSLATE && context != null) {
                     viewModel.performTranslateTask(
                         context = context,
@@ -169,7 +158,6 @@ class NoteDetailActivity : AppCompatActivity() {
             },
 
             onUpdateAbstract = { abstractText ->
-                // 调用 ViewModel 更新数据库
                 viewModel.updateAbstract(currentNoteId, abstractText)
 
                 Toast.makeText(this, "摘要已更新", Toast.LENGTH_SHORT).show()
@@ -335,8 +323,7 @@ class NoteDetailActivity : AppCompatActivity() {
             currentTags.clear()
             currentTags.addAll(tempSelectedTags)
 
-            val msg =
-                if (currentTags.isEmpty()) "未选择标签" else "已选: ${currentTags.joinToString(",")}"
+            val msg = if (currentTags.isEmpty()) "未选择标签" else "已选: ${currentTags.joinToString(",")}"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
             val firstTagName = currentTags.firstOrNull()?.name ?: ""
@@ -373,39 +360,40 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
 
-    private val pickImageLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { srcUri: Uri? ->
-            if (srcUri != null) {
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { srcUri: Uri? ->
+        if (srcUri != null) {
 
-                //val currentNoteId = 1L
-                // 获取当前页码
-                val currentPageIndex = pageList[viewPager.currentItem].pageNumber
+            //val currentNoteId = 1L
+            // 获取当前页码
+            val currentPageIndex = pageList[viewPager.currentItem].pageNumber
 
-                // ViewModel保存图片
-                viewModel.saveImage(currentNoteId, currentPageIndex, srcUri) { localUri ->
+            // ViewModel保存图片
+            viewModel.saveImage(currentNoteId, currentPageIndex, srcUri) { localUri ->
 
-                    // 1. ViewModel 保存成功，回调返回本地路径 (file://...)
-                    // 2. 将这个本地路径传给 RichTextView 进行显示
-                    pendingImageCallback?.invoke(localUri)
+                // 1. ViewModel 保存成功，回调返回本地路径 (file://...)
+                // 2. 将这个本地路径传给 RichTextView 进行显示
+                pendingImageCallback?.invoke(localUri)
 
-                    // 3. 清理引用
-                    pendingImageCallback = null
-                }
-            } else {
+                // 3. 清理引用
                 pendingImageCallback = null
             }
+        } else {
+            pendingImageCallback = null
         }
+    }
 
     private fun saveData() {
-        // 简单校验：如果 ID 无效则不存
         if (currentNoteId == -1L) return
+
+        if (!isDataChanged) {
+            Log.d("NoteDetailActivity", "数据未修改，跳过保存")
+            return
+        }
 
         currentFocus?.clearFocus()
 
-        // 准备数据
         val tagsToList = currentTags.toList()
 
-        // 调用 ViewModel 的纯更新方法
         viewModel.saveNote(currentNoteId, pageList, tagsToList)
     }
 }

@@ -30,11 +30,9 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     val isLoading = MutableLiveData<Boolean>()
     val noteTags = MutableLiveData<List<TagEntity>>()
     val noteTitle = MutableLiveData<String>()
-    val allTagsFlow: Flow<PagingData<TagEntity>> =
-        repository.getAllTagsFlow(20).cachedIn(viewModelScope)
+    val allTagsFlow: Flow<PagingData<TagEntity>> = repository.getAllTagsFlow(20).cachedIn(viewModelScope)
 
 
-    // 1. 用于暂存当前标题的变量
     var currentTitle: String = ""
     fun loadNoteContent(noteId: Long) {
         isLoading.value = true
@@ -61,13 +59,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
 
                     if (content != null) {
 
-                        loadedPages.add(
-                            NotePage(
-                                System.currentTimeMillis() + pageIndex,
-                                pageIndex,
-                                content
-                            )
-                        )
+                        loadedPages.add(NotePage(System.currentTimeMillis() + pageIndex, pageIndex, content))
                         pageIndex++
                     } else {
                         break
@@ -98,14 +90,12 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     }
 
 
+
     fun saveNotePage(noteId: Long, pageIndex: Int, htmlContent: String) {
         viewModelScope.launch {
             try {
                 // 提取纯文本用于搜索预览（可选，简单正则去标签）
-
-                val plainText = Html.fromHtml(htmlContent, Html.FROM_HTML_MODE_LEGACY).toString()
-
-                Log.d("NoteDetailViewModel", "准备保存第 $pageIndex 页内容: $plainText")
+                val plainText = Html.fromHtml(htmlContent,Html.FROM_HTML_MODE_LEGACY).toString()
 
                 // 调用 Repository 保存
                 repository.updateNoteContent(
@@ -141,7 +131,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun updateAbstract(noteId: Long, abstract: String) {
         viewModelScope.launch {
             try {
-                repository.updateTitleOrSummary(noteId, null, abstract)
+                repository.updateTitleOrSummary(noteId, null,abstract)
                 Log.d("NoteDetailViewModel", "摘要更新成功")
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -151,12 +141,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     // 处理 AI 任务
-    fun performAiTask(
-        text: String,
-        taskType: TaskType,
-        onResult: (String) -> Unit,
-        onError: (String) -> Unit
-    ) {
+    fun performAiTask(text: String, taskType: TaskType, onResult: (String) -> Unit, onError: (String) -> Unit) {
         AIProvider.getInstance().process(text, taskType, object : AIResultCallback {
             override fun onSuccess(aiReply: String) {
                 onResult(aiReply)
@@ -169,12 +154,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     // 翻译
-    fun performTranslateTask(
-        context: String,
-        text: String,
-        onResult: (String) -> Unit,
-        onError: (String) -> Unit
-    ) {
+    fun performTranslateTask(context: String, text: String, onResult: (String) -> Unit, onError: (String) -> Unit) {
         AIProvider.getInstance().processTranslate(context, text, object : AIResultCallback {
             override fun onSuccess(aiReply: String) {
                 onResult(aiReply)
@@ -192,16 +172,14 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
 
                 val firstPageHtml = pages.firstOrNull()?.content ?: ""
-                val summary =
-                    Html.fromHtml(firstPageHtml, Html.FROM_HTML_MODE_LEGACY).toString().take(100)
+                val summary = Html.fromHtml(firstPageHtml,Html.FROM_HTML_MODE_LEGACY).toString().take(100)
 
                 repository.updateTitleOrSummary(noteId, titleToSave, summary)
 
                 repository.updateNoteTags(noteId, *tags.toTypedArray())
 
                 pages.forEach { page ->
-                    val plainText =
-                        Html.fromHtml(page.content, Html.FROM_HTML_MODE_LEGACY).toString()
+                    val plainText = Html.fromHtml(page.content,Html.FROM_HTML_MODE_LEGACY).toString()
                     repository.updateNoteContent(
                         noteId = noteId,
                         pageIndex = page.pageNumber,

@@ -29,7 +29,8 @@
             android:exported="false" />
         <activity
             android:name="com.easynote.detail.NoteDetailActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
         </activity>
 
     </application>

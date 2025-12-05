@@ -8,6 +8,9 @@ import androidx.room.Fts4
 @Entity(tableName = "note_fts")
 data class NoteFts(
 
+    @ColumnInfo
+    var id:Long,
+
     @ColumnInfo(name = "page_index")
     var pageIndex: Int,
 

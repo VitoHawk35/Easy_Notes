@@ -19,6 +19,8 @@ import com.easynote.data.annotation.UPDATE_TIME_DESC
 import com.easynote.data.relation.TagWithNotes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.github.promeg.pinyinhelper.Pinyin
+import com.github.promeg.tinypinyin.lexicons.android.cncity.CnCityDict
 
 
 class RepositoryImpl(application: Application) : Repository {
@@ -32,6 +34,7 @@ class RepositoryImpl(application: Application) : Repository {
         this.tagRepository = TagRepositoryImpl(application)
 
     }
+
 
     override suspend fun createNewNote(noteWithTags: NoteWithTags?): Long {
         return noteRepository.insertNoteWithTags(noteWithTags ?: NoteWithTags())
@@ -93,8 +96,10 @@ class RepositoryImpl(application: Application) : Repository {
         noteRepository.updateSearchTable(noteId, pageIndex, content = newContent)
     }
 
+    @Transaction
     override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) {
         noteRepository.updateTitleOrSummary(noteId, title, summary)
+        noteRepository.updateSearchTable(noteId, title = title, summary = summary)
     }
 
     override suspend fun updateNoteTags(
