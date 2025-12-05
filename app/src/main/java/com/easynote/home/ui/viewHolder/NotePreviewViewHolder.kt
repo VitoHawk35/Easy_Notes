@@ -23,7 +23,7 @@ import com.google.android.material.card.MaterialCardView
 class NotePreviewViewHolder(
     itemView: View,
     private val onItemClick: (NotePreviewModel) -> Unit,
-    private val onItemLongClick: (NotePreviewModel) -> Boolean,
+    private val onItemLongClick: (NotePreviewModel) -> Boolean?,
     private val getUiMode: () -> HomeUiMode, // 通过函数获取当前的 UI Mode，解耦
     private val getSortOrder: () -> SortOrder
 ) : RecyclerView.ViewHolder(itemView) {
@@ -46,22 +46,27 @@ class NotePreviewViewHolder(
     init {
         // 单击事件
         itemView.setOnClickListener {
-            currentNote?.let { note ->
-                // 直接回调，让外部根据 UI Mode 处理
-                onItemClick(note)
+            bindingAdapterPosition.let { position ->
+                if (position != RecyclerView.NO_POSITION) {
+                    currentNote?.let(onItemClick)
+                }
             }
         }
 
         // 长按事件
-        itemView.setOnLongClickListener {
-            currentNote?.let { note ->
-                // 只在浏览模式下触发长按
-                if (getUiMode() is HomeUiMode.Browsing) {
-                    onItemLongClick(note)
-                } else {
-                    false
+        onItemLongClick.let { longClickCallback ->
+            itemView.setOnLongClickListener {
+                bindingAdapterPosition.let { position ->
+                    if (position != RecyclerView.NO_POSITION) {
+                        currentNote?.let { note ->
+                            if (getUiMode() is HomeUiMode.Browsing) {
+                                return@setOnLongClickListener longClickCallback(note) == true
+                            }
+                        }
+                    }
                 }
-            } ?: false
+                false
+            }
         }
     }
 
@@ -120,7 +125,7 @@ class NotePreviewViewHolder(
         fun create(
             parent: ViewGroup,
             onItemClick: (NotePreviewModel) -> Unit,
-            onItemLongClick: (NotePreviewModel) -> Boolean,
+            onItemLongClick: (NotePreviewModel) -> Boolean?,
             getUiMode: () -> HomeUiMode,
             getSortOrder: () -> SortOrder
         ): NotePreviewViewHolder {

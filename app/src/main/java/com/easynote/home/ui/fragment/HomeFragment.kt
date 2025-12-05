@@ -100,6 +100,12 @@ class HomeFragment : Fragment() {
         observeUiEvents()//观察ui事件
 
     }
+    override fun onResume() {
+        super.onResume()
+        // 这将确保 UI 与最新的数据库状态完全同步，从而修复“新旧共存”的 bug。
+        notePreviewAdapter.refresh()
+    }
+
     /**
      * 【新增】一个专门负责跳转到笔记详情页的方法。
      * @param noteId 要打开的笔记的 ID。如果是新建笔记，可以传入 -1L。
