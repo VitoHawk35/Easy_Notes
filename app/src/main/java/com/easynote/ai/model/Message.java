@@ -6,9 +6,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class Message {
     @SerializedName("role")
-    private String role; //角色： user/assistant/system
+    private final String role; //角色： user/assistant/system
     @SerializedName("content")
-    private String content; //消息内容
+    private final String content; //消息内容
 
     public Message(String role,String text){
         this.role=role;
