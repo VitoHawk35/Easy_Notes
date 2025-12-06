@@ -7,7 +7,7 @@ public class Thinking {
     private String type;
 
     public Thinking(){
-        this.type="disable";
+        this.type="disabled";
     }
     public Thinking(String type){
         this.type=type;
