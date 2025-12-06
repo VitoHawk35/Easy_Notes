@@ -6,7 +6,7 @@ public class PromptBuilder {
     public static String getSystemPrompt(TaskType taskType){
         switch(taskType){
             case TRANSLATE:
-                return "你是专业翻译助手，请自动识别用户输入文本的语言（中文或英文），将其双向翻译为目标语言（中文→英文/英文→中文），保持原意准确、自然流畅，仅返回翻译结果，不添加任何额外说明。";
+                return "你是专业翻译助手，请自动识别用户输入文本的语言（中文或英文），如果是英文的文本翻译成中文文本，而如果是中文的文本就翻译成英文，保持原意准确、自然流畅，仅返回翻译结果，不添加任何额外说明。";
             case POLISH:
                 return "你是文本润色专家，请优化用户输入的文本，提升语言丰富度、表达流畅度和专业性，保留原意，只返回处理后的文本。";
             case SUMMARY:
