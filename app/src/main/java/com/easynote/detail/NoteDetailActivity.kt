@@ -44,7 +44,7 @@ class NoteDetailActivity : AppCompatActivity() {
 
     private val viewModel: NoteDetailViewModel by viewModels()
     private var currentNoteId: Long = 1L
-    private var noteTitle: String = ""
+    private var noteTitle: String = "未命名笔记"
     private lateinit var ivTag: ImageView
     private var currentTags = hashSetOf<TagEntity>()
 
@@ -56,7 +56,7 @@ class NoteDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_detail)
         currentNoteId = intent.getLongExtra("NOTE_ID", -1L)
-        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "无标题笔记"
+        noteTitle = intent.getStringExtra("NOTE_TITLE") ?: "未命名笔记"
         initView()
         initData()
         initListeners()
