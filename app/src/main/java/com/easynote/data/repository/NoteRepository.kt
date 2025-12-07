@@ -168,7 +168,7 @@ interface NoteRepository {
      */
     suspend fun updateSearchTable(
         noteId: Long,
-        pageIndex: Int,
+        pageIndex: Int? = null,
         title: String? = null,
         summary: String? = null,
         content: String? = null

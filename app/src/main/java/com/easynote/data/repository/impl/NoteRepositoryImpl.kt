@@ -11,6 +11,7 @@ import com.easynote.data.common.exception.DataException
 import com.easynote.data.common.constants.DataExceptionConstants
 import com.easynote.data.annotation.NoteOrderWay
 import com.easynote.data.annotation.UPDATE_TIME_DESC
+import com.easynote.data.common.utils.ToPinyin
 import com.easynote.data.dao.NoteFtsDao
 import com.easynote.data.dao.NoteEntityDao
 import com.easynote.data.dao.NoteTagCrossRefDao
@@ -21,6 +22,7 @@ import com.easynote.data.entity.TagEntity
 import com.easynote.data.relation.NoteWithTags
 import com.easynote.data.repository.FileRepository
 import com.easynote.data.repository.NoteRepository
+import com.github.promeg.pinyinhelper.Pinyin.toPinyin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -32,6 +34,8 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     private val noteTagRefDao: NoteTagCrossRefDao
     private val noteFtsDao: NoteFtsDao
 
+    private val pinYinConverter: ToPinyin
+
     init {
         val noteDatabase = NoteDatabase.getInstance(application)
         this.noteEntityDao = noteDatabase.getNoteEntityDao()
@@ -39,6 +43,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         this.noteTagRefDao = noteDatabase.getNoteTagCrossRefDao()
         this.fileRepository = FileRepositoryImpl(application)
         this.noteFtsDao = noteDatabase.getNoteContentSearchDao()
+        this.pinYinConverter = ToPinyin(application.applicationContext)
     }
 
     @Transaction
@@ -162,7 +167,6 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     override suspend fun updateTitleOrSummary(noteId: Long, title: String?, summary: String?) =
         withContext(Dispatchers.IO) {
             noteEntityDao.updateTitleOrSummary(noteId, title, summary, System.currentTimeMillis())
-            noteFtsDao.update(noteId, title = title, summary = summary)
         }
 
     override suspend fun getAllNotes(): List<NoteEntity> =
@@ -235,7 +239,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
         ) {
             noteEntityDao.getAllWithTagsPaging(
                 tagIds,
-                query,
+                pinYinConverter.convertToPinyin(query),
                 startTime,
                 endTime,
                 orderWay ?: UPDATE_TIME_DESC,
@@ -274,7 +278,7 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
     @Transaction
     override suspend fun updateSearchTable(
         noteId: Long,
-        pageIndex: Int,
+        pageIndex: Int?,
         title: String?,
         summary: String?,
         content: String?
@@ -283,17 +287,17 @@ class NoteRepositoryImpl(application: Application) : NoteRepository {
             noteFtsDao.insert(
                 noteId,
                 pageIndex,
-                title,
-                summary,
-                content
+                pinYinConverter.convertToPinyin(title),
+                pinYinConverter.convertToPinyin(summary),
+                pinYinConverter.convertToPinyin(content),
             )
         } else {
             noteFtsDao.update(
                 noteId,
                 pageIndex,
-                title = title,
-                summary = summary,
-                content = content
+                title = pinYinConverter.convertToPinyin(title),
+                summary = pinYinConverter.convertToPinyin(summary),
+                content = pinYinConverter.convertToPinyin(content),
             )
         }
     }

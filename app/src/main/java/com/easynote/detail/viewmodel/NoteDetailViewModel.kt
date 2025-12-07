@@ -2,6 +2,7 @@ package com.easynote.detail.viewmodel
 
 import android.app.Application
 import android.net.Uri
+import android.text.Html
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -94,7 +95,7 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             try {
                 // 提取纯文本用于搜索预览（可选，简单正则去标签）
-                val plainText = htmlContent.replace(Regex("<[^>]*>"), "")
+                val plainText = Html.fromHtml(htmlContent,Html.FROM_HTML_MODE_LEGACY).toString()
 
                 // 调用 Repository 保存
                 repository.updateNoteContent(
@@ -171,14 +172,14 @@ class NoteDetailViewModel(application: Application) : AndroidViewModel(applicati
                 val titleToSave = if (currentTitle.isBlank()) "无标题笔记" else currentTitle
 
                 val firstPageHtml = pages.firstOrNull()?.content ?: ""
-                val summary = firstPageHtml.replace(Regex("<[^>]*>"), "").take(100)
+                val summary = Html.fromHtml(firstPageHtml,Html.FROM_HTML_MODE_LEGACY).toString().take(100)
 
                 repository.updateTitleOrSummary(noteId, titleToSave, summary)
 
                 repository.updateNoteTags(noteId, *tags.toTypedArray())
 
                 pages.forEach { page ->
-                    val plainText = page.content.replace(Regex("<[^>]*>"), "")
+                    val plainText = Html.fromHtml(page.content,Html.FROM_HTML_MODE_LEGACY).toString()
                     repository.updateNoteContent(
                         noteId = noteId,
                         pageIndex = page.pageNumber,
