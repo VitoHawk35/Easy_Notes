@@ -27,7 +27,7 @@
         android:id="@+id/ivCheck"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:src="@drawable/detail_icon_home"
+        android:src="@drawable/detail_ic_chosen"
         android:visibility="gone"/>
 
 </LinearLayout>

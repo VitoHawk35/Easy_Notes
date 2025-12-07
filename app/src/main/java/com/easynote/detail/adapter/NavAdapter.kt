@@ -7,7 +7,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.easynote.R
 import com.easynote.detail.data.model.NotePage
-
+import android.text.Html
+import android.os.Build
 class NavAdapter(
     private val pages: List<NotePage>,
     private val onItemClick: (Int) -> Unit
@@ -36,30 +37,22 @@ class NavAdapter(
 
         holder.tvPageNum.text = "P${position + 1}"
 
-//        val rawContent = page.content.trim()
-//
-//        val flatContent = rawContent.replace("\n", " ")
-//
-//        holder.tvContent.text = if (flatContent.isBlank()) {
-//            "(空白页)"
-//        } else if (flatContent.length > 15) {
-//            "${flatContent.substring(0, 15)}..."
-//        } else {
-//            flatContent
-//        }
+        val spanned = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Html.fromHtml(page.content, Html.FROM_HTML_MODE_COMPACT)
+        } else {
+            @Suppress("DEPRECATION")
+            Html.fromHtml(page.content)
+        }
 
-        // 1. 使用正则去除所有的 HTML 标签 (<p>, </div>, <b> 等)
-        var plainText = page.content.replace(Regex("<[^>]*>"), "")
+        var plainText = spanned.toString()
+        if (plainText.contains("\uFFFC")) {
+            plainText = plainText.replace("\uFFFC", "[图片]")
+        }
 
-        // 2. 处理富文本编辑器常见的转义空格 "&nbsp;"，把它变成普通空格
-        plainText = plainText.replace("&nbsp;", " ")
-
-        // 3. 去除换行符和首尾空白
         plainText = plainText.replace("\n", " ").trim()
 
-        // 4. 设置显示文本
+
         holder.tvContent.text = if (plainText.isBlank()) {
-            // 优化体验：如果去掉了标签发现是空的，但原内容里有图片标签，提示“[图片]”
             if (page.content.contains("<img")) {
                 "[图片]"
             } else {

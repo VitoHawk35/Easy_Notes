@@ -188,7 +188,8 @@ class NoteDetailActivity : AppCompatActivity() {
         }
 
         btnMore.setOnClickListener {
-            addNewPage()
+//            addNewPage()
+            showPageManageMenu()
         }
 
         btnModeToggle.setOnClickListener {
@@ -196,11 +197,11 @@ class NoteDetailActivity : AppCompatActivity() {
             updateModeState()
         }
 
-        etTitle.setOnClickListener {
-            if (isReadOnly) {
-                Toast.makeText(this, "当前为只读模式", Toast.LENGTH_SHORT).show()
-            }
-        }
+//        etTitle.setOnClickListener {
+//            if (isReadOnly) {
+//                Toast.makeText(this, "当前为只读模式", Toast.LENGTH_SHORT).show()
+//            }
+//        }
 
         btnShare.setOnClickListener {
             exportNoteText()
@@ -228,14 +229,14 @@ class NoteDetailActivity : AppCompatActivity() {
 
         if (isReadOnly) {
             tvStatus.text = "只读"
-            etTitle.isEnabled = false
+//            etTitle.isEnabled = false
             pagerAdapter.setReadOnlyMode(true)
         } else {
             tvStatus.text = "编辑"
-            etTitle.isEnabled = true
+//            etTitle.isEnabled = true
             pagerAdapter.setReadOnlyMode(false)
         }
-
+        etTitle.isEnabled = true
     }
 
     override fun onPause() {
@@ -395,5 +396,50 @@ class NoteDetailActivity : AppCompatActivity() {
         val tagsToList = currentTags.toList()
 
         viewModel.saveNote(currentNoteId, pageList, tagsToList)
+    }
+
+    private fun showPageManageMenu() {
+        val popup = androidx.appcompat.widget.PopupMenu(this, btnMore)
+
+        popup.menu.add(0, 1, 0, "添加一页")
+        popup.menu.add(0, 2, 0, "删除当前页")
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> {
+                    addNewPage()
+                    true
+                }
+                2 -> {
+                    deleteCurrentPage()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        popup.show()
+    }
+
+    private fun deleteCurrentPage() {
+        if (pageList.size <= 1) {
+            Toast.makeText(this, "已经是最后一页了，无法删除", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val currentPosition = viewPager.currentItem
+
+        pageList.removeAt(currentPosition)
+
+        pageList.forEachIndexed { index, page ->
+            page.pageNumber = index + 1
+        }
+
+        pagerAdapter.notifyItemRemoved(currentPosition)
+        pagerAdapter.notifyItemRangeChanged(currentPosition, pageList.size)
+
+        isDataChanged = true
+
+        Toast.makeText(this, "已删除第 ${currentPosition + 1} 页", Toast.LENGTH_SHORT).show()
     }
 }
