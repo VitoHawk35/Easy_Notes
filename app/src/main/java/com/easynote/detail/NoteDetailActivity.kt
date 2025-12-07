@@ -258,14 +258,31 @@ class NoteDetailActivity : AppCompatActivity() {
                 if (pageList.size > 1) {
                     sb.append("--- 第 ${index + 1} 页 ---\n")
                 }
-                sb.append(page.content)
+
+                val spanned = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    android.text.Html.fromHtml(page.content, android.text.Html.FROM_HTML_MODE_COMPACT)
+                } else {
+                    @Suppress("DEPRECATION")
+                    android.text.Html.fromHtml(page.content)
+                }
+
+                var plainText = spanned.toString()
+
+                if (plainText.contains("\uFFFC")) {
+                    plainText = plainText.replace("\uFFFC", "[图片]")
+                }
+
+                plainText = plainText.trim()
+
+                sb.append(plainText)
                 sb.append("\n\n")
             }
         }
 
         val finalContent = sb.toString()
 
-        if (!hasContent && etTitle.text.isBlank()) {
+        // 这里逻辑稍微改一下：如果解析后的纯文本也是空的，并且标题也没写，才不让分享
+        if (finalContent.trim() == "【无标题笔记】") {
             Toast.makeText(this, "笔记内容为空，无法分享", Toast.LENGTH_SHORT).show()
             return
         }
@@ -278,7 +295,6 @@ class NoteDetailActivity : AppCompatActivity() {
 
         startActivity(Intent.createChooser(intent, "将笔记分享到..."))
     }
-
     private fun showNavigationDialog() {
         currentFocus?.clearFocus()
 
@@ -324,7 +340,7 @@ class NoteDetailActivity : AppCompatActivity() {
             currentTags.clear()
             currentTags.addAll(tempSelectedTags)
 
-            val msg = if (currentTags.isEmpty()) "未选择标签" else "已选: ${currentTags.joinToString(",")}"
+            val msg = if (currentTags.isEmpty()) "未选择标签" else "标签已更新"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
             val firstTagName = currentTags.firstOrNull()?.name ?: ""
